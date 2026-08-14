@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useCarrinho } from '../context/CarrinhoContext';
+import api from '../services/api'; // ✅ IMPORTANTE: importa a API
 import { XMarkIcon, ShoppingCartIcon, DocumentTextIcon, UserIcon, PhoneIcon, MapPinIcon } from '@heroicons/react/24/outline';
 
 // CORES OFICIAIS
@@ -13,6 +14,7 @@ export default function Carrinho({ aberto, fechar }) {
   const [nome, setNome] = useState('');
   const [telefone, setTelefone] = useState('');
   const [endereco, setEndereco] = useState('');
+  const [salvando, setSalvando] = useState(false); // ✅ controle de carregamento
 
   if (!aberto) return null;
 
@@ -27,20 +29,61 @@ export default function Carrinho({ aberto, fechar }) {
   // Calcula total
   const total = itens.reduce((s, i) => s + (i.precoExibicao || i.preco) * i.quantidade, 0);
 
-  // Envia para WhatsApp
-  const enviarWhatsApp = () => {
+  // ✅ SALVA NO BANCO + Envia WhatsApp
+  const enviarPedido = async () => {
     if (!nome.trim() || !telefone.trim()) {
       alert('Preencha nome e telefone!');
       return;
     }
 
-    const lista = itens.map(i => `✅ ${i.nome} — ${i.quantidade}x — R$ ${((i.precoExibicao || i.preco) * i.quantidade).toFixed(2).replace('.', ',')}`).join('\n');
-    const mensagem = `🛒 NOVO PEDIDO PLACETECH\n\n${lista}\n\n💰 Total: R$ ${total.toFixed(2).replace('.', ',')}\n\n📋 DADOS DO CLIENTE:\n👤 Nome: ${nome}\n📱 Telefone: ${telefone}\n📍 Endereço: ${endereco || 'Não informado'}`;
+    setSalvando(true); // ⏳ mostra que está salvando
 
-    const link = `https://wa.me/5519999999999?text=${encodeURIComponent(mensagem)}`;
-    window.open(link, '_blank');
-    limpar();
-    fechar();
+    try {
+      // 📦 PREPARA OS DADOS DO PEDIDO
+      const dadosPedido = {
+        itens: itens.map(i => ({
+          _id: i._id,
+          nome: i.nome,
+          preco: i.precoExibicao || i.preco,
+          quantidade: i.quantidade,
+          imagem: i.imagem || ''
+        })),
+        total: total,
+        dadosCliente: {
+          nome: nome.trim(),
+          telefone: telefone.trim(),
+          endereco: endereco.trim()
+        },
+        status: 'pendente'
+      };
+
+      // ✅ ENVIA PARA O BANCO (API)
+      console.log("📤 Enviando pedido:", dadosPedido);
+      const resposta = await api.post('/pedidos', dadosPedido);
+
+      if (resposta.data.sucesso) {
+        console.log("✅ Pedido salvo no banco!", resposta.data.pedido._id);
+        
+        // ✅ AGORA ENVIA PARA O WHATSAPP
+        const lista = itens.map(i => `✅ ${i.nome} — ${i.quantidade}x — R$ ${((i.precoExibicao || i.preco) * i.quantidade).toFixed(2).replace('.', ',')}`).join('\n');
+        const mensagem = `🛒 NOVO PEDIDO PLACETECH\n\n${lista}\n\n💰 Total: R$ ${total.toFixed(2).replace('.', ',')}\n\n📋 DADOS DO CLIENTE:\n👤 Nome: ${nome}\n📱 Telefone: ${telefone}\n📍 Endereço: ${endereco || 'Não informado'}`;
+
+        // ⚠️ TROQUE O NÚMERO ABAIXO PELO SEU DO WHATSAPP
+        const link = `https://wa.me/5519999999999?text=${encodeURIComponent(mensagem)}`;
+        window.open(link, '_blank');
+
+        limpar();
+        fechar();
+      } else {
+        alert("Erro: " + resposta.data.erro);
+      }
+
+    } catch (erro) {
+      console.error("❌ Erro ao salvar pedido:", erro.response?.data || erro.message);
+      alert("Não foi possível salvar o pedido! Tente novamente.");
+    } finally {
+      setSalvando(false);
+    }
   };
 
   return (
@@ -180,19 +223,22 @@ export default function Carrinho({ aberto, fechar }) {
                 </div>
               </div>
 
-              {/* Botão Enviar */}
+              {/* Botão Enviar — ✅ Agora Salva no Banco + WhatsApp */}
               <button
-                onClick={enviarWhatsApp}
+                onClick={enviarPedido}
+                disabled={salvando}
                 style={{
                   width: '100%', marginTop: '20px', padding: '14px',
-                  backgroundColor: VERDE, color: 'white', border: 'none',
-                  borderRadius: '8px', fontSize: '16px', fontWeight: 600, cursor: 'pointer',
+                  backgroundColor: salvando ? '#888' : VERDE, 
+                  color: 'white', border: 'none',
+                  borderRadius: '8px', fontSize: '16px', fontWeight: 600, 
+                  cursor: salvando ? 'not-allowed' : 'pointer',
                   transition: 'background 0.2s'
                 }}
-                onMouseOver={e => e.target.style.backgroundColor = '#008C45'}
-                onMouseOut={e => e.target.style.backgroundColor = VERDE}
+                onMouseOver={e => !salvando && (e.target.style.backgroundColor = '#008C45')}
+                onMouseOut={e => !salvando && (e.target.style.backgroundColor = VERDE)}
               >
-                📲 Enviar via WhatsApp
+                {salvando ? '⏳ Salvando...' : '📲 Enviar via WhatsApp'}
               </button>
 
               <p style={{textAlign: 'center', fontSize: '13px', color: '#888', marginTop: '10px'}}>

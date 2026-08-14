@@ -68,14 +68,21 @@ export default function Dashboard() {
       <div className="row g-4 mb-4">
         {cards.map((card, i) => (
           <div key={i} className="col-sm-6 col-md-3">
-            <div className="card card-padrao p-4 h-100">
-              <div className="d-flex align-items-center gap-3">
-                <div className="rounded-3 p-3" style={{backgroundColor: `${card.cor}15`}}>
-                  <card.icone style={{width: '24px', height: '24px', color: card.cor}} />
-                </div>
-                <div>
-                  <p className="text-muted small mb-1">{card.label}</p>
-                  <h3 className="fw-bold mb-0" style={{fontSize: '28px'}}>{card.valor}</h3>
+            <div className=" card-padrao p-3 h-100 align-self-end ">
+              <div className="d-flex align-items-center">
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',  /* Alinha pela linha de base das letras */
+                  justifyContent: 'center', /* Centraliza o conjunto inteiro */
+                  gap: '6px'                /* Espaço entre texto e número */
+                }}>
+                  <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>{card.label}</p>
+                  <h4 style={{ 
+                    margin: 0, 
+                    fontSize: '32px', 
+                    fontWeight: '700',
+                    lineHeight: '1'
+                  }}>{card.valor}</h4>
                 </div>
               </div>
             </div>
@@ -87,13 +94,12 @@ export default function Dashboard() {
         {/* ⚡ ACESSO RÁPIDO */}
         <div className="col-md-5">
           <div className="card card-padrao p-4 h-100">
-            <h5 className="fw-bold mb-4">Acesso Rápido</h5>
-            <div className="d-grid gap-2">
+            <div className="d-grid gap-1">
               {[
-                { to: '/loja/produtos', icone: ShoppingBagIcon, texto: 'Gerenciar Produtos', desc: 'Editar, cadastrar e excluir' },
-                { to: '/loja/importar', icone: ArrowDownTrayIcon, texto: 'Adicionar Produto', desc: 'Via link ou manualmente' },
-                { to: '/loja/pedidos', icone: DocumentTextIcon, texto: 'Ver Pedidos', desc: 'Acompanhar vendas' },
-                { to: '/loja/relatorios', icone: ChartBarIcon, texto: 'Relatórios', desc: 'Dados e exportação' },
+                { to: '/loja/produtos', icone: ShoppingBagIcon, texto: 'Gerenciar Produtos' },
+                { to: '/loja/importar', icone: ArrowDownTrayIcon, texto: 'Adicionar Produto' },
+                { to: '/loja/pedidos', icone: DocumentTextIcon, texto: 'Ver Pedidos' },
+                { to: '/loja/relatorios', icone: ChartBarIcon, texto: 'Relatórios' },
               ].map(item => (
                 <Link key={item.to} to={item.to} 
                   className="d-flex align-items-center gap-3 p-3 rounded-3 text-decoration-none text-dark hover:bg-light border transition">

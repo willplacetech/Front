@@ -49,12 +49,28 @@ export default function LayoutAdmin({ children, loading = false, titulo = '', su
         .menu-item.ativo { background-color: ${AMARELO}; color: ${PRETO}; font-weight: 600; }
         
         /* CARDS PADRONIZADOS */
-        .card-padrao { 
+        .card-padrao {
+          align-items: center;
           border-radius: 16px; 
           box-shadow: 0 1px 3px rgba(0,0,0,0.08); 
           border: none; 
           background: white;
+          display: flex;
+          justify-content: center;
         }
+          svg {
+            max-width: none !important;
+            max-height: none !important;
+            height: auto !important;
+          }
+
+          /* ✅ TAMANHO EXATO DOS ÍCONES DO MENU */
+          .menu-item svg {
+            width: 20px !important;
+            height: 20px !important;
+            max-width: none !important;
+            max-height: none !important;
+          }
         
         /* ÁREA DE CONTEÚDO — TRANSIÇÃO SUAVE */
         .conteudo-pagina {
@@ -80,23 +96,24 @@ export default function LayoutAdmin({ children, loading = false, titulo = '', su
       {/* 🔝 HEADER — FIXO, NÃO MUDA AO NAVEGAR */}
       {/* ========================================== */}
       <header className="bg-placetech-yellow py-3 shadow-sm sticky-top z-3">
-        <div className="container">
-          <div className="row align-items-center g-3">
-            {/* Logo — SEMPRE IGUAL */}
-            <div className="col-md-1">
-              <Link to="/loja" className="text-decoration-none d-flex align-items-center gap-2">
+        <div className="container-fluid px-5">
+          <div className="d-flex align-items-center justify-content-between">
+            
+            {/* LADO ESQUERDO — Logo */}
+            <div style={{width: '15%', flexShrink: 0}}>
+              <Link to="/loja" className="text-decoration-none">
                 <span className="h4 fw-bold text-dark mb-0">Placetech</span>
               </Link>
             </div>
 
-            {/* Título da Página — MUDA SUAVEMENTE */}
-            <div className="col-md-8 d-none d-md-block">
-              <h5 className="fw-bold text-dark mb-0 transition-all">{titulo}</h5>
+            {/* CENTRO — Título e Subtítulo REALMENTE Centralizados */}
+            <div style={{width: '70%', textAlign: 'center'}} className="d-none d-md-block">
+              <h5 className="fw-bold text-dark mb-1 transition-all">{titulo}</h5>
               {subtitulo && <p className="small text-dark opacity-75 mb-0">{subtitulo}</p>}
             </div>
 
-            {/* AÇÕES — SEMPRE IGUAIS */}
-            <div className="col-md-2 ms-auto d-flex align-items-center gap-1">
+            {/* LADO DIREITO — Botões */}
+            <div style={{width: '15%', flexShrink: 0}} className="d-flex align-items-center justify-content-end gap-2">
               <a href="/" target="_blank" className="btn btn-dark btn-sm d-none d-md-flex align-items-center gap-1">
                 <ArrowTopRightOnSquareIcon style={{width: '16px', height: '16px'}} />
                 Ver Loja
@@ -108,6 +125,7 @@ export default function LayoutAdmin({ children, loading = false, titulo = '', su
                 {menuAberto ? <XMarkIcon style={{width: '20px', height: '20px'}} /> : <Bars3Icon style={{width: '20px', height: '20px'}} />}
               </button>
             </div>
+
           </div>
         </div>
       </header>
@@ -125,7 +143,7 @@ export default function LayoutAdmin({ children, loading = false, titulo = '', su
                 onClick={() => setMenuAberto(false)}
                 className={`menu-item d-flex align-items-center gap-3 px-3 py-2 text-decoration-none ${isAtivo(item.path) ? 'ativo' : 'text-dark'}`}
               >
-                <item.icon style={{width: '20px', height: '20px'}} />
+                <item.icon style={{width: '20px', height: '20px', maxWidth: 'none'}} />
                 <div>
                   <div className="fw-medium">{item.label}</div>
                   <div className="small opacity-50">{item.desc}</div>
@@ -152,22 +170,71 @@ export default function LayoutAdmin({ children, loading = false, titulo = '', su
           
           {/* MENU LATERAL — PERMANECE FIXO */}
           <div className="col-md-3 d-none d-md-block">
-            <div className="card card-padrao p-3" style={{position: 'sticky', top: '90px'}}>
-              <nav className="d-flex flex-column gap-1">
-                {MENU.map(item => (
-                  <Link
-                    key={item.path}
-                    to={`/loja/${item.path}`}
-                    className={`menu-item d-flex align-items-center gap-3 px-3 py-2 text-decoration-none ${isAtivo(item.path) ? 'ativo' : 'text-dark'}`}
-                  >
-                    <item.icon style={{width: '20px', height: '20px'}} />
-                    <div>
-                      <div className="fw-medium">{item.label}</div>
-                      <div className="small opacity-50">{item.desc}</div>
-                    </div>
-                  </Link>
-                ))}
-              </nav>
+            <div className="card card-padrao p-3" style={{ position: 'sticky', top: '90px', width: '100%', height: '80vh', display: 'flex', flexDirection: 'column'}}>
+<nav 
+  className="d-flex flex-column"
+  style={{ 
+    flex: 1, 
+    justifyContent: 'space-evenly',
+    padding: '8px 0'
+  }}
+>
+  {MENU.map(item => {
+    const Icone = item.icon; // ✅ Renomeia para maiúsculo = renderização correta
+    return (
+      <Link
+        key={item.path}
+        to={`/loja/${item.path}`}
+        className={`menu-item d-flex align-items-center gap-3 px-3 py-3 text-decoration-none ${isAtivo(item.path) ? 'ativo' : 'text-dark'}`}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          width: '100%',
+          boxSizing: 'border-box'
+        }}
+      >
+        {/* ✅ ÍCONES — LARGURA FIXA = TODOS ALINHADOS VERTICALMENTE */}
+        <div style={{
+          width: '24px',
+          minWidth: '24px', // 👇 Garante que NÃO encolhe
+          height: '24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0
+        }}>
+          <Icone style={{
+            width: '20px',
+            height: '20px',
+            maxWidth: 'none',
+            maxHeight: 'none',
+            flexShrink: 0
+          }} />
+        </div>
+
+        {/* ✅ TEXTOS — LINHAS ALINHADAS ENTRE TODOS OS ITENS */}
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          lineHeight: '1.3',
+          flex: 1
+        }}>
+          <span style={{
+            fontSize: '15px',
+            fontWeight: 500,
+            lineHeight: '1.2'
+          }}>{item.label}</span>
+          <span style={{
+            fontSize: '12px',
+            opacity: 0.55,
+            lineHeight: '1.2'
+          }}>{item.desc}</span>
+        </div>
+      </Link>
+    );
+  })}
+</nav>
             </div>
           </div>
 

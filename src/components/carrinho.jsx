@@ -38,24 +38,41 @@ export default function Carrinho({ aberto, fechar }) {
 
     setSalvando(true); // ⏳ mostra que está salvando
 
-    try {
-      // 📦 PREPARA OS DADOS DO PEDIDO
-      const dadosPedido = {
-        itens: itens.map(i => ({
-          _id: i._id,
-          nome: i.nome,
-          preco: i.precoExibicao || i.preco,
-          quantidade: i.quantidade,
-          imagem: i.imagem || ''
-        })),
-        total: total,
-        dadosCliente: {
-          nome: nome.trim(),
-          telefone: telefone.trim(),
-          endereco: endereco.trim()
-        },
-        status: 'pendente'
-      };
+   try {
+  // ✅ VALIDAÇÃO ANTES DE ENVIAR (já tem no seu código, mantenha!)
+  if (!nome.trim() || !telefone.trim()) {
+    alert('Preencha nome e telefone!');
+    return;
+  }
+
+  // 📦 PREPARA OS DADOS DO PEDIDO
+  const dadosPedido = {
+    itens: itens.map(i => ({
+      _id: i._id,
+      nome: i.nome,
+      preco: i.precoExibicao || i.preco,
+      quantidade: i.quantidade,
+      imagem: i.imagem || ''
+    })),
+    total: total,
+    dadosCliente: {
+      nome: nome.trim() || 'Nome não informado',      // ✅ Fallback: nunca fica vazio
+      telefone: telefone.trim() || 'Telefone não informado',
+      endereco: endereco.trim() || 'Endereço não informado'
+    },
+    status: 'pendente'
+  };
+
+  // ✅ ENVIA PARA O BANCO
+  const resposta = await api.post('/pedidos', dadosPedido);
+  console.log("✅ Pedido salvo:", resposta.data);
+
+  // ... resto do código (abrir WhatsApp, limpar, fechar) ...
+
+} catch (erro) {
+  console.error("❌ Erro:", erro);
+  alert("Erro ao salvar pedido!");
+}
 
       // ✅ ENVIA PARA O BANCO (API)
       console.log("📤 Enviando pedido:", dadosPedido);

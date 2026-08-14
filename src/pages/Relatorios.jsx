@@ -3,6 +3,13 @@ import api from '../services/api';
 import LayoutAdmin from '../components/LayoutAdmin';
 import Loading from '../components/Loading';
 
+// CORES OFICIAIS PLACETECH
+const AZUL = '#3483FA';
+const VERDE = '#00A650';
+const AMARELO = '#F9D828';
+const CINZA = '#F5F5F5';
+const PRETO = '#000000';
+
 export default function Relatorios() {
   const [produtos, setProdutos] = useState([]);
   const [pedidos, setPedidos] = useState([]);
@@ -19,7 +26,7 @@ export default function Relatorios() {
   const exportar = () => {
     let csv = 'Produto;Preço;Categoria;Status\n';
     produtos.forEach(p => {
-      csv += `"${p.nome}";${(p.precoExibicao || p.preco).toFixed(2)};"${p.categoria || ''}";${p.disponivel ? 'Ativo' : 'Inativo'}\n`;
+      csv += `"${p.nome}";${(p.precoExibicao || p.preco).toFixed(2).replace('.', ',')};"${p.categoria || ''}";${p.disponivel ? 'Ativo' : 'Inativo'}\n`;
     });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
@@ -28,10 +35,10 @@ export default function Relatorios() {
   };
 
   const stats = [
-    { label: 'Total Pedidos',    valor: pedidos.length,            cor: 'bg-blue-500' },
-    { label: 'Faturamento',      valor: `R$ ${faturamento.toFixed(2)}`, cor: 'bg-emerald-500' },
-    { label: 'Pendentes',        valor: pedidos.filter(p => p.status === 'pendente').length, cor: 'bg-amber-500' },
-    { label: 'Total Produtos',   valor: produtos.length,           cor: 'bg-violet-500' },
+    { label: 'Total Pedidos', valor: pedidos.length, cor: AZUL },
+    { label: 'Faturamento', valor: `R$ ${faturamento.toFixed(2).replace('.', ',')}`, cor: VERDE },
+    { label: 'Pendentes', valor: pedidos.filter(p => p.status === 'pendente').length, cor: AMARELO },
+    { label: 'Total Produtos', valor: produtos.length, cor: '#9333EA' },
   ];
 
   return (
@@ -40,40 +47,89 @@ export default function Relatorios() {
       titulo="Relatórios"
       subtitulo="Dados gerenciais PLACETECH LINDOIA"
     >
-      <div className="flex justify-end mb-6">
-        <button onClick={exportar} className="btn btn-primary rounded-xl">⬇️ Exportar CSV</button>
+      {/* BOTÃO EXPORTAR */}
+      <div style={{display: 'flex', justifyContent: 'flex-end', marginBottom: '24px'}}>
+        <button
+          onClick={exportar}
+          style={{
+            backgroundColor: AZUL, color: 'white', border: 'none',
+            borderRadius: '12px', padding: '10px 20px',
+            fontSize: '14px', fontWeight: 600, cursor: 'pointer',
+            transition: 'background 0.2s ease'
+          }}
+          onMouseOver={e => e.target.style.backgroundColor = '#2968D3'}
+          onMouseOut={e => e.target.style.backgroundColor = AZUL}
+        >
+          ⬇️ Exportar CSV
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+      {/* CARDS DE ESTATÍSTICAS */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+        gap: '20px', marginBottom: '32px'
+      }}>
         {stats.map((s, i) => (
-          <div key={i} className="bg-white p-6 rounded-2xl shadow border-l-8" style={{borderLeftColor: 'var(--tw-gradient-from)'}}>
-            <div className={`w-1 h-10 ${s.cor} absolute`}></div>
-            <p className="text-slate-400 text-sm font-medium">{s.label}</p>
-            <p className="text-3xl font-black text-slate-800 mt-1">{s.valor}</p>
+          <div
+            key={i}
+            style={{
+              backgroundColor: 'white', padding: '24px',
+              borderRadius: '16px', border: '1px solid #eee',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+              borderLeft: `4px solid ${s.cor}`
+            }}
+          >
+            <p style={{fontSize: '14px', color: '#666', margin: 0, fontWeight: 500}}>
+              {s.label}
+            </p>
+            <p style={{fontSize: '32px', fontWeight: 700, color: PRETO, margin: '8px 0 0 0'}}>
+              {s.valor}
+            </p>
           </div>
         ))}
       </div>
 
-      <div className="bg-white rounded-2xl shadow border p-6">
-        <h3 className="text-lg font-bold text-slate-700 mb-4">Produtos Cadastrados</h3>
-        {loading ? <Loading /> : (
-          <div className="overflow-x-auto">
-            <table className="table table-zebra w-full">
-              <thead className="bg-slate-100">
-                <tr>
-                  <th>Produto</th>
-                  <th>Preço</th>
-                  <th>Categoria</th>
-                  <th>Status</th>
+      {/* TABELA DE PRODUTOS */}
+      <div style={{
+        backgroundColor: 'white', borderRadius: '16px',
+        border: '1px solid #eee', boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+        padding: '24px'
+      }}>
+        <h3 style={{fontSize: '18px', fontWeight: 700, color: '#333', margin: '0 0 20px 0', paddingBottom: '12px', borderBottom: '1px solid #eee'}}>
+          Produtos Cadastrados
+        </h3>
+
+        {loading ? (
+          <Loading />
+        ) : (
+          <div style={{overflowX: 'auto'}}>
+            <table style={{width: '100%', borderCollapse: 'collapse'}}>
+              <thead>
+                <tr style={{backgroundColor: CINZA}}>
+                  <th style={{padding: '12px 16px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#444', borderBottom: '1px solid #ddd'}}>Produto</th>
+                  <th style={{padding: '12px 16px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#444', borderBottom: '1px solid #ddd'}}>Preço</th>
+                  <th style={{padding: '12px 16px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#444', borderBottom: '1px solid #ddd'}}>Categoria</th>
+                  <th style={{padding: '12px 16px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#444', borderBottom: '1px solid #ddd'}}>Status</th>
                 </tr>
               </thead>
               <tbody>
                 {produtos.map(p => (
-                  <tr key={p._id} className="hover">
-                    <td className="font-medium">{p.nome}</td>
-                    <td className="font-bold text-placetech-600">R$ {(p.precoExibicao || p.preco).toFixed(2)}</td>
-                    <td>{p.categoria || '-'}</td>
-                    <td><span className={`badge badge-sm ${p.disponivel ? 'badge-success' : 'badge-error'}`}>{p.disponivel ? 'Ativo' : 'Inativo'}</span></td>
+                  <tr key={p._id} style={{borderBottom: '1px solid #f0f0f0'}}>
+                    <td style={{padding: '14px 16px', fontSize: '14px', fontWeight: 500}}>{p.nome}</td>
+                    <td style={{padding: '14px 16px', fontSize: '14px', fontWeight: 700, color: AZUL}}>
+                      R$ {(p.precoExibicao || p.preco).toFixed(2).replace('.', ',')}
+                    </td>
+                    <td style={{padding: '14px 16px', fontSize: '14px', color: '#555'}}>{p.categoria || '-'}</td>
+                    <td style={{padding: '14px 16px'}}>
+                      <span style={{
+                        padding: '4px 12px', borderRadius: '12px', fontSize: '12px', fontWeight: 600,
+                        backgroundColor: p.disponivel ? '#ECFDF3' : '#FEF2F2',
+                        color: p.disponivel ? VERDE : '#DC2626'
+                      }}>
+                        {p.disponivel ? 'Ativo' : 'Inativo'}
+                      </span>
+                    </td>
                   </tr>
                 ))}
               </tbody>

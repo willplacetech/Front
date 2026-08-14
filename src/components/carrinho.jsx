@@ -1,149 +1,207 @@
 import { useState } from 'react';
 import { useCarrinho } from '../context/CarrinhoContext';
-import api from '../services/api';
-import { 
-  XMarkIcon, PlusIcon, MinusIcon, TrashIcon,
-  ShoppingBagIcon, CheckCircleIcon 
-} from '@heroicons/react/24/outline';
+import { XMarkIcon, ShoppingCartIcon, DocumentTextIcon, UserIcon, PhoneIcon, MapPinIcon } from '@heroicons/react/24/outline';
 
-const TELEFONE_LOJA = '11999999999'; // ⚠️ ALTERE PARA SEU NÚMERO
+// CORES OFICIAIS
+const AMARELO = '#F9D828';
+const AZUL = '#3483FA';
+const VERDE = '#00A650';
+const PRETO = '#000000';
 
-export default function Carrinho({ onClose }) {
-  const { itens, remover, alterarQtd, total, limpar, enviarWhatsapp } = useCarrinho();
-  const [cliente, setCliente] = useState({ nome: '', telefone: '', endereco: '' });
-  const [finalizado, setFinalizado] = useState(false);
-  const [enviando, setEnviando] = useState(false);
+export default function Carrinho({ aberto, fechar }) {
+  const { itens, remover, alterarQuantidade, limpar } = useCarrinho();
+  const [nome, setNome] = useState('');
+  const [telefone, setTelefone] = useState('');
+  const [endereco, setEndereco] = useState('');
 
-  const finalizar = async () => {
-    if (!cliente.nome.trim() || !cliente.telefone.trim()) {
-      alert('Por favor, preencha seu nome e telefone');
-      return;
-    }
-    setEnviando(true);
-    try {
-      await api.post('/pedidos', {
-        cliente,
-        itens: itens.map(i => ({
-          produtoId: i._id,
-          nome: i.nome,
-          preco: i.precoExibicao || i.preco,
-          quantidade: i.quantidade
-        }))
-      });
-      const link = enviarWhatsapp(TELEFONE_LOJA, cliente);
-      window.open(link, '_blank');
-      limpar();
-      setFinalizado(true);
-    } catch (err) {
-      alert('Erro ao finalizar pedido');
-    }
-    setEnviando(false);
+  if (!aberto) return null;
+
+  // Formata telefone
+  const formatarTelefone = (valor) => {
+    const nums = valor.replace(/\D/g, '');
+    if (nums.length <= 2) return nums;
+    if (nums.length <= 7) return `(${nums.slice(0,2)}) ${nums.slice(2)}`;
+    return `(${nums.slice(0,2)}) ${nums.slice(2,7)}-${nums.slice(7,11)}`;
   };
 
-  const totalItens = itens.reduce((s, i) => s + i.quantidade, 0);
+  // Calcula total
+  const total = itens.reduce((s, i) => s + (i.precoExibicao || i.preco) * i.quantidade, 0);
+
+  // Envia para WhatsApp
+  const enviarWhatsApp = () => {
+    if (!nome.trim() || !telefone.trim()) {
+      alert('Preencha nome e telefone!');
+      return;
+    }
+
+    const lista = itens.map(i => `✅ ${i.nome} — ${i.quantidade}x — R$ ${((i.precoExibicao || i.preco) * i.quantidade).toFixed(2).replace('.', ',')}`).join('\n');
+    const mensagem = `🛒 NOVO PEDIDO PLACETECH\n\n${lista}\n\n💰 Total: R$ ${total.toFixed(2).replace('.', ',')}\n\n📋 DADOS DO CLIENTE:\n👤 Nome: ${nome}\n📱 Telefone: ${telefone}\n📍 Endereço: ${endereco || 'Não informado'}`;
+
+    const link = `https://wa.me/5519999999999?text=${encodeURIComponent(mensagem)}`;
+    window.open(link, '_blank');
+    limpar();
+    fechar();
+  };
 
   return (
-    <div className="fixed inset-0 z-50" data-theme="minhaLoja">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      
-      <div className="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl flex flex-col" style={{animation: 'slideIn 0.3s ease'}}>
-        <style>{`@keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }`}</style>
+    <>
+      {/* Fundo escuro atrás */}
+      <div onClick={fechar} style={{position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1040}} />
 
-        <div className="bg-gradient-to-r from-primary to-emerald-500 text-white p-6 shadow-lg">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <ShoppingBagIcon className="w-4 h-4" />
-              <div>
-                <h2 className="text-xl font-extrabold">Seu Carrinho</h2>
-                <p className="text-sm text-white/80">{totalItens} item(ns)</p>
-              </div>
-            </div>
-            <button onClick={onClose} className="w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center">
-              <XMarkIcon className="w-4 h-4" />
-            </button>
-          </div>
+      {/* Painel do Carrinho */}
+      <div style={{
+        position: 'fixed', top: 0, right: 0, height: '100vh', width: '420px',
+        backgroundColor: 'white', zIndex: 1050, boxShadow: '-4px 0 20px rgba(0,0,0,0.15)',
+        display: 'flex', flexDirection: 'column'
+      }}>
+        {/* Cabeçalho */}
+        <div style={{
+          padding: '16px 20px', backgroundColor: AMARELO,
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+        }}>
+          <h4 style={{margin: 0, fontSize: '18px', fontWeight: 700, color: PRETO}}>
+            🛒 Meu Carrinho
+          </h4>
+          <button onClick={fechar} style={{border: 'none', background: 'transparent', cursor: 'pointer'}}>
+            <XMarkIcon style={{width: '22px', height: '22px', color: PRETO}} />
+          </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6">
-          {finalizado ? (
-            <div className="text-center py-16">
-              <div className="w-24 h-24 bg-success/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <CheckCircleIcon className="w-16 h-16 text-success" />
-              </div>
-              <h3 className="text-2xl font-black text-success mb-3">Pedido Enviado!</h3>
-              <p className="text-gray-600 mb-8">
-                Seu pedido foi enviado para o nosso WhatsApp. <br/>
-                Entraremos em contato em breve! 📱
-              </p>
-              <button onClick={onClose} className="btn btn-primary btn-wide">Continuar Comprando</button>
-            </div>
-          ) : itens.length === 0 ? (
-            <div className="text-center py-20">
-              <div className="text-7xl mb-4">🛒</div>
-              <h3 className="text-xl font-bold text-gray-500">Seu carrinho está vazio</h3>
-              <p className="text-gray-400 mt-2">Adicione produtos incríveis!</p>
+        {/* Conteúdo com rolagem */}
+        <div style={{flex: 1, overflowY: 'auto', padding: '20px'}}>
+          {itens.length === 0 ? (
+            <div style={{textAlign: 'center', padding: '40px 20px', color: '#666'}}>
+              <ShoppingCartIcon style={{width: '48px', height: '48px', margin: '0 auto 16px', color: '#ccc'}} />
+              <p>Seu carrinho está vazio</p>
             </div>
           ) : (
             <>
-              <div className="space-y-4 mb-6">
-                {itens.map(i => {
-                  const preco = i.precoExibicao || i.preco;
-                  return (
-                    <div key={i._id} className="flex gap-3 p-3 bg-gray-50 rounded-2xl">
-                      <img src={i.imagem} alt={i.nome} className="w-20 h-20 object-contain bg-white rounded-xl" />
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-sm text-gray-800 line-clamp-2">{i.nome}</h4>
-                        <p className="text-primary font-bold mt-1">R$ {preco.toFixed(2)}</p>
-                        <div className="flex items-center justify-between mt-2">
-                          <div className="flex items-center gap-1 bg-white rounded-full border">
-                            <button onClick={() => alterarQtd(i._id, i.quantidade - 1)} className="w-4 h-4 rounded-full hover:bg-gray-100 flex items-center justify-center">
-                              <MinusIcon className="w-4 h-4" />
-                            </button>
-                            <span className="w-8 text-center font-bold text-sm">{i.quantidade}</span>
-                            <button onClick={() => alterarQtd(i._id, i.quantidade + 1)} className="w-4 h-4 rounded-full hover:bg-gray-100 flex items-center justify-center">
-                              <PlusIcon className="w-4 h-4" />
-                            </button>
-                          </div>
-                          <button onClick={() => remover(i._id)} className="text-error hover:text-error/70 p-1">
-                            <TrashIcon className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+              {/* Lista de itens */}
+              {itens.map(item => (
+                <div key={item._id} style={{
+                  display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 0',
+                  borderBottom: '1px solid #eee'
+                }}>
+                  <div style={{flex: 1}}>
+                    <h5 style={{margin: 0, fontSize: '15px', fontWeight: 500}}>{item.nome}</h5>
+                    <p style={{margin: '4px 0 0 0', fontSize: '14px', color: AZUL, fontWeight: 700}}>
+                      R$ {Number(item.precoExibicao || item.preco).toFixed(2).replace('.', ',')}
+                    </p>
+                  </div>
+
+                  {/* Quantidade com botões */}
+                  <div style={{display: 'flex', alignItems: 'center', border: '1px solid #ddd', borderRadius: '6px'}}>
+                    <button
+                      onClick={() => alterarQuantidade(item._id, item.quantidade - 1)}
+                      style={{border: 'none', background: '#f5f5f5', padding: '4px 10px', cursor: 'pointer', fontSize: '16px'}}
+                    >−</button>
+                    <span style={{padding: '4px 12px', fontWeight: 600}}>{item.quantidade}</span>
+                    <button
+                      onClick={() => alterarQuantidade(item._id, item.quantidade + 1)}
+                      style={{border: 'none', background: '#f5f5f5', padding: '4px 10px', cursor: 'pointer', fontSize: '16px'}}
+                    >+</button>
+                  </div>
+                </div>
+              ))}
+
+              {/* Total */}
+              <div style={{
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                padding: '16px 0', borderBottom: '2px solid #eee', margin: '8px 0'
+              }}>
+                <span style={{fontSize: '16px', fontWeight: 500}}>Total do Pedido</span>
+                <span style={{fontSize: '20px', fontWeight: 700, color: AZUL}}>
+                  R$ {total.toFixed(2).replace('.', ',')}
+                </span>
               </div>
 
-              <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-5 rounded-2xl mb-6">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600 font-semibold">Total do Pedido</span>
-                  <span className="text-3xl font-black text-primary">R$ {total.toFixed(2)}</span>
+              {/* Formulário de Dados */}
+              <div style={{marginTop: '16px'}}>
+                <h5 style={{
+                  fontSize: '17px', fontWeight: 700, marginBottom: '16px',
+                  display: 'flex', alignItems: 'center', gap: '8px'
+                }}>
+                  <DocumentTextIcon style={{width: '20px', height: '20px', color: AZUL}} />
+                  Seus Dados
+                </h5>
+
+                <div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
+                  <div style={{position: 'relative'}}>
+                    <UserIcon style={{
+                      position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)',
+                      width: '18px', height: '18px', color: '#999'
+                    }} />
+                    <input
+                      type="text"
+                      placeholder="Seu nome completo"
+                      value={nome}
+                      onChange={e => setNome(e.target.value)}
+                      style={{
+                        width: '100%', padding: '12px 12px 12px 40px',
+                        border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px'
+                      }}
+                    />
+                  </div>
+
+                  <div style={{position: 'relative'}}>
+                    <PhoneIcon style={{
+                      position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)',
+                      width: '18px', height: '18px', color: '#999'
+                    }} />
+                    <input
+                      type="text"
+                      placeholder="Telefone com DDD"
+                      value={telefone}
+                      onChange={e => setTelefone(formatarTelefone(e.target.value))}
+                      maxLength={15}
+                      style={{
+                        width: '100%', padding: '12px 12px 12px 40px',
+                        border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px'
+                      }}
+                    />
+                  </div>
+
+                  <div style={{position: 'relative'}}>
+                    <MapPinIcon style={{
+                      position: 'absolute', left: '12px', top: '14px',
+                      width: '18px', height: '18px', color: '#999'
+                    }} />
+                    <textarea
+                      placeholder="Endereço completo"
+                      value={endereco}
+                      onChange={e => setEndereco(e.target.value)}
+                      rows={2}
+                      style={{
+                        width: '100%', padding: '12px 12px 12px 40px',
+                        border: '1px solid #ddd', borderRadius: '8px', fontSize: '14px', resize: 'vertical'
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <h3 className="font-bold text-gray-700">📋 Seus dados</h3>
-                <input placeholder="👤 Seu nome completo" className="input input-bordered w-full rounded-xl"
-                  value={cliente.nome} onChange={e => setCliente({...cliente, nome: e.target.value})} />
-                <input placeholder="📱 Telefone com DDD" className="input input-bordered w-full rounded-xl"
-                  value={cliente.telefone} onChange={e => setCliente({...cliente, telefone: e.target.value})} />
-                <textarea placeholder="📍 Endereço completo" className="textarea textarea-bordered w-full rounded-xl h-20"
-                  value={cliente.endereco} onChange={e => setCliente({...cliente, endereco: e.target.value})} />
-              </div>
+              {/* Botão Enviar */}
+              <button
+                onClick={enviarWhatsApp}
+                style={{
+                  width: '100%', marginTop: '20px', padding: '14px',
+                  backgroundColor: VERDE, color: 'white', border: 'none',
+                  borderRadius: '8px', fontSize: '16px', fontWeight: 600, cursor: 'pointer',
+                  transition: 'background 0.2s'
+                }}
+                onMouseOver={e => e.target.style.backgroundColor = '#008C45'}
+                onMouseOut={e => e.target.style.backgroundColor = VERDE}
+              >
+                📲 Enviar via WhatsApp
+              </button>
+
+              <p style={{textAlign: 'center', fontSize: '13px', color: '#888', marginTop: '10px'}}>
+                Você será redirecionado para o WhatsApp
+              </p>
             </>
           )}
         </div>
-
-        {itens.length > 0 && !finalizado && (
-          <div className="p-6 border-t bg-white">
-            <button onClick={finalizar} disabled={enviando}
-              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-4 rounded-2xl font-black text-lg shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all disabled:opacity-50 flex items-center justify-center gap-2">
-              {enviando ? <span className="loading loading-spinner loading-md"></span> : <>📱 Enviar via WhatsApp</>}
-            </button>
-            <p className="text-center text-xs text-gray-400 mt-3">Você será redirecionado para o WhatsApp</p>
-          </div>
-        )}
       </div>
-    </div>
+    </>
   );
 }

@@ -38,71 +38,63 @@ export default function Carrinho({ aberto, fechar }) {
 
     setSalvando(true); // ⏳ mostra que está salvando
 
-   try {
-  // ✅ VALIDAÇÃO ANTES DE ENVIAR (já tem no seu código, mantenha!)
+const enviarPedido = async () => {
+  // 1️⃣ VALIDAÇÃO
   if (!nome.trim() || !telefone.trim()) {
-    alert('Preencha nome e telefone!');
+    alert('⚠️ Preencha nome e telefone!');
     return;
   }
 
-  // 📦 PREPARA OS DADOS DO PEDIDO
-  const dadosPedido = {
-    itens: itens.map(i => ({
-      _id: i._id,
-      nome: i.nome,
-      preco: i.precoExibicao || i.preco,
-      quantidade: i.quantidade,
-      imagem: i.imagem || ''
-    })),
-    total: total,
-    dadosCliente: {
-      nome: nome.trim() || 'Nome não informado',      // ✅ Fallback: nunca fica vazio
-      telefone: telefone.trim() || 'Telefone não informado',
-      endereco: endereco.trim() || 'Endereço não informado'
-    },
-    status: 'pendente'
-  };
+  setSalvando(true);
 
-  // ✅ ENVIA PARA O BANCO
-  const resposta = await api.post('/pedidos', dadosPedido);
-  console.log("✅ Pedido salvo:", resposta.data);
+  try {
+    // 2️⃣ PREPARA DADOS
+    const dadosPedido = {
+      itens: itens.map(i => ({
+        _id: i._id,
+        nome: i.nome,
+        preco: i.precoExibicao || i.preco,
+        quantidade: i.quantidade,
+        imagem: i.imagem || ''
+      })),
+      total: total,
+      dadosCliente: {
+        nome: nome.trim() || 'Nome não informado',
+        telefone: telefone.trim() || 'Telefone não informado',
+        endereco: endereco.trim() || 'Endereço não informado'
+      },
+      status: 'pendente'
+    };
 
-  // ... resto do código (abrir WhatsApp, limpar, fechar) ...
+    console.log("📤 Enviando pedido:", dadosPedido);
 
-} catch (erro) {
-  console.error("❌ Erro:", erro);
-  alert("Erro ao salvar pedido!");
-}
+    // 3️⃣ SALVA NO BANCO
+    const resposta = await api.post('/pedidos', dadosPedido);
+    console.log("✅ Pedido salvo no banco!", resposta.data.pedido._id);
 
-      // ✅ ENVIA PARA O BANCO (API)
-      console.log("📤 Enviando pedido:", dadosPedido);
-      const resposta = await api.post('/pedidos', dadosPedido);
+    // 4️⃣ ABRE WHATSAPP
+    const lista = itens.map(i => 
+      `✅ ${i.nome} — ${i.quantidade}x — R$ ${((i.precoExibicao || i.preco) * i.quantidade).toFixed(2).replace('.', ',')}`
+    ).join('\n');
 
-      if (resposta.data.sucesso) {
-        console.log("✅ Pedido salvo no banco!", resposta.data.pedido._id);
-        
-        // ✅ AGORA ENVIA PARA O WHATSAPP
-        const lista = itens.map(i => `✅ ${i.nome} — ${i.quantidade}x — R$ ${((i.precoExibicao || i.preco) * i.quantidade).toFixed(2).replace('.', ',')}`).join('\n');
-        const mensagem = `🛒 NOVO PEDIDO PLACETECH\n\n${lista}\n\n💰 Total: R$ ${total.toFixed(2).replace('.', ',')}\n\n📋 DADOS DO CLIENTE:\n👤 Nome: ${nome}\n📱 Telefone: ${telefone}\n📍 Endereço: ${endereco || 'Não informado'}`;
+    const mensagem = `🛒 NOVO PEDIDO PLACETECH\n\n${lista}\n\n💰 Total: R$ ${total.toFixed(2).replace('.', ',')}\n\n📋 DADOS DO CLIENTE:\n👤 Nome: ${nome}\n📱 Telefone: ${telefone}\n📍 Endereço: ${endereco || 'Não informado'}`;
 
-        // ⚠️ TROQUE O NÚMERO ABAIXO PELO SEU DO WHATSAPP
-        const link = `https://wa.me/5519999999999?text=${encodeURIComponent(mensagem)}`;
-        window.open(link, '_blank');
+    // ⚠️ TROQUE PELO SEU NÚMERO REAL DO WHATSAPP
+    const link = `https://wa.me/5519999999999?text=${encodeURIComponent(mensagem)}`;
+    window.open(link, '_blank');
 
-        limpar();
-        fechar();
-      } else {
-        alert("Erro: " + resposta.data.erro);
-      }
+    // 5️⃣ LIMPA E FECHA
+    limpar();
+    fechar();
 
-    } catch (erro) {
-      console.error("❌ Erro ao salvar pedido:", erro.response?.data || erro.message);
-      alert("Não foi possível salvar o pedido! Tente novamente.");
-    } finally {
-      setSalvando(false);
-    }
-  };
-
+  } catch (erro) {
+    // ❌ TRATA QUALQUER ERRO DE UMA VEZ SÓ
+    console.error("❌ Erro ao salvar pedido:", erro.response?.data || erro.message);
+    alert("Não foi possível salvar o pedido! Tente novamente.");
+  } finally {
+    setSalvando(false);
+  }
+};
   return (
     <>
       {/* Fundo escuro atrás */}
@@ -267,4 +259,4 @@ export default function Carrinho({ aberto, fechar }) {
       </div>
     </>
   );
-}
+}}

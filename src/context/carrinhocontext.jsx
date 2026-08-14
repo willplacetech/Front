@@ -1,65 +1,68 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react'; // ✅ Importei useEffect
 
 const CarrinhoContext = createContext();
 
 export function CarrinhoProvider({ children }) {
-  const [itens, setItens] = useState(() => {
-    const salvo = localStorage.getItem('carrinho');
-    return salvo ? JSON.parse(salvo) : [];
-  });
+  const [itens, setItens] = useState([]);
 
+  // ✅ ADICIONE ESSE BLOCO — ZERA O CARRINHO NO CARREGAMENTO INICIAL
   useEffect(() => {
-    localStorage.setItem('carrinho', JSON.stringify(itens));
-  }, [itens]);
+    limpar(); // Chama a função de limpar UMA VEZ quando o app abre
+  }, []); // ← Colchetes vazios = executa apenas no carregamento inicial
 
+  // ✅ ADICIONAR ITEM
   const adicionar = (produto) => {
     setItens(prev => {
       const existe = prev.find(i => i._id === produto._id);
       if (existe) {
-        return prev.map(i => i._id === produto._id 
-          ? { ...i, quantidade: i.quantidade + 1 }
-          : i
+        return prev.map(i => 
+          i._id === produto._id 
+            ? { ...i, quantidade: i.quantidade + 1 } 
+            : i
         );
+      } else {
+        return [...prev, { ...produto, quantidade: 1 }];
       }
-      return [...prev, { ...produto, quantidade: 1 }];
     });
   };
 
-  const remover = (id) => setItens(prev => prev.filter(i => i._id !== id));
-  
-  const alterarQtd = (id, qtd) => {
-    if (qtd <= 0) return remover(id);
-    setItens(prev => prev.map(i => i._id === id ? { ...i, quantidade: qtd } : i));
+  // ✅ ALTERAR QUANTIDADE
+  const alterarQuantidade = (id, novaQuantidade) => {
+    setItens(prev => {
+      if (novaQuantidade < 1) {
+        return prev.filter(i => i._id !== id);
+      }
+      return prev.map(i => 
+        i._id === id 
+          ? { ...i, quantidade: novaQuantidade } 
+          : i
+      );
+    });
   };
 
-  const limpar = () => setItens([]);
+  // ✅ REMOVER ITEM
+  const remover = (id) => {
+    setItens(prev => prev.filter(i => i._id !== id));
+  };
 
-  const total = itens.reduce((s, i) => s + ((i.precoExibicao || i.preco) * i.quantidade), 0);
-
-  const enviarWhatsapp = (telefoneLoja, dadosCliente) => {
-    let msg = `*NOVO PEDIDO*\n\n`;
-    msg += `Cliente: ${dadosCliente.nome}\n`;
-    msg += `Telefone: ${dadosCliente.telefone}\n`;
-    if (dadosCliente.endereco) msg += `Endereço: ${dadosCliente.endereco}\n`;
-    msg += `\n*ITENS:*\n`;
-    itens.forEach(i => {
-      const preco = i.precoExibicao || i.preco;
-      msg += `▸ ${i.quantidade}x ${i.nome} - R$ ${(preco * i.quantidade).toFixed(2)}\n`;
-    });
-    msg += `\n*TOTAL: R$ ${total.toFixed(2)}*`;
-    
-    const texto = encodeURIComponent(msg);
-    const numero = telefoneLoja.replace(/\D/g, '');
-    return `https://wa.me/55${numero}?text=${texto}`;
+  // ✅ LIMPAR CARRINHO
+  const limpar = () => {
+    setItens([]);
   };
 
   return (
     <CarrinhoContext.Provider value={{ 
-      itens, adicionar, remover, alterarQtd, limpar, total, enviarWhatsapp 
+      itens, 
+      adicionar, 
+      alterarQuantidade, 
+      remover, 
+      limpar 
     }}>
       {children}
     </CarrinhoContext.Provider>
   );
 }
 
-export const useCarrinho = () => useContext(CarrinhoContext);
+export function useCarrinho() {
+  return useContext(CarrinhoContext);
+}

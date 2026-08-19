@@ -77,7 +77,7 @@ export default function Carrinho({ aberto, fechar }) {
       const mensagem = `🛒 NOVO PEDIDO PLACETECH\n\n${lista}\n\n💰 Total: R$ ${total.toFixed(2).replace('.', ',')}\n\n📋 DADOS DO CLIENTE:\n👤 Nome: ${nome}\n📱 Telefone: ${telefone}\n📍 Endereço: ${endereco || 'Não informado'}`;
 
       // ⚠️ TROQUE PELO SEU NÚMERO REAL DO WHATSAPP
-      const link = `https://wa.me/5519999999999?text=${encodeURIComponent(mensagem)}`;
+      const link = `https://wa.me/551938983284?text=${encodeURIComponent(mensagem)}`;
       window.open(link, '_blank');
 
       // 5️⃣ LIMPA E FECHA

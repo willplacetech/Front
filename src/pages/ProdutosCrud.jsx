@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { PlusIcon, PencilIcon, TrashIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, PencilIcon, TrashIcon, MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import api from '../services/api';
 import LayoutAdmin from '../components/LayoutAdmin';
 
@@ -10,15 +10,26 @@ const VERDE = '#00A650';
 const VERMELHO = '#EF4444';
 const CINZA = '#F5F5F5';
 
+// ✅ ESTRUTURA PADRÃO DE UM PRODUTO
+const produtoVazio = () => ({
+  nome: '',
+  preco: '',
+  precoPersonalizado: '',
+  categoria: '',
+  imagem: '',
+  descricao: '',
+  disponivel: true
+});
+
 export default function ProdutosCrud() {
   const [produtos, setProdutos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [mostrarForm, setMostrarForm] = useState(false);
-  const [editando, setEditando] = useState(null);
   const [filtro, setFiltro] = useState('');
-  
-  const vazio = { nome: '', preco: '', precoPersonalizado: '', categoria: '', imagem: '', descricao: '', disponivel: true };
-  const [form, setForm] = useState(vazio);
+  const [salvando, setSalvando] = useState(false);
+
+  // ✅ LISTA DE NOVOS PRODUTOS PARA CADASTRAR
+  const [listaNovos, setListaNovos] = useState([produtoVazio()]);
 
   // Carregar produtos
   useEffect(() => { carregar(); }, []);
@@ -28,23 +39,90 @@ export default function ProdutosCrud() {
       .finally(() => setLoading(false));
   };
 
-  // Salvar
-  const salvar = (e) => {
-    e.preventDefault();
-    const dados = { ...form, preco: Number(form.preco), precoPersonalizado: form.precoPersonalizado ? Number(form.precoPersonalizado) : undefined };
-    editando ? api.put(`/produtos/${editando._id}`, dados) : api.post('/produtos', dados);
-    setForm(vazio); setEditando(null); setMostrarForm(false); carregar();
+  // ✅ ADICIONA UMA NOVA LINHA NA LISTA
+  const adicionarLinha = () => {
+    setListaNovos([...listaNovos, produtoVazio()]);
   };
 
-  // Editar
+  // ✅ REMOVE UMA LINHA DA LISTA
+  const removerLinha = (indice) => {
+    if (listaNovos.length === 1) return;
+    setListaNovos(listaNovos.filter((_, i) => i !== indice));
+  };
+
+  // ✅ ATUALIZA OS DADOS DE UMA LINHA
+  const alterarLinha = (indice, campo, valor) => {
+    const novaLista = [...listaNovos];
+    novaLista[indice][campo] = valor;
+    setListaNovos(novaLista);
+  };
+
+  // ✅ SALVA TODOS OS PRODUTOS DE UMA VEZ
+  const salvarTodos = async (e) => {
+    e.preventDefault();
+
+    // 🛡️ VALIDAÇÃO
+    const invalidos = listaNovos.filter(p => !p.nome.trim() || !p.preco);
+    if (invalidos.length > 0) {
+      alert(`⚠️ Preencha Nome e Preço em todos os produtos! (${invalidos.length} sem dados)`);
+      return;
+    }
+
+    setSalvando(true);
+
+    try {
+      // 🔄 Faz todas as requisições em paralelo
+      const promessas = listaNovos.map(produto => {
+        const dados = {
+          ...produto,
+          preco: Number(produto.preco),
+          precoPersonalizado: produto.precoPersonalizado ? Number(produto.precoPersonalizado) : undefined
+        };
+        return api.post('/produtos', dados);
+      });
+
+      await Promise.all(promessas);
+
+      // ✅ SUCESSO
+      alert(`✅ ${listaNovos.length} produto(s) cadastrado(s) com sucesso!`);
+      setListaNovos([produtoVazio()]); // Limpa a lista
+      setMostrarForm(false);
+      carregar(); // Recarrega a tabela
+
+    } catch (erro) {
+      console.error(erro);
+      alert('❌ Erro ao cadastrar um ou mais produtos!');
+    } finally {
+      setSalvando(false);
+    }
+  };
+
+  // Editar e Excluir continuam funcionando para produtos individuais
+  const [editando, setEditando] = useState(null);
+  const [formEdicao, setFormEdicao] = useState(produtoVazio());
+
   const editar = (p) => {
-    setForm({ ...p });
+    setFormEdicao({ ...p });
     setEditando(p);
-    setMostrarForm(true);
+    setMostrarForm(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Excluir
+  const salvarEdicao = (e) => {
+    e.preventDefault();
+    const dados = {
+      ...formEdicao,
+      preco: Number(formEdicao.preco),
+      precoPersonalizado: formEdicao.precoPersonalizado ? Number(formEdicao.precoPersonalizado) : undefined
+    };
+    api.put(`/produtos/${editando._id}`, dados)
+      .then(() => {
+        setEditando(null);
+        setFormEdicao(produtoVazio());
+        carregar();
+      });
+  };
+
   const deletar = (id) => {
     if (confirm('Excluir este produto?')) {
       api.delete(`/produtos/${id}`).then(carregar);
@@ -57,7 +135,7 @@ export default function ProdutosCrud() {
     : produtos;
 
   return (
-    <LayoutAdmin titulo="Produtos" subtitulo="Gerenciar produtos cadastrados">
+    <LayoutAdmin titulo="Produtos" subtitulo="Cadastrar vários produtos de uma vez">
       
       {/* 🔍 FILTRO + BOTÃO NOVO */}
       <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '24px'}}>
@@ -81,7 +159,11 @@ export default function ProdutosCrud() {
         </div>
 
         <button
-          onClick={() => { setForm(vazio); setEditando(null); setMostrarForm(!mostrarForm); }}
+          onClick={() => {
+            setMostrarForm(!mostrarForm);
+            setEditando(null);
+            setListaNovos([produtoVazio()]);
+          }}
           style={{
             display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px',
             backgroundColor: AZUL, color: 'white', border: 'none', borderRadius: '12px',
@@ -91,91 +173,242 @@ export default function ProdutosCrud() {
           onMouseOut={e => e.target.style.backgroundColor = AZUL}
         >
           <PlusIcon style={{width: '18px', height: '18px'}} />
-          {mostrarForm ? 'Fechar' : 'Novo Produto'}
+          {mostrarForm ? 'Fechar' : 'Cadastrar em Lote'}
         </button>
       </div>
 
-      {/* 📝 FORMULÁRIO */}
+      {/* 📝 FORMULÁRIO DE VÁRIOS PRODUTOS */}
       {mostrarForm && (
-        <form onSubmit={salvar} style={{
+        <form onSubmit={salvarTodos} style={{
           backgroundColor: 'white', padding: '24px', borderRadius: '16px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.08)', marginBottom: '24px',
-          display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px'
+          boxShadow: '0 1px 3px rgba(0,0,0,0.08)', marginBottom: '24px'
         }}>
-          <h3 style={{gridColumn: '1 / -1', fontSize: '18px', fontWeight: 700, margin: '0 0 8px 0', paddingBottom: '8px', borderBottom: '1px solid #eee'}}>
-            {editando ? 'Editar Produto' : 'Novo Produto'}
+          <h3 style={{fontSize: '18px', fontWeight: 700, margin: '0 0 16px 0', paddingBottom: '12px', borderBottom: '1px solid #eee'}}>
+            📦 Cadastrar Vários Produtos — {listaNovos.length} produto(s) na lista
           </h3>
 
-          {[
-            { key: 'nome', label: 'Nome do Produto', required: true, col: '1 / -1' },
-            { key: 'preco', label: 'Preço Base (R$)', type: 'number', step: '0.01', required: true },
-            { key: 'precoPersonalizado', label: 'Seu Preço (opcional)', type: 'number', step: '0.01' },
-            { key: 'categoria', label: 'Categoria' },
-            { key: 'imagem', label: 'URL da Imagem' },
-          ].map(f => (
-            <div key={f.key} style={{gridColumn: f.col || 'span 1'}}>
-              <label style={{display: 'block', fontSize: '13px', color: '#666', marginBottom: '4px'}}>{f.label}</label>
-              <input
-                required={f.required}
-                type={f.type || 'text'}
-                step={f.step}
-                placeholder={f.label}
-                value={form[f.key] || ''}
-                onChange={e => setForm({...form, [f.key]: e.target.value})}
-                style={{
-                  width: '100%', padding: '10px 14px', borderRadius: '10px',
-                  border: '1px solid #ddd', fontSize: '14px', outline: 'none',
-                  transition: 'border 0.2s'
-                }}
-                onFocus={e => e.target.style.borderColor = AZUL}
-                onBlur={e => e.target.style.borderColor = '#ddd'}
-              />
-            </div>
-          ))}
+          {/* ✅ LISTA DINÂMICA DE PRODUTOS */}
+          <div style={{display: 'flex', flexDirection: 'column', gap: '16px'}}>
+            {listaNovos.map((produto, indice) => (
+              <div key={indice} style={{
+                border: '1px solid #E5E7EB', borderRadius: '12px', padding: '16px',
+                backgroundColor: '#FAFAFA'
+              }}>
+                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px'}}>
+                  <span style={{fontWeight: 600, fontSize: '14px', color: '#444'}}>Produto #{indice + 1}</span>
+                  {listaNovos.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removerLinha(indice)}
+                      style={{border: 'none', background: 'transparent', color: VERMELHO, cursor: 'pointer', padding: '4px'}}
+                    >
+                      <XMarkIcon style={{width: '18px', height: '18px'}} />
+                    </button>
+                  )}
+                </div>
 
-          <div style={{gridColumn: '1 / -1'}}>
-            <label style={{display: 'block', fontSize: '13px', color: '#666', marginBottom: '4px'}}>Descrição</label>
-            <textarea
-              placeholder="Descrição do produto"
-              value={form.descricao || ''}
-              onChange={e => setForm({...form, descricao: e.target.value})}
-              style={{
-                width: '100%', padding: '10px 14px', borderRadius: '10px',
-                border: '1px solid #ddd', fontSize: '14px', minHeight: '80px',
-                outline: 'none', transition: 'border 0.2s', resize: 'vertical'
-              }}
-              onFocus={e => e.target.style.borderColor = AZUL}
-              onBlur={e => e.target.style.borderColor = '#ddd'}
-            />
+                <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px'}}>
+                  <div style={{gridColumn: '1 / -1'}}>
+                    <label style={{display: 'block', fontSize: '12px', color: '#666', marginBottom: '4px'}}>Nome *</label>
+                    <input
+                      required
+                      placeholder="Nome do produto"
+                      value={produto.nome}
+                      onChange={e => alterarLinha(indice, 'nome', e.target.value)}
+                      style={{width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px'}}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{display: 'block', fontSize: '12px', color: '#666', marginBottom: '4px'}}>Preço R$ *</label>
+                    <input
+                      required
+                      type="number"
+                      step="0.01"
+                      placeholder="0,00"
+                      value={produto.preco}
+                      onChange={e => alterarLinha(indice, 'preco', e.target.value)}
+                      style={{width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px'}}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{display: 'block', fontSize: '12px', color: '#666', marginBottom: '4px'}}>Seu Preço (opcional)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="0,00"
+                      value={produto.precoPersonalizado}
+                      onChange={e => alterarLinha(indice, 'precoPersonalizado', e.target.value)}
+                      style={{width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px'}}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{display: 'block', fontSize: '12px', color: '#666', marginBottom: '4px'}}>Categoria</label>
+                    <input
+                      placeholder="Ex: Eletrônicos"
+                      value={produto.categoria}
+                      onChange={e => alterarLinha(indice, 'categoria', e.target.value)}
+                      style={{width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px'}}
+                    />
+                  </div>
+
+                  <div style={{gridColumn: '1 / -1'}}>
+                    <label style={{display: 'block', fontSize: '12px', color: '#666', marginBottom: '4px'}}>URL da Imagem</label>
+                    <input
+                      placeholder="https://..."
+                      value={produto.imagem}
+                      onChange={e => alterarLinha(indice, 'imagem', e.target.value)}
+                      style={{width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px'}}
+                    />
+                  </div>
+
+                  <div style={{gridColumn: '1 / -1'}}>
+                    <label style={{display: 'block', fontSize: '12px', color: '#666', marginBottom: '4px'}}>Descrição</label>
+                    <textarea
+                      placeholder="Descrição do produto"
+                      value={produto.descricao}
+                      onChange={e => alterarLinha(indice, 'descricao', e.target.value)}
+                      style={{width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px', minHeight: '60px'}}
+                    />
+                  </div>
+
+                  <label style={{gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer'}}>
+                    <input
+                      type="checkbox"
+                      checked={produto.disponivel ?? true}
+                      onChange={e => alterarLinha(indice, 'disponivel', e.target.checked)}
+                      style={{width: '16px', height: '16px', accentColor: AZUL}}
+                    />
+                    <span style={{fontSize: '13px'}}>Disponível no catálogo</span>
+                  </label>
+                </div>
+              </div>
+            ))}
           </div>
 
-          <label style={{gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', padding: '8px 0'}}>
-            <input
-              type="checkbox"
-              checked={form.disponivel ?? true}
-              onChange={e => setForm({...form, disponivel: e.target.checked})}
-              style={{width: '18px', height: '18px', accentColor: AZUL}}
-            />
-            <span style={{fontSize: '14px', fontWeight: 500}}>Disponível no catálogo</span>
-          </label>
+          {/* ➕ ADICIONAR MAIS LINHAS */}
+          <button
+            type="button"
+            onClick={adicionarLinha}
+            style={{
+              marginTop: '16px', padding: '10px 20px', backgroundColor: CINZA,
+              color: '#333', border: 'none', borderRadius: '10px',
+              fontSize: '14px', fontWeight: 500, cursor: 'pointer', width: '100%'
+            }}
+          >
+            ➕ Adicionar Outro Produto na Lista
+          </button>
 
+          {/* 💾 SALVAR TODOS */}
           <button
             type="submit"
+            disabled={salvando}
             style={{
-              gridColumn: '1 / -1', padding: '12px', backgroundColor: VERDE,
+              marginTop: '20px', padding: '14px', backgroundColor: salvando ? '#888' : VERDE,
               color: 'white', border: 'none', borderRadius: '12px',
-              fontSize: '15px', fontWeight: 600, cursor: 'pointer',
-              transition: 'background 0.2s'
+              fontSize: '16px', fontWeight: 600, cursor: salvando ? 'not-allowed' : 'pointer',
+              width: '100%', transition: 'background 0.2s'
             }}
-            onMouseOver={e => e.target.style.backgroundColor = '#008C45'}
-            onMouseOut={e => e.target.style.backgroundColor = VERDE}
+            onMouseOver={e => !salvando && (e.target.style.backgroundColor = '#008C45')}
+            onMouseOut={e => !salvando && (e.target.style.backgroundColor = VERDE)}
           >
-            💾 Salvar Produto
+            {salvando ? '⏳ Cadastrando...' : `💾 Salvar Todos os ${listaNovos.length} Produtos`}
           </button>
         </form>
       )}
 
-      {/* 📋 TABELA */}
+      {/* ✏️ FORMULÁRIO DE EDIÇÃO INDIVIDUAL */}
+      {editando && (
+        <form onSubmit={salvarEdicao} style={{
+          backgroundColor: 'white', padding: '24px', borderRadius: '16px',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.08)', marginBottom: '24px'
+        }}>
+          <h3 style={{fontSize: '18px', fontWeight: 700, margin: '0 0 16px 0'}}>✏️ Editar Produto</h3>
+
+          <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px'}}>
+            <div style={{gridColumn: '1 / -1'}}>
+              <label style={{display: 'block', fontSize: '13px', color: '#666', marginBottom: '4px'}}>Nome *</label>
+              <input
+                required
+                value={formEdicao.nome}
+                onChange={e => setFormEdicao({...formEdicao, nome: e.target.value})}
+                style={{width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #ddd', fontSize: '14px'}}
+              />
+            </div>
+            <div>
+              <label style={{display: 'block', fontSize: '13px', color: '#666', marginBottom: '4px'}}>Preço Base R$ *</label>
+              <input
+                required type="number" step="0.01"
+                value={formEdicao.preco}
+                onChange={e => setFormEdicao({...formEdicao, preco: e.target.value})}
+                style={{width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #ddd', fontSize: '14px'}}
+              />
+            </div>
+            <div>
+              <label style={{display: 'block', fontSize: '13px', color: '#666', marginBottom: '4px'}}>Seu Preço R$</label>
+              <input
+                type="number" step="0.01"
+                value={formEdicao.precoPersonalizado || ''}
+                onChange={e => setFormEdicao({...formEdicao, precoPersonalizado: e.target.value})}
+                style={{width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #ddd', fontSize: '14px'}}
+              />
+            </div>
+            <div>
+              <label style={{display: 'block', fontSize: '13px', color: '#666', marginBottom: '4px'}}>Categoria</label>
+              <input
+                value={formEdicao.categoria}
+                onChange={e => setFormEdicao({...formEdicao, categoria: e.target.value})}
+                style={{width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #ddd', fontSize: '14px'}}
+              />
+            </div>
+            <div>
+              <label style={{display: 'block', fontSize: '13px', color: '#666', marginBottom: '4px'}}>Imagem URL</label>
+              <input
+                value={formEdicao.imagem}
+                onChange={e => setFormEdicao({...formEdicao, imagem: e.target.value})}
+                style={{width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #ddd', fontSize: '14px'}}
+              />
+            </div>
+            <div style={{gridColumn: '1 / -1'}}>
+              <label style={{display: 'block', fontSize: '13px', color: '#666', marginBottom: '4px'}}>Descrição</label>
+              <textarea
+                value={formEdicao.descricao}
+                onChange={e => setFormEdicao({...formEdicao, descricao: e.target.value})}
+                style={{width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #ddd', fontSize: '14px', minHeight: '80px'}}
+              />
+            </div>
+            <label style={{gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: '8px'}}>
+              <input
+                type="checkbox"
+                checked={formEdicao.disponivel ?? true}
+                onChange={e => setFormEdicao({...formEdicao, disponivel: e.target.checked})}
+                style={{width: '18px', height: '18px'}}
+              />
+              <span>Disponível no catálogo</span>
+            </label>
+          </div>
+
+          <div style={{display: 'flex', gap: '10px', marginTop: '20px'}}>
+            <button
+              type="button"
+              onClick={() => {setEditando(null); setFormEdicao(produtoVazio());}}
+              style={{padding: '12px 24px', backgroundColor: CINZA, border: 'none', borderRadius: '10px', cursor: 'pointer'}}
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              style={{padding: '12px 24px', backgroundColor: VERDE, color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 600}}
+            >
+              💾 Salvar Alterações
+            </button>
+          </div>
+        </form>
+      )}
+
+      {/* 📋 TABELA — CONTINUA IGUAL */}
       {loading ? (
         <div style={{padding: '60px', textAlign: 'center'}}>
           <div style={{width: '40px', height: '40px', border: '3px solid #eee', borderTopColor: AZUL, borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto'}} />

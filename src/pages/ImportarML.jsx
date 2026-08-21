@@ -7,11 +7,9 @@ import {
 } from '@heroicons/react/24/outline';
 
 // CORES OFICIAIS PLACETECH
-const AMARELO = '#F9D828';
 const AZUL = '#3483FA';
 const VERDE = '#00A650';
 const VERMELHO = '#EF4444';
-const CINZA = '#F5F5F5';
 
 export default function ImportarML() {
   const [link, setLink] = useState('');

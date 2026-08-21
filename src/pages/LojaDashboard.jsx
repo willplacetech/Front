@@ -1,11 +1,16 @@
 import { Routes, Route } from 'react-router-dom';
-import Dashboard from './Dashboard';
+import { useAuth } from '../context/auth';
+import Dashboard from './dashboard';
 import ProdutosCrud from './ProdutosCrud';
 import Pedidos from './Pedidos';
 import Relatorios from './Relatorios';
 import ImportarML from './ImportarML';
+import Login from './login';
 
 export default function LojaDashboard() {
+  const { token } = useAuth();
+  if (!token) return <Login />;
+
   return (
     <Routes>
       <Route path="/"           element={<Dashboard />} />

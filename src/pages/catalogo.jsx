@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
 import api from '../services/api';
-import { useCarrinho } from '../context/CarrinhoContext';
+import { useCarrinho } from '../context/carrinho';
 import Carrinho from '../components/Carrinho';
 import {
   ShoppingCartIcon, MagnifyingGlassIcon,
-  MapPinIcon, UserIcon, Bars3Icon, XMarkIcon
+  MapPinIcon, Bars3Icon, XMarkIcon
 } from '@heroicons/react/24/outline';
-import LogoPlacetech from '../components/logocss';
 
 // CORES OFICIAIS PLACETECH
 const AMARELO = '#F9D828';
@@ -26,7 +25,6 @@ export default function Catalogo() {
   const { itens, adicionar } = useCarrinho();
 
   useEffect(() => {
-    setLoading(true);
     api.get('/produtos/disponiveis')
       .then(r => setProdutos(r.data))
       .finally(() => setLoading(false));

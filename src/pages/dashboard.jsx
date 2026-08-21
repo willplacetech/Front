@@ -7,11 +7,11 @@ import { ShoppingBagIcon, DocumentTextIcon, ArrowDownTrayIcon, XCircleIcon, Chec
 const AMARELO = '#F9D828';
 const AZUL = '#3483FA';
 const VERDE = '#00A650';
-const CINZA = '#6B7280';
 
 export default function Dashboard() {
   const [dados, setDados] = useState({});
   const [pedidos, setPedidos] = useState([]);
+  const [totalPedidos, setTotalPedidos] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,7 +20,10 @@ export default function Dashboard() {
       api.get('/pedidos')
     ]).then(([resProd, resPed]) => {
       if (resProd.status === 'fulfilled') setDados(resProd.value.data);
-      if (resPed.status === 'fulfilled') setPedidos(resPed.value.data.slice(0, 5));
+      if (resPed.status === 'fulfilled') {
+        setTotalPedidos(resPed.value.data.length);
+        setPedidos(resPed.value.data.slice(0, 5));
+      }
     }).finally(() => setLoading(false));
   }, []);
 
@@ -39,7 +42,7 @@ export default function Dashboard() {
     },
     { 
       label: 'Total de Pedidos', 
-      valor: pedidos.length, 
+      valor: totalPedidos,
       icone: DocumentTextIcon,
       cor: VERDE
     },
@@ -146,9 +149,9 @@ export default function Dashboard() {
                       const s = statusBadge[p.status] || { classe: 'bg-light', texto: p.status };
                       return (
                         <tr key={p._id} className="border-top">
-                          <td className="fw-medium">{p.cliente?.nome || 'Cliente'}</td>
+                          <td className="fw-medium">{p.dadosCliente?.nome || 'Cliente'}</td>
                           <td className="small text-muted">
-                            {new Date(p.createdAt).toLocaleDateString('pt-BR')}
+                            {new Date(p.criadoEm).toLocaleDateString('pt-BR')}
                           </td>
                           <td className="fw-bold" style={{color: AZUL}}>
                             R$ {Number(p.total).toFixed(2)}

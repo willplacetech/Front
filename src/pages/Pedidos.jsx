@@ -3,7 +3,6 @@ import api from '../services/api';
 import LayoutAdmin from '../components/LayoutAdmin';
 
 // 🎯 CORES OFICIAIS — IDÊNTICAS À PÁGINA DE PRODUTOS
-const AMARELO = '#F9D828';
 const AZUL = '#3483FA';
 const VERDE = '#00A650';
 const VERMELHO = '#EF4444';
@@ -15,10 +14,7 @@ export default function Pedidos() {
   const [pedidos, setPedidos] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { carregar(); }, []);
-
   const carregar = () => {
-    setLoading(true);
     api.get('/pedidos')
       .then(r => {
         console.log("📦 Pedidos carregados:", r.data);
@@ -26,6 +22,8 @@ export default function Pedidos() {
       })
       .finally(() => setLoading(false));
   };
+
+  useEffect(() => { carregar(); }, []);
 
   const mudarStatus = async (id, status) => {
     await api.put(`/pedidos/${id}/status`, { status });

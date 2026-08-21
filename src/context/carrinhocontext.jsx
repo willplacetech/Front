@@ -1,14 +1,8 @@
-import { createContext, useContext, useState, useEffect } from 'react'; // ✅ Importei useEffect
-
-const CarrinhoContext = createContext();
+import { useState } from 'react';
+import { CarrinhoContext } from './carrinho';
 
 export function CarrinhoProvider({ children }) {
   const [itens, setItens] = useState([]);
-
-  // ✅ ADICIONE ESSE BLOCO — ZERA O CARRINHO NO CARREGAMENTO INICIAL
-  useEffect(() => {
-    limpar(); // Chama a função de limpar UMA VEZ quando o app abre
-  }, []); // ← Colchetes vazios = executa apenas no carregamento inicial
 
   // ✅ ADICIONAR ITEM
   const adicionar = (produto) => {
@@ -45,7 +39,6 @@ export function CarrinhoProvider({ children }) {
     setItens(prev => prev.filter(i => i._id !== id));
   };
 
-  // ✅ LIMPAR CARRINHO
   const limpar = () => {
     setItens([]);
   };
@@ -61,8 +54,4 @@ export function CarrinhoProvider({ children }) {
       {children}
     </CarrinhoContext.Provider>
   );
-}
-
-export function useCarrinho() {
-  return useContext(CarrinhoContext);
 }

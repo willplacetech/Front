@@ -4,7 +4,6 @@ import api from '../services/api';
 import LayoutAdmin from '../components/LayoutAdmin';
 
 // CORES OFICIAIS
-const AMARELO = '#F9D828';
 const AZUL = '#3483FA';
 const VERDE = '#00A650';
 const VERMELHO = '#EF4444';
@@ -31,13 +30,12 @@ export default function ProdutosCrud() {
   // ✅ LISTA DE NOVOS PRODUTOS PARA CADASTRAR
   const [listaNovos, setListaNovos] = useState([produtoVazio()]);
 
-  // Carregar produtos
-  useEffect(() => { carregar(); }, []);
   const carregar = () => {
-    setLoading(true);
     api.get('/produtos').then(r => { setProdutos(r.data); })
       .finally(() => setLoading(false));
   };
+
+  useEffect(() => { carregar(); }, []);
 
   // ✅ ADICIONA UMA NOVA LINHA NA LISTA
   const adicionarLinha = () => {

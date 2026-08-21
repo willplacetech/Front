@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useCarrinho } from '../context/CarrinhoContext';
+import { useCarrinho } from '../context/carrinho';
 import api from '../services/api';
 import { XMarkIcon, ShoppingCartIcon, DocumentTextIcon, UserIcon, PhoneIcon, MapPinIcon } from '@heroicons/react/24/outline';
 
@@ -10,14 +10,11 @@ const VERDE = '#00A650';
 const PRETO = '#000000';
 
 export default function Carrinho({ aberto, fechar }) {
-  const { itens, remover, alterarQuantidade, limpar } = useCarrinho();
+  const { itens, alterarQuantidade, limpar } = useCarrinho();
   const [nome, setNome] = useState('');
   const [telefone, setTelefone] = useState('');
   const [endereco, setEndereco] = useState('');
   const [salvando, setSalvando] = useState(false);
-
-  // ✅ DEBUG: mostra se o carrinho recebeu a prop corretamente
-  console.log("🛒 Carrinho recebeu aberto =", aberto);
 
   if (!aberto) return null;
 
@@ -34,8 +31,6 @@ export default function Carrinho({ aberto, fechar }) {
 
   // ✅ FUNÇÃO ÚNICA E CORRETA — NÃO DUPLICA MAIS!
   const enviarPedido = async () => {
-    console.log("📤 Botão Enviar clicado!");
-
     // 1️⃣ VALIDAÇÃO
     if (!nome.trim() || !telefone.trim()) {
       alert('⚠️ Preencha nome e telefone!');
@@ -48,7 +43,7 @@ export default function Carrinho({ aberto, fechar }) {
       // 2️⃣ PREPARA DADOS
       const dadosPedido = {
         itens: itens.map(i => ({
-          _id: i._id,
+          produtoId: i._id,
           nome: i.nome,
           preco: i.precoExibicao || i.preco,
           quantidade: i.quantidade,
@@ -63,18 +58,15 @@ export default function Carrinho({ aberto, fechar }) {
         status: 'pendente'
       };
 
-      console.log("📤 Enviando para API:", dadosPedido);
-
-      // 3️⃣ SALVA NO BANCO
       const resposta = await api.post('/pedidos', dadosPedido);
-      console.log("✅ Pedido salvo no banco!", resposta.data);
+      const totalConfirmado = resposta.data.pedido.total;
 
       // 4️⃣ ABRE WHATSAPP
       const lista = itens.map(i => 
-        `✅ ${i.nome} — ${i.quantidade}x — R$ ${((i.precoExibicao || i.preco) * i.quantidade).toFixed(2).replace('.', ',')}`
+        `✅ ${i.nome} — ${i.quantidade}x`
       ).join('\n');
 
-      const mensagem = `🛒 NOVO PEDIDO PLACETECH\n\n${lista}\n\n💰 Total: R$ ${total.toFixed(2).replace('.', ',')}\n\n📋 DADOS DO CLIENTE:\n👤 Nome: ${nome}\n📱 Telefone: ${telefone}\n📍 Endereço: ${endereco || 'Não informado'}`;
+      const mensagem = `🛒 NOVO PEDIDO PLACETECH\n\n${lista}\n\n💰 Total: R$ ${totalConfirmado.toFixed(2).replace('.', ',')}\n\n📋 DADOS DO CLIENTE:\n👤 Nome: ${nome}\n📱 Telefone: ${telefone}\n📍 Endereço: ${endereco || 'Não informado'}`;
 
       // ⚠️ TROQUE PELO SEU NÚMERO REAL DO WHATSAPP
       const link = `https://wa.me/551938983284?text=${encodeURIComponent(mensagem)}`;

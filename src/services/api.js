@@ -10,7 +10,7 @@ const api = axios.create({
 
 // 🔐 Interceptor de Requisição — Adiciona token JWT
 api.interceptors.request.use((config) => {
-  const token = sessionStorage.getItem(TOKEN_KEY);
+  const token = localStorage.getItem(TOKEN_KEY);
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
     console.log('✅ Token adicionado ao header:', token.substring(0, 20) + '...');
@@ -26,11 +26,16 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       console.error('❌ Erro 401 recebido:', error.response?.data?.error);
-      
-      // Apenas redireciona se estiver na área protegida /loja e tiver tentado fazer login com erro
-      if (window.location.pathname.startsWith('/loja') && window.location.pathname !== '/loja') {
-        console.log('🔄 Redirecionando para /loja para novo login...');
-        sessionStorage.removeItem(TOKEN_KEY);
+
+      const pathname = window.location.pathname;
+      // ✅ Só força logout/redirect em sub-rotas protegidas (ex: /loja/produtos, /loja/pedidos)
+      // NUNCA em /loja ou /loja/ (que é a própria página de login)
+      const isProtectedSubRoute =
+        pathname.startsWith('/loja/') && pathname.replace(/\/$/, '') !== '/loja';
+
+      if (isProtectedSubRoute) {
+        console.log('🔄 Sessão expirada — redirecionando para login...');
+        localStorage.removeItem(TOKEN_KEY);
         window.location.assign('/loja');
       }
     }

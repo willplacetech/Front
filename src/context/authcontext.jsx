@@ -3,16 +3,16 @@ import api from '../services/api';
 import { AuthContext, TOKEN_KEY } from './auth';
 
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(() => sessionStorage.getItem(TOKEN_KEY));
+  const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY));
 
   const entrar = async (usuario, senha) => {
     const resposta = await api.post('/auth/login', { usuario, senha });
-    sessionStorage.setItem(TOKEN_KEY, resposta.data.token);
+    localStorage.setItem(TOKEN_KEY, resposta.data.token);
     setToken(resposta.data.token);
   };
 
   const sair = () => {
-    sessionStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(TOKEN_KEY);
     setToken(null);
   };
 

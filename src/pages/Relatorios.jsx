@@ -16,8 +16,11 @@ export default function Relatorios() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([api.get('/produtos'), api.get('/pedidos')])
-      .then(([r1, r2]) => { setProdutos(r1.data); setPedidos(r2.data); })
+    Promise.allSettled([api.get('/produtos'), api.get('/pedidos')])
+      .then(([r1, r2]) => {
+        if (r1.status === 'fulfilled') setProdutos(r1.value.data);
+        if (r2.status === 'fulfilled') setPedidos(r2.value.data);
+      })
       .finally(() => setLoading(false));
   }, []);
 

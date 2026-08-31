@@ -1,258 +1,286 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/auth';
 import {
   HomeIcon, ShoppingBagIcon, DocumentTextIcon,
   ChartBarIcon, ArrowDownTrayIcon, ArrowTopRightOnSquareIcon,
-  Bars3Icon, XMarkIcon
+  Bars3Icon, XMarkIcon, ArrowRightStartOnRectangleIcon
 } from '@heroicons/react/24/outline';
 
-// CORES OFICIAIS PLACETECH
-const AMARELO = '#F9D828';
-const PRETO = '#000000';
-const AZUL = '#3483FA';
-const FUNDO = '#EBEBEB';
-
 const MENU = [
-  { path: '',        icon: HomeIcon,           label: 'Dashboard',    desc: 'Visão geral' },
-  { path: 'produtos', icon: ShoppingBagIcon,    label: 'Produtos',      desc: 'Gerenciar itens' },
-  { path: 'importar', icon: ArrowDownTrayIcon,  label: 'Novo Produto',  desc: 'Adicionar via link' },
-  { path: 'pedidos',  icon: DocumentTextIcon,    label: 'Pedidos',       desc: 'Acompanhar vendas' },
-  { path: 'relatorios', icon: ChartBarIcon,     label: 'Relatórios',    desc: 'Dados gerenciais' },
+  { path: '',         icon: HomeIcon,           label: 'Dashboard',   desc: 'Visão geral' },
+  { path: 'produtos', icon: ShoppingBagIcon,    label: 'Produtos',    desc: 'Gerenciar itens' },
+  { path: 'importar', icon: ArrowDownTrayIcon,  label: 'Novo Produto',desc: 'Adicionar produto' },
+  { path: 'pedidos',  icon: DocumentTextIcon,   label: 'Pedidos',     desc: 'Acompanhar vendas' },
+  { path: 'relatorios',icon: ChartBarIcon,      label: 'Relatórios',  desc: 'Dados gerenciais' },
 ];
 
 export default function LayoutAdmin({ children, loading = false, titulo = '', subtitulo = '' }) {
   const location = useLocation();
   const [menuAberto, setMenuAberto] = useState(false);
+  const { sair } = useAuth();
 
-  const caminhoAtual = location.pathname.replace('/loja', '').replace('/', '') || '';
-
+  const caminhoAtual = location.pathname.replace('/loja', '').replace(/^\//, '') || '';
   const isAtivo = (p) => caminhoAtual === p;
 
   return (
-    <div className="min-h-screen" style={{backgroundColor: FUNDO}}>
-      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <div style={{ minHeight: '100vh', backgroundColor: '#F0F2F5', fontFamily: "'Inter', sans-serif" }}>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');
-        * { font-family: 'Roboto', -apple-system, sans-serif; }
-        
-        /* HEADER FIXO SEM ALTERAÇÃO */
-        .bg-placetech-yellow { background-color: ${AMARELO}; }
-        
-        /* ITENS DE MENU — TRANSIÇÃO SUAVE */
-        .menu-item { 
-          border-radius: 12px; 
-          transition: background-color 0.15s ease, color 0.15s ease;
-          cursor: pointer;
-        }
-        .menu-item:hover { background-color: rgba(0,0,0,0.06); }
-        .menu-item.ativo { background-color: ${AMARELO}; color: ${PRETO}; font-weight: 600; }
-        
-        /* CARDS PADRONIZADOS */
-        .card-padrao {
-          align-items: center;
-          border-radius: 16px; 
-          box-shadow: 0 1px 3px rgba(0,0,0,0.08); 
-          border: none; 
-          background: white;
-          display: flex;
-          justify-content: center;
-        }
-          svg {
-            max-width: none !important;
-            max-height: none !important;
-            height: auto !important;
-          }
+        * { font-family: 'Inter', -apple-system, sans-serif; box-sizing: border-box; }
+        svg { max-width: none !important; max-height: none !important; }
 
-          /* ✅ TAMANHO EXATO DOS ÍCONES DO MENU */
-          .menu-item svg {
-            width: 20px !important;
-            height: 20px !important;
-            max-width: none !important;
-            max-height: none !important;
-          }
-        
-        /* ÁREA DE CONTEÚDO — TRANSIÇÃO SUAVE */
-        .conteudo-pagina {
-          opacity: 1;
-          transition: opacity 0.2s ease;
+        /* SIDEBAR */
+        .sidebar {
+          width: 260px;
+          min-height: 100vh;
+          background: linear-gradient(180deg, #0F172A 0%, #1E293B 100%);
+          position: fixed;
+          top: 0;
+          left: 0;
+          z-index: 100;
+          display: flex;
+          flex-direction: column;
+          border-right: 1px solid rgba(255,255,255,0.05);
         }
-        .conteudo-pagina.carregando { opacity: 0.6; }
-        
-        /* LOADING CENTRALIZADO */
-        .loading-wrap {
+        .sidebar-logo {
+          padding: 24px 20px 20px;
+          border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 4px; }
+        .sidebar-footer { padding: 16px 12px; border-top: 1px solid rgba(255,255,255,0.08); }
+
+        .nav-item {
           display: flex;
           align-items: center;
-          justify-content: center;
-          min-height: 200px;
+          gap: 12px;
+          padding: 11px 14px;
+          border-radius: 10px;
+          text-decoration: none;
+          color: rgba(255,255,255,0.6);
+          transition: all 0.15s ease;
+          cursor: pointer;
+          border: none;
+          background: transparent;
+          width: 100%;
+          text-align: left;
         }
-        
-        /* BOTÃO PADRÃO */
-        .btn-placetech { background-color: ${AZUL}; color: white; font-weight: 500; }
-        .btn-placetech:hover { background-color: #2968D3; color: white; }
+        .nav-item:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.9); }
+        .nav-item.ativo {
+          background: linear-gradient(135deg, #F9D828 0%, #F0C800 100%);
+          color: #0F172A;
+          font-weight: 600;
+          box-shadow: 0 4px 12px rgba(249,216,40,0.3);
+        }
+        .nav-item.ativo .nav-desc { color: rgba(0,0,0,0.5); }
+        .nav-icon-wrap { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .nav-label { font-size: 14px; font-weight: 500; line-height: 1.2; }
+        .nav-desc { font-size: 11px; opacity: 0.5; line-height: 1; margin-top: 2px; }
+
+        /* CONTEÚDO */
+        .main-content { margin-left: 260px; min-height: 100vh; }
+
+        /* TOPBAR */
+        .topbar {
+          background: white;
+          border-bottom: 1px solid #E5E7EB;
+          padding: 0 32px;
+          height: 64px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          position: sticky;
+          top: 0;
+          z-index: 50;
+          backdrop-filter: blur(8px);
+        }
+        .topbar-title { font-size: 18px; font-weight: 700; color: #0F172A; }
+        .topbar-sub { font-size: 13px; color: #6B7280; margin-top: 1px; }
+
+        /* CARDS */
+        .card-admin {
+          background: white;
+          border-radius: 16px;
+          border: none;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04);
+          transition: box-shadow 0.2s;
+        }
+        .card-admin:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.04); }
+
+        /* MOBILE */
+        @media (max-width: 768px) {
+          .sidebar { display: none; }
+          .main-content { margin-left: 0; }
+          .topbar { padding: 0 16px; }
+        }
+        .mobile-sidebar {
+          position: fixed;
+          inset: 0;
+          z-index: 200;
+          display: flex;
+        }
+        .mobile-sidebar-overlay {
+          position: absolute;
+          inset: 0;
+          background: rgba(0,0,0,0.6);
+          backdrop-filter: blur(2px);
+        }
+        .mobile-sidebar-panel {
+          position: relative;
+          width: 280px;
+          background: linear-gradient(180deg, #0F172A 0%, #1E293B 100%);
+          display: flex;
+          flex-direction: column;
+          z-index: 1;
+        }
+
+        /* BADGE */
+        .badge-status {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          padding: 3px 10px;
+          border-radius: 20px;
+          font-size: 12px;
+          font-weight: 500;
+        }
       `}</style>
 
-      {/* ========================================== */}
-      {/* 🔝 HEADER — FIXO, NÃO MUDA AO NAVEGAR */}
-      {/* ========================================== */}
-      <header className="bg-placetech-yellow py-3 shadow-sm sticky-top z-3">
-        <div className="container-fluid px-5">
-          <div className="d-flex align-items-center justify-content-between">
-            
-            {/* LADO ESQUERDO — Logo */}
-            <div style={{width: '15%', flexShrink: 0}}>
-              <Link to="/loja" className="text-decoration-none">
-                <span className="h4 fw-bold text-dark mb-0">Placetech</span>
-              </Link>
+      {/* ========== SIDEBAR DESKTOP ========== */}
+      <aside className="sidebar">
+        <div className="sidebar-logo">
+          <Link to="/loja" style={{ textDecoration: 'none' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{
+                width: '36px', height: '36px',
+                background: 'linear-gradient(135deg, #F9D828, #F0C800)',
+                borderRadius: '10px',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontWeight: 900, fontSize: '16px', color: '#0F172A'
+              }}>P</div>
+              <div>
+                <div style={{ fontSize: '15px', fontWeight: 700, color: 'white', lineHeight: 1.2 }}>Placetech</div>
+                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', lineHeight: 1 }}>Painel Admin</div>
+              </div>
             </div>
-
-            {/* CENTRO — Título e Subtítulo REALMENTE Centralizados */}
-            <div style={{width: '70%', textAlign: 'center'}} className="d-none d-md-block">
-              <h5 className="fw-bold text-dark mb-1 transition-all">{titulo}</h5>
-              {subtitulo && <p className="small text-dark opacity-75 mb-0">{subtitulo}</p>}
-            </div>
-
-            {/* LADO DIREITO — Botões */}
-            <div style={{width: '15%', flexShrink: 0}} className="d-flex align-items-center justify-content-end gap-2">
-              <a href="/" target="_blank" className="btn btn-dark btn-sm d-none d-md-flex align-items-center gap-1">
-                <ArrowTopRightOnSquareIcon style={{width: '16px', height: '16px'}} />
-                Ver Loja
-              </a>
-              <button 
-                onClick={() => setMenuAberto(!menuAberto)}
-                className="btn btn-dark btn-sm d-md-none"
-              >
-                {menuAberto ? <XMarkIcon style={{width: '20px', height: '20px'}} /> : <Bars3Icon style={{width: '20px', height: '20px'}} />}
-              </button>
-            </div>
-
-          </div>
+          </Link>
         </div>
-      </header>
 
-      {/* ========================================== */}
-      {/* 📱 MENU MOBILE */}
-      {/* ========================================== */}
-      {menuAberto && (
-        <div className="container d-md-none py-3 bg-white border-bottom shadow-sm">
-          <nav className="d-flex flex-column gap-2">
-            {MENU.map(item => (
-              <Link
-                key={item.path}
-                to={`/loja/${item.path}`}
-                onClick={() => setMenuAberto(false)}
-                className={`menu-item d-flex align-items-center gap-3 px-3 py-2 text-decoration-none ${isAtivo(item.path) ? 'ativo' : 'text-dark'}`}
-              >
-                <item.icon style={{width: '20px', height: '20px', maxWidth: 'none'}} />
+        <nav className="sidebar-nav">
+          {MENU.map(item => {
+            const Icone = item.icon;
+            const ativo = isAtivo(item.path);
+            return (
+              <Link key={item.path} to={`/loja/${item.path}`} className={`nav-item ${ativo ? 'ativo' : ''}`}>
+                <div className="nav-icon-wrap">
+                  <Icone style={{ width: '18px', height: '18px' }} />
+                </div>
                 <div>
-                  <div className="fw-medium">{item.label}</div>
-                  <div className="small opacity-50">{item.desc}</div>
+                  <div className="nav-label">{item.label}</div>
+                  <div className="nav-desc">{item.desc}</div>
                 </div>
               </Link>
-            ))}
-            <hr className="my-2" />
-            <a href="/" className="menu-item d-flex align-items-center gap-3 px-3 py-2 text-dark text-decoration-none">
-              <ArrowTopRightOnSquareIcon style={{width: '20px', height: '20px'}} />
-              <div>
-                <div className="fw-medium">Ver Catálogo</div>
-                <div className="small opacity-50">Acessar loja pública</div>
-              </div>
-            </a>
-          </nav>
+            );
+          })}
+        </nav>
+
+        <div className="sidebar-footer">
+          <a href="/" target="_blank" className="nav-item" style={{ marginBottom: '6px' }}>
+            <div className="nav-icon-wrap">
+              <ArrowTopRightOnSquareIcon style={{ width: '18px', height: '18px' }} />
+            </div>
+            <div className="nav-label">Ver Catálogo</div>
+          </a>
+          <button onClick={sair} className="nav-item" style={{ color: '#F87171' }}>
+            <div className="nav-icon-wrap">
+              <ArrowRightStartOnRectangleIcon style={{ width: '18px', height: '18px' }} />
+            </div>
+            <div className="nav-label">Sair</div>
+          </button>
+        </div>
+      </aside>
+
+      {/* ========== MENU MOBILE ========== */}
+      {menuAberto && (
+        <div className="mobile-sidebar">
+          <div className="mobile-sidebar-overlay" onClick={() => setMenuAberto(false)} />
+          <div className="mobile-sidebar-panel">
+            <div className="sidebar-logo" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '16px', fontWeight: 700, color: 'white' }}>Placetech Admin</span>
+              <button onClick={() => setMenuAberto(false)} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}>
+                <XMarkIcon style={{ width: '22px', height: '22px' }} />
+              </button>
+            </div>
+            <nav className="sidebar-nav">
+              {MENU.map(item => {
+                const Icone = item.icon;
+                return (
+                  <Link key={item.path} to={`/loja/${item.path}`} onClick={() => setMenuAberto(false)}
+                    className={`nav-item ${isAtivo(item.path) ? 'ativo' : ''}`}>
+                    <div className="nav-icon-wrap"><Icone style={{ width: '18px', height: '18px' }} /></div>
+                    <div className="nav-label">{item.label}</div>
+                  </Link>
+                );
+              })}
+            </nav>
+            <div className="sidebar-footer">
+              <button onClick={sair} className="nav-item" style={{ color: '#F87171' }}>
+                <div className="nav-icon-wrap"><ArrowRightStartOnRectangleIcon style={{ width: '18px', height: '18px' }} /></div>
+                <div className="nav-label">Sair</div>
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* ========================================== */}
-      {/* 📏 CORPO: Menu Lateral + Conteúdo */}
-      {/* ========================================== */}
-      <div className="container py-4">
-        <div className="row g-4">
-          
-          {/* MENU LATERAL — PERMANECE FIXO */}
-          <div className="col-md-3 d-none d-md-block">
-            <div className="card card-padrao p-3" style={{ position: 'sticky', top: '90px', width: '100%', height: '80vh', display: 'flex', flexDirection: 'column'}}>
-<nav 
-  className="d-flex flex-column"
-  style={{ 
-    flex: 1, 
-    justifyContent: 'space-evenly',
-    padding: '8px 0'
-  }}
->
-  {MENU.map(item => {
-    const Icone = item.icon; // ✅ Renomeia para maiúsculo = renderização correta
-    return (
-      <Link
-        key={item.path}
-        to={`/loja/${item.path}`}
-        className={`menu-item d-flex align-items-center gap-3 px-3 py-3 text-decoration-none ${isAtivo(item.path) ? 'ativo' : 'text-dark'}`}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          width: '100%',
-          boxSizing: 'border-box'
-        }}
-      >
-        {/* ✅ ÍCONES — LARGURA FIXA = TODOS ALINHADOS VERTICALMENTE */}
-        <div style={{
-          width: '24px',
-          minWidth: '24px', // 👇 Garante que NÃO encolhe
-          height: '24px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0
-        }}>
-          <Icone style={{
-            width: '20px',
-            height: '20px',
-            maxWidth: 'none',
-            maxHeight: 'none',
-            flexShrink: 0
-          }} />
-        </div>
+      {/* ========== CONTEÚDO PRINCIPAL ========== */}
+      <div className="main-content">
+        {/* TOPBAR */}
+        <header className="topbar">
+          <div>
+            <div className="topbar-title">{titulo || 'Painel'}</div>
+            {subtitulo && <div className="topbar-sub">{subtitulo}</div>}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <a href="/" target="_blank" style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              padding: '8px 16px', background: '#F9D828', color: '#0F172A',
+              borderRadius: '8px', fontWeight: 600, fontSize: '13px', textDecoration: 'none',
+              transition: 'all 0.15s'
+            }}>
+              <ArrowTopRightOnSquareIcon style={{ width: '15px', height: '15px' }} />
+              Ver Loja
+            </a>
+            {/* Botão mobile */}
+            <button onClick={() => setMenuAberto(true)} style={{
+              display: 'none', background: '#F0F2F5', border: 'none', borderRadius: '8px',
+              padding: '8px', cursor: 'pointer'
+            }} className="mobile-menu-btn">
+              <Bars3Icon style={{ width: '20px', height: '20px' }} />
+            </button>
+          </div>
+        </header>
 
-        {/* ✅ TEXTOS — LINHAS ALINHADAS ENTRE TODOS OS ITENS */}
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          lineHeight: '1.3',
-          flex: 1
-        }}>
-          <span style={{
-            fontSize: '15px',
-            fontWeight: 500,
-            lineHeight: '1.2'
-          }}>{item.label}</span>
-          <span style={{
-            fontSize: '12px',
-            opacity: 0.55,
-            lineHeight: '1.2'
-          }}>{item.desc}</span>
-        </div>
-      </Link>
-    );
-  })}
-</nav>
+        {/* CONTEÚDO */}
+        <main style={{ padding: '28px 32px', maxWidth: '1400px' }}>
+          {loading ? (
+            <div style={{
+              background: 'white', borderRadius: '16px', padding: '80px',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.06)'
+            }}>
+              <div style={{
+                width: '44px', height: '44px',
+                border: '3px solid #F0F2F5',
+                borderTopColor: '#F9D828',
+                borderRadius: '50%',
+                animation: 'spin 0.8s linear infinite'
+              }} />
+              <p style={{ color: '#6B7280', margin: 0, fontWeight: 500 }}>Carregando dados...</p>
+              <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
             </div>
-          </div>
-
-          {/* CONTEÚDO — SÓ ISSO MUDA */}
-          <div className="col-md-9 conteudo-pagina">
-            {loading ? (
-              <div className="card card-padrao p-5 loading-wrap">
-                <div className="text-center">
-                  <div className="spinner-border mb-3" style={{color: AMARELO}} role="status" />
-                  <p className="fw-medium text-muted mb-0">Carregando dados...</p>
-                </div>
-              </div>
-            ) : (
-              children
-            )}
-          </div>
-
-        </div>
+          ) : children}
+        </main>
       </div>
     </div>
   );

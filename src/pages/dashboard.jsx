@@ -2,11 +2,32 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
 import LayoutAdmin from '../components/LayoutAdmin';
-import { ShoppingBagIcon, DocumentTextIcon, ArrowDownTrayIcon, XCircleIcon, CheckCircleIcon, ClockIcon, ChartBarIcon } from '@heroicons/react/24/outline';
+import {
+  ShoppingBagIcon, DocumentTextIcon, ArrowDownTrayIcon,
+  XCircleIcon, CheckCircleIcon, ClockIcon, ChartBarIcon,
+  ArrowTrendingUpIcon, EyeIcon
+} from '@heroicons/react/24/outline';
 
-const AMARELO = '#F9D828';
-const AZUL = '#3483FA';
-const VERDE = '#00A650';
+const AZUL  = '#3483FA';
+const VERDE = '#10B981';
+const VERM  = '#EF4444';
+const LARJ  = '#F59E0B';
+
+// ✅ Formata data com segurança — aceita criadoEm ou createdAt
+function formatarData(pedido) {
+  const raw = pedido.criadoEm || pedido.createdAt;
+  if (!raw) return '—';
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' });
+}
+
+const STATUS_CONFIG = {
+  pendente:   { bg: '#FEF3C7', color: '#92400E', label: 'Pendente',   dot: '#F59E0B' },
+  confirmado: { bg: '#DBEAFE', color: '#1E40AF', label: 'Confirmado', dot: '#3B82F6' },
+  entregue:   { bg: '#D1FAE5', color: '#065F46', label: 'Entregue',   dot: '#10B981' },
+  cancelado:  { bg: '#FEE2E2', color: '#991B1B', label: 'Cancelado',  dot: '#EF4444' },
+};
 
 export default function Dashboard() {
   const [dados, setDados] = useState({});
@@ -28,147 +49,149 @@ export default function Dashboard() {
   }, []);
 
   const cards = [
-    { 
-      label: 'Produtos Cadastrados', 
-      valor: dados.totalProdutos || 0, 
-      icone: ShoppingBagIcon,
-      cor: AZUL
-    },
-    { 
-      label: 'Importados', 
-      valor: dados.importadosML || 0, 
-      icone: ArrowDownTrayIcon,
-      cor: AMARELO
-    },
-    { 
-      label: 'Total de Pedidos', 
-      valor: totalPedidos,
-      icone: DocumentTextIcon,
-      cor: VERDE
-    },
-    { 
-      label: 'Indisponíveis', 
-      valor: dados.indisponiveis || 0, 
-      icone: XCircleIcon,
-      cor: '#EF4444'
-    },
+    { label: 'Produtos Cadastrados', valor: dados.totalProdutos ?? 0, icon: ShoppingBagIcon, cor: AZUL,  bg: '#EFF6FF', desc: 'no catálogo' },
+    { label: 'Disponíveis',          valor: dados.disponiveis     ?? 0, icon: CheckCircleIcon,cor: VERDE, bg: '#ECFDF5', desc: 'produtos ativos' },
+    { label: 'Total de Pedidos',     valor: totalPedidos,               icon: DocumentTextIcon,cor: LARJ, bg: '#FFFBEB', desc: 'recebidos' },
+    { label: 'Indisponíveis',        valor: dados.indisponiveis   ?? 0, icon: XCircleIcon,    cor: VERM,  bg: '#FEF2F2', desc: 'fora do catálogo' },
   ];
 
-  const statusBadge = {
-    pendente: { classe: 'bg-warning text-dark', icone: ClockIcon, texto: 'Pendente' },
-    confirmado: { classe: 'bg-primary text-white', icone: CheckCircleIcon, texto: 'Confirmado' },
-    entregue: { classe: 'bg-success text-white', icone: CheckCircleIcon, texto: 'Entregue' },
-    cancelado: { classe: 'bg-secondary text-white', icone: XCircleIcon, texto: 'Cancelado' },
-  };
+  const atalhos = [
+    { to: '/loja/produtos', icon: ShoppingBagIcon,   texto: 'Gerenciar Produtos', desc: 'Editar, ativar ou excluir' },
+    { to: '/loja/importar', icon: ArrowDownTrayIcon,  texto: 'Cadastrar Produto',  desc: 'Adicionar novo item' },
+    { to: '/loja/pedidos',  icon: DocumentTextIcon,   texto: 'Ver Pedidos',        desc: 'Acompanhar e atualizar status' },
+    { to: '/loja/relatorios',icon: ChartBarIcon,      texto: 'Relatórios',         desc: 'Análise de dados' },
+  ];
 
   return (
-    <LayoutAdmin 
-      loading={loading}
-      titulo="Dashboard"
-      subtitulo="Visão geral do sistema Placetech Lindoia"
-    >
-      {/* 📊 CARDS ESTATÍSTICOS */}
-      <div className="row g-4 mb-4">
-        {cards.map((card, i) => (
-          <div key={i} className="col-sm-6 col-md-3">
-            <div className=" card-padrao p-3 h-100 align-self-end ">
-              <div className="d-flex align-items-center">
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',  /* Alinha pela linha de base das letras */
-                  justifyContent: 'center', /* Centraliza o conjunto inteiro */
-                  gap: '6px'                /* Espaço entre texto e número */
-                }}>
-                  <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>{card.label}</p>
-                  <h4 style={{ 
-                    margin: 0, 
-                    fontSize: '32px', 
-                    fontWeight: '700',
-                    lineHeight: '1'
-                  }}>{card.valor}</h4>
+    <LayoutAdmin loading={loading} titulo="Dashboard" subtitulo={`Bem-vindo ao painel Placetech — ${new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })}`}>
+
+      {/* ── CARDS ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '28px' }}>
+        {cards.map((card, i) => {
+          const Icone = card.icon;
+          return (
+            <div key={i} className="card-admin" style={{ padding: '24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: card.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Icone style={{ width: '22px', height: '22px', color: card.cor }} />
                 </div>
+                <span style={{ fontSize: '12px', color: '#9CA3AF', background: '#F9FAFB', padding: '4px 8px', borderRadius: '6px' }}>
+                  {card.desc}
+                </span>
               </div>
+              <div style={{ fontSize: '32px', fontWeight: 800, color: '#0F172A', lineHeight: 1 }}>{card.valor}</div>
+              <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '6px', fontWeight: 500 }}>{card.label}</div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      <div className="row g-4">
-        {/* ⚡ ACESSO RÁPIDO */}
-        <div className="col-md-5">
-          <div className="card card-padrao p-4 h-100">
-            <div className="d-grid gap-1">
-              {[
-                { to: '/loja/produtos', icone: ShoppingBagIcon, texto: 'Gerenciar Produtos' },
-                { to: '/loja/importar', icone: ArrowDownTrayIcon, texto: 'Adicionar Produto' },
-                { to: '/loja/pedidos', icone: DocumentTextIcon, texto: 'Ver Pedidos' },
-                { to: '/loja/relatorios', icone: ChartBarIcon, texto: 'Relatórios' },
-              ].map(item => (
-                <Link key={item.to} to={item.to} 
-                  className="d-flex align-items-center gap-3 p-3 rounded-3 text-decoration-none text-dark hover:bg-light border transition">
-                  <div className="rounded-2 p-2" style={{backgroundColor: `${AZUL}10`}}>
-                    <item.icone style={{width: '18px', height: '18px', color: AZUL}} />
+      {/* ── GRID INFERIOR ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.6fr', gap: '20px' }}>
+
+        {/* ATALHOS RÁPIDOS */}
+        <div className="card-admin" style={{ padding: '24px' }}>
+          <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', margin: '0 0 16px 0' }}>⚡ Acesso Rápido</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {atalhos.map(item => {
+              const Icone = item.icon;
+              return (
+                <Link key={item.to} to={item.to} style={{
+                  display: 'flex', alignItems: 'center', gap: '14px',
+                  padding: '12px 14px', borderRadius: '12px', textDecoration: 'none',
+                  color: '#0F172A', transition: 'all 0.15s',
+                  border: '1px solid transparent'
+                }}
+                  onMouseOver={e => { e.currentTarget.style.background = '#F8FAFC'; e.currentTarget.style.borderColor = '#E5E7EB'; }}
+                  onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent'; }}
+                >
+                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: '#F0F2F5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Icone style={{ width: '18px', height: '18px', color: AZUL }} />
                   </div>
-                  <div>
-                    <p className="fw-medium mb-0">{item.texto}</p>
-                    <p className="small text-muted mb-0">{item.desc}</p>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '14px', fontWeight: 600 }}>{item.texto}</div>
+                    <div style={{ fontSize: '12px', color: '#9CA3AF' }}>{item.desc}</div>
                   </div>
-                  <span className="ms-auto text-muted">→</span>
+                  <span style={{ color: '#D1D5DB', fontSize: '18px' }}>›</span>
                 </Link>
-              ))}
-            </div>
+              );
+            })}
           </div>
         </div>
 
-        {/* 📋 ÚLTIMOS PEDIDOS */}
-        <div className="col-md-7">
-          <div className="card card-padrao p-4 h-100">
-            <div className="d-flex justify-content-between align-items-center mb-4">
-              <h5 className="fw-bold mb-0">Últimos Pedidos</h5>
-              <Link to="/loja/pedidos" className="btn btn-sm btn-outline-secondary">Ver todos</Link>
-            </div>
-
-            {pedidos.length === 0 ? (
-              <div className="text-center py-5">
-                <p className="fs-1 mb-2">📭</p>
-                <p className="text-muted">Nenhum pedido recebido ainda</p>
-              </div>
-            ) : (
-              <div className="table-responsive">
-                <table className="table table-borderless mb-0">
-                  <thead>
-                    <tr className="text-muted small">
-                      <th>Cliente</th>
-                      <th>Data</th>
-                      <th>Valor</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {pedidos.map(p => {
-                      const s = statusBadge[p.status] || { classe: 'bg-light', texto: p.status };
-                      return (
-                        <tr key={p._id} className="border-top">
-                          <td className="fw-medium">{p.dadosCliente?.nome || 'Cliente'}</td>
-                          <td className="small text-muted">
-                            {new Date(p.criadoEm).toLocaleDateString('pt-BR')}
-                          </td>
-                          <td className="fw-bold" style={{color: AZUL}}>
-                            R$ {Number(p.total).toFixed(2)}
-                          </td>
-                          <td>
-                            <span className={`badge rounded-pill ${s.classe}`}>
-                              {s.texto}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
+        {/* ÚLTIMOS PEDIDOS */}
+        <div className="card-admin" style={{ padding: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+            <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', margin: 0 }}>📋 Últimos Pedidos</h2>
+            <Link to="/loja/pedidos" style={{
+              fontSize: '13px', color: AZUL, fontWeight: 500, textDecoration: 'none',
+              display: 'flex', alignItems: 'center', gap: '4px'
+            }}>
+              <EyeIcon style={{ width: '14px', height: '14px' }} /> Ver todos
+            </Link>
           </div>
+
+          {pedidos.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '40px 20px', color: '#9CA3AF' }}>
+              <div style={{ fontSize: '40px', marginBottom: '10px' }}>📭</div>
+              <p style={{ margin: 0, fontSize: '14px' }}>Nenhum pedido recebido ainda</p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              {/* HEADER */}
+              <div style={{
+                display: 'grid', gridTemplateColumns: '1fr 80px 90px 100px',
+                padding: '8px 12px', borderRadius: '8px',
+                fontSize: '11px', fontWeight: 600, color: '#9CA3AF',
+                textTransform: 'uppercase', letterSpacing: '0.05em'
+              }}>
+                <span>Cliente</span>
+                <span>Data</span>
+                <span style={{ textAlign: 'right' }}>Valor</span>
+                <span style={{ textAlign: 'center' }}>Status</span>
+              </div>
+
+              {pedidos.map(p => {
+                const s = STATUS_CONFIG[p.status] || { bg: '#F3F4F6', color: '#374151', label: p.status, dot: '#9CA3AF' };
+                return (
+                  <div key={p._id} style={{
+                    display: 'grid', gridTemplateColumns: '1fr 80px 90px 100px',
+                    padding: '12px 12px', borderRadius: '10px', alignItems: 'center',
+                    transition: 'background 0.12s'
+                  }}
+                    onMouseOver={e => e.currentTarget.style.background = '#F8FAFC'}
+                    onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <div>
+                      <div style={{ fontSize: '14px', fontWeight: 600, color: '#0F172A' }}>
+                        {p.dadosCliente?.nome || 'Cliente'}
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#9CA3AF' }}>
+                        {p.itens?.length || 0} {p.itens?.length === 1 ? 'item' : 'itens'}
+                      </div>
+                    </div>
+                    <div style={{ fontSize: '13px', color: '#6B7280' }}>
+                      {formatarData(p)}
+                    </div>
+                    <div style={{ fontSize: '14px', fontWeight: 700, color: AZUL, textAlign: 'right' }}>
+                      R$ {Number(p.total).toFixed(2).replace('.', ',')}
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                      <span style={{
+                        background: s.bg, color: s.color,
+                        padding: '3px 10px', borderRadius: '20px',
+                        fontSize: '11px', fontWeight: 600,
+                        display: 'flex', alignItems: 'center', gap: '5px'
+                      }}>
+                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: s.dot, display: 'inline-block' }} />
+                        {s.label}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </LayoutAdmin>

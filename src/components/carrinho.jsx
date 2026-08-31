@@ -27,7 +27,7 @@ export default function Carrinho({ aberto, fechar }) {
   };
 
   // Calcula total
-  const total = itens.reduce((s, i) => s + (i.precoExibicao || i.preco) * i.quantidade, 0);
+  const total = itens.reduce((s, i) => s + (i.precoPersonalizado || i.preco) * i.quantidade, 0);
 
   // ✅ FUNÇÃO ÚNICA E CORRETA — NÃO DUPLICA MAIS!
   const enviarPedido = async () => {
@@ -45,7 +45,7 @@ export default function Carrinho({ aberto, fechar }) {
         itens: itens.map(i => ({
           produtoId: i._id,
           nome: i.nome,
-          preco: i.precoExibicao || i.preco,
+          preco: i.precoPersonalizado || i.preco,
           quantidade: i.quantidade,
           imagem: i.imagem || ''
         })),
@@ -70,7 +70,7 @@ export default function Carrinho({ aberto, fechar }) {
 
       // ⚠️ TROQUE PELO SEU NÚMERO REAL DO WHATSAPP
       const link = `https://wa.me/551938983284?text=${encodeURIComponent(mensagem)}`;
-      window.open(link, '_blank');
+      window.location.href = link;
 
       // 5️⃣ LIMPA E FECHA
       limpar();
@@ -147,7 +147,7 @@ export default function Carrinho({ aberto, fechar }) {
                   <div style={{flex: 1}}>
                     <h5 style={{margin: 0, fontSize: '15px', fontWeight: 500}}>{item.nome}</h5>
                     <p style={{margin: '4px 0 0 0', fontSize: '14px', color: AZUL, fontWeight: 700}}>
-                      R$ {Number(item.precoExibicao || item.preco).toFixed(2).replace('.', ',')}
+                      R$ {Number(item.precoPersonalizado || item.preco).toFixed(2).replace('.', ',')}
                     </p>
                   </div>
 

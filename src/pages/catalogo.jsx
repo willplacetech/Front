@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '../services/api';
 import { useCarrinho } from '../context/carrinho';
-import Carrinho from '../components/Carrinho';
+import Carrinho from '../components/carrinho';
 import {
   ShoppingCartIcon, MagnifyingGlassIcon,
   MapPinIcon, Bars3Icon, XMarkIcon
@@ -242,7 +242,7 @@ export default function Catalogo() {
         ) : (
           <div className="row g-4">
             {filtrados.map(prod => {
-              const precoExib = prod.precoExibicao || prod.preco;
+              const precoExib = prod.precoPersonalizado || prod.preco;
               const temDesconto = prod.precoPersonalizado && prod.precoPersonalizado < prod.preco;
               const parcela = (precoExib / 10).toFixed(2);
 

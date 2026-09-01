@@ -32,6 +32,7 @@ export default function ProdutosCrud() {
   const [percentualLote, setPercentualLote] = useState(7);
   const [valorFixoLote, setValorFixoLote] = useState(500);
   const [ajustandoLote, setAjustandoLote] = useState(false);
+  const [excluindoLote, setExcluindoLote] = useState(false);
 
   // ✅ LISTA DE NOVOS PRODUTOS PARA CADASTRAR
   const [listaNovos, setListaNovos] = useState([produtoVazio()]);
@@ -176,6 +177,27 @@ export default function ProdutosCrud() {
     }
   };
 
+  const excluirSelecionados = async () => {
+    const escolhidos = produtos.filter(p => selecionados.includes(p._id));
+    if (!escolhidos.length) return;
+
+    if (!window.confirm(`Excluir permanentemente ${escolhidos.length} produto(s) selecionado(s)?`)) return;
+
+    setExcluindoLote(true);
+    try {
+      await Promise.all(escolhidos.map(produto => api.delete(`/produtos/${produto._id}`)));
+      alert(`${escolhidos.length} produto(s) excluído(s) com sucesso!`);
+      setSelecionados([]);
+      carregar();
+    } catch (erro) {
+      console.error('Erro ao excluir em lote:', erro);
+      alert('Não foi possível excluir todos os produtos selecionados.');
+      carregar();
+    } finally {
+      setExcluindoLote(false);
+    }
+  };
+
   // Filtrar
   const produtosFiltrados = filtro 
     ? produtos.filter(p => Object.values(p).join(' ').toLowerCase().includes(filtro.toLowerCase()))
@@ -255,6 +277,7 @@ export default function ProdutosCrud() {
             <label style={{fontSize: '12px', color: '#065F46'}}>Percentual (%)<input type="number" min="0" step="0.1" value={percentualLote} onChange={e => setPercentualLote(e.target.value)} style={{display: 'block', width: '105px', marginTop: '4px', padding: '9px 10px', border: '1px solid #A7F3D0', borderRadius: '8px', backgroundColor: 'white'}} /></label>
             <label style={{fontSize: '12px', color: '#065F46'}}>Fixo (R$)<input type="number" min="0" step="0.01" value={valorFixoLote} onChange={e => setValorFixoLote(e.target.value)} style={{display: 'block', width: '105px', marginTop: '4px', padding: '9px 10px', border: '1px solid #A7F3D0', borderRadius: '8px', backgroundColor: 'white'}} /></label>
             <button type="button" onClick={aplicarAjusteLote} disabled={ajustandoLote} style={{padding: '10px 16px', backgroundColor: VERDE, color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: ajustandoLote ? 'wait' : 'pointer'}}>{ajustandoLote ? 'Atualizando...' : 'Atualizar preços'}</button>
+            <button type="button" onClick={excluirSelecionados} disabled={excluindoLote || ajustandoLote} style={{padding: '10px 16px', backgroundColor: VERMELHO, color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: excluindoLote ? 'wait' : 'pointer'}}>{excluindoLote ? 'Excluindo...' : 'Excluir selecionados'}</button>
             <button type="button" onClick={() => setSelecionados([])} style={{padding: '10px 12px', backgroundColor: 'transparent', color: '#047857', border: '1px solid #A7F3D0', borderRadius: '8px', cursor: 'pointer'}}>Limpar</button>
           </div>
         </div>

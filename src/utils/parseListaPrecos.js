@@ -18,18 +18,52 @@ export function parseListaPrecos(texto, opcoes = {}) {
     .trim();
 
   const parsePreco = (valor) => {
-    const normalizado = valor.replace(/\s/g, '');
-    if (normalizado.includes(',') && normalizado.includes('.')) {
-      return Number(normalizado.replace(/\./g, '').replace(',', '.'));
+    const normalizado = String(valor || '').replace(/\s/g, '');
+    if (!normalizado) return 0;
+
+    let sinal = 1;
+    let numero = normalizado.replace(/[^0-9,.-]/g, '');
+    if (!numero || numero === '-' || numero === '.' || numero === ',') return 0;
+    if (numero.startsWith('-')) {
+      sinal = -1;
+      numero = numero.slice(1);
     }
-    if ((normalizado.match(/\./g) || []).length > 1) {
-      const partes = normalizado.split('.');
-      return Number(`${partes.slice(0, -1).join('')}.${partes.at(-1)}`);
+
+    const temVirgula = numero.includes(',');
+    const temPonto = numero.includes('.');
+
+    let valorNumerico = 0;
+    if (temVirgula && temPonto) {
+      valorNumerico = Number(numero.replace(/\./g, '').replace(',', '.'));
+    } else if (temVirgula) {
+      const partes = numero.split(',');
+      if (partes.length > 2) {
+        valorNumerico = Number(partes.join('').replace(/(\d+)(\d{2})$/, '$1.$2'));
+      } else {
+        valorNumerico = Number(numero.replace(',', '.'));
+      }
+    } else if (temPonto) {
+      const partes = numero.split('.');
+      if (partes.length > 2) {
+        valorNumerico = Number(partes.join(''));
+      } else {
+        valorNumerico = Number(numero);
+      }
+    } else {
+      valorNumerico = Number(numero);
     }
-    if (normalizado.includes(',')) {
-      return Number(normalizado.replace(',', '.'));
+
+    if (!Number.isFinite(valorNumerico)) return 0;
+
+    const valorAbsoluto = Math.abs(valorNumerico);
+    if (!/[.,]/.test(normalizado) && valorAbsoluto >= 100000 && Number.isInteger(valorNumerico) && valorNumerico % 100 === 0) {
+      const corrigido = valorNumerico / 100;
+      if (corrigido >= 1 && corrigido <= 50000) {
+        valorNumerico = corrigido;
+      }
     }
-    return Number(normalizado);
+
+    return Number((valorNumerico * sinal).toFixed(2));
   };
 
   const limparNome = (valor) => {

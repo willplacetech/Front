@@ -38,7 +38,15 @@ export default function ProdutosCrud() {
   const [listaBruta, setListaBruta] = useState('');
   const [processandoIa, setProcessandoIa] = useState(false);
   const [mostrarProcessador, setMostrarProcessador] = useState(false);
-  const [progressoIa, setProgressoIa] = useState({ atual: 0, total: 0, percentual: 0, inicio: 0, estimativa: 0 });
+  const [progressoIa, setProgressoIa] = useState({
+    fase: 'ociosa', // ociosa | analisando | convertendo | concluido
+    atual: 0,
+    total: 0,
+    percentual: 0,
+    inicio: 0,
+    estimativaTotal: 0,
+    tempoRestante: 0
+  });
   const intervaloProgressoIa = useRef(null);
 
   // ✅ LISTA DE NOVOS PRODUTOS PARA CADASTRAR
@@ -51,7 +59,14 @@ export default function ProdutosCrud() {
 
   useEffect(() => { carregar(); }, []);
 
-  useEffect(() => () => window.clearInterval(intervaloProgressoIa.current), []);
+  // 🧹 Garante limpeza do intervalo ao desmontar
+  useEffect(() => {
+    return () => {
+      if (intervaloProgressoIa.current) {
+        window.clearInterval(intervaloProgressoIa.current);
+      }
+    };
+  }, []);
 
   // 🤖 FUNÇÃO PRINCIPAL — Processar lista com Gemini
   const processarListaComIa = async () => {
@@ -60,72 +75,156 @@ export default function ProdutosCrud() {
       return;
     }
 
+    // 🧹 Limpa intervalo anterior se existir
+    if (intervaloProgressoIa.current) {
+      window.clearInterval(intervaloProgressoIa.current);
+    }
+
     setProcessandoIa(true);
     const inicio = Date.now();
-    const totalEstimado = Math.max(8, Math.min(60, Math.round(listaBruta.length / 350)));
-    setProgressoIa({ atual: 0, total: 0, percentual: 5, inicio, estimativa: totalEstimado });
+
+    // 📊 Estimativa baseada em quantidade real de linhas com preço
+    const linhasComPreco = listaBruta.split('\n').filter(l => l.includes('R$')).length;
+    const qtdEstimada = Math.max(10, linhasComPreco || Math.round(listaBruta.length / 80));
+    
+    // Tempo estimado: ~0.15s por produto + 8s base (rede + IA)
+    const estimativaTotal = Math.max(10, Math.min(120, Math.round(8 + qtdEstimada * 0.15)));
+
+    setProgressoIa({
+      fase: 'analisando',
+      atual: 0,
+      total: qtdEstimada,
+      percentual: 3,
+      inicio,
+      estimativaTotal,
+      tempoRestante: estimativaTotal
+    });
+
+    // ⏱️ Atualiza progresso a cada 500ms
     intervaloProgressoIa.current = window.setInterval(() => {
-      const decorrido = (Date.now() - inicio) / 1000;
-      const percentual = Math.min(88, Math.round(5 + (decorrido / totalEstimado) * 70));
-      setProgressoIa(atual => ({ ...atual, percentual }));
+      setProgressoIa(atual => {
+        if (atual.fase === 'concluido') return atual;
+        
+        const decorrido = (Date.now() - atual.inicio) / 1000;
+        const tempoRestante = Math.max(0, Math.round(atual.estimativaTotal - decorrido));
+        
+        // Fase ANALISANDO: vai até 85% gradualmente
+        let percentual = atual.percentual;
+        if (atual.fase === 'analisando') {
+          const alvo = Math.min(85, Math.round(3 + (decorrido / atual.estimativaTotal) * 82));
+          percentual = Math.max(atual.percentual, alvo);
+        }
+
+        return { ...atual, tempoRestante, percentual };
+      });
     }, 500);
 
     try {
-      const res = await api.post('/produtos/processar-lista', { listaBruta });
-      const { sucesso, dados } = res.data;
+      // ✅ Timeout de 2 minutos na requisição
+      const res = await api.post('/produtos/processar-lista', 
+        { listaBruta },
+        { timeout: 120000 }
+      );
+
+      const { sucesso, dados, totalProdutos } = res.data;
 
       if (sucesso && dados?.categorias) {
+        // Muda para fase CONVERTENDO
+        const total = totalProdutos || dados.categorias.reduce(
+          (t, c) => t + (c.produtos?.length || 0), 0
+        );
+
+        setProgressoIa(atual => ({
+          ...atual,
+          fase: 'convertendo',
+          total,
+          atual: 0,
+          percentual: 88
+        }));
+
         // Converte JSON da IA para formato do formulário
         const produtosConvertidos = [];
-        const totalProdutos = dados.categorias.reduce((total, categoria) => total + (categoria.produtos?.length || 0), 0);
-        let produtosProcessados = 0;
-        setProgressoIa(atual => ({ ...atual, total: totalProdutos, atual: 0, percentual: 90 }));
+        let processados = 0;
 
-        dados.categorias.forEach(cat => {
-          (cat.produtos || []).forEach(p => {
-            // Limpa o preço removendo "R$" e pontos, mantendo apenas números com vírgula
-            const precoLimpo = String(p.preco || '')
-              .replace(/[R$\s.]/g, '')
-              .replace(',', '.');
+        for (const cat of dados.categorias) {
+          for (const p of (cat.produtos || [])) {
+            // 🧹 Limpeza de preço MAIS ROBUSTA
+            let precoLimpo = '';
+            if (p.preco) {
+              precoLimpo = String(p.preco)
+                .replace(/[R$\s]/g, '')
+                .replace(/\./g, '')
+                .replace(',', '.')
+                .replace(/[^0-9.]/g, '');
+            }
+
+            // 📦 Monta nome completo (inclui cor e capacidade se tiver)
+            let nomeCompleto = p.nome?.trim() || '';
+            if (p.cor && !nomeCompleto.toLowerCase().includes(p.cor.toLowerCase())) {
+              nomeCompleto += ` - ${p.cor}`;
+            }
+            if (p.capacidade && !nomeCompleto.includes(p.capacidade)) {
+              nomeCompleto += ` ${p.capacidade}`;
+            }
 
             produtosConvertidos.push({
               ...produtoVazio(),
-              nome: p.nome?.trim() || '',
+              nome: nomeCompleto,
               categoria: cat.nomeCategoria?.trim() || p.categoria?.trim() || '',
               preco: precoLimpo || '',
               imagem: p.imagemUrl?.trim() || '',
               descricao: p.descricao?.trim() || ''
             });
-            produtosProcessados += 1;
+
+            processados++;
+            
+            // Atualiza progresso da conversão
             setProgressoIa(atual => ({
               ...atual,
-              atual: produtosProcessados,
-              percentual: Math.min(99, 90 + Math.round((produtosProcessados / Math.max(1, totalProdutos)) * 9))
+              atual: processados,
+              percentual: Math.min(99, 88 + Math.round((processados / Math.max(1, total)) * 11))
             }));
-          });
-        });
+          }
+        }
 
         if (produtosConvertidos.length === 0) {
           alert('⚠️ Nenhum produto foi reconhecido na lista.');
           return;
         }
 
+        // ✅ SUCESSO!
+        setProgressoIa(atual => ({
+          ...atual,
+          fase: 'concluido',
+          atual: produtosConvertidos.length,
+          total: produtosConvertidos.length,
+          percentual: 100,
+          tempoRestante: 0
+        }));
+
         setListaNovos(produtosConvertidos);
         setMostrarProcessador(false);
         setListaBruta('');
         setMostrarForm(true);
-        setProgressoIa(atual => ({ ...atual, atual: produtosConvertidos.length, total: produtosConvertidos.length, percentual: 100 }));
 
-        alert(`✅ ${produtosConvertidos.length} produto(s) extraído(s) e pronto(s) para salvar!`);
+        const tempoTotal = Math.round((Date.now() - inicio) / 1000);
+        setTimeout(() => {
+          alert(`✅ ${produtosConvertidos.length} produto(s) extraído(s) em ${tempoTotal}s! Pronto para salvar.`);
+        }, 300);
+
       } else {
         alert('❌ Não foi possível interpretar a lista.');
       }
+
     } catch (erro) {
       console.error(erro);
-      alert('❌ Erro ao processar lista: ' + (erro.response?.data?.erro || erro.message));
+      const msg = erro.response?.data?.erro || erro.message || 'Erro desconhecido';
+      alert(`❌ Erro ao processar lista:\n${msg}\n\n${msg.includes('Timeout') ? '💡 Tente novamente ou divida a lista em partes menores.' : ''}`);
     } finally {
-      window.clearInterval(intervaloProgressoIa.current);
-      intervaloProgressoIa.current = null;
+      if (intervaloProgressoIa.current) {
+        window.clearInterval(intervaloProgressoIa.current);
+        intervaloProgressoIa.current = null;
+      }
       setProcessandoIa(false);
     }
   };
@@ -281,6 +380,16 @@ export default function ProdutosCrud() {
 
   const todosFiltradosSelecionados = produtosFiltrados.length > 0 && produtosFiltrados.every(p => selecionados.includes(p._id));
 
+  // 🎨 Texto da fase de processamento
+  const textoFase = () => {
+    switch (progressoIa.fase) {
+      case 'analisando': return '🔍 Analisando lista com Gemini...';
+      case 'convertendo': return `📦 Convertendo produto ${progressoIa.atual} de ${progressoIa.total}`;
+      case 'concluido': return '✅ Concluído!';
+      default: return '';
+    }
+  };
+
   return (
     <LayoutAdmin titulo="Produtos" subtitulo="Cadastre manualmente ou cole sua lista e a IA extrai tudo automaticamente ✨">
 
@@ -375,6 +484,7 @@ export default function ProdutosCrud() {
           <textarea
             value={listaBruta}
             onChange={(e) => setListaBruta(e.target.value)}
+            disabled={processandoIa}
             placeholder="Cole sua lista aqui...
 
 Exemplo:
@@ -390,26 +500,59 @@ Processador M4, 512GB SSD
             style={{
               width: '100%', minHeight: '180px', padding: '14px', borderRadius: '12px',
               border: '1px solid #C4B5FD', fontSize: '14px', fontFamily: 'monospace',
-              outline: 'none', marginBottom: '14px', resize: 'vertical'
+              outline: 'none', marginBottom: '14px', resize: 'vertical',
+              opacity: processandoIa ? 0.6 : 1,
+              backgroundColor: processandoIa ? '#F5F3FF' : 'white'
             }}
             onFocus={e => e.target.style.borderColor = '#8B5CF6'}
             onBlur={e => e.target.style.borderColor = '#C4B5FD'}
           />
+
           {processandoIa && (
             <div style={{ marginBottom: '14px', padding: '14px 16px', borderRadius: '12px', backgroundColor: 'white', border: '1px solid #DDD6FE' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', marginBottom: '8px', fontSize: '13px', color: '#5B21B6' }}>
-                <strong>{progressoIa.total ? `Processando produto ${progressoIa.atual} de ${progressoIa.total}` : 'Analisando a lista com Gemini...'}</strong>
-                <strong>{progressoIa.percentual}%</strong>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', marginBottom: '8px', fontSize: '13px', color: '#5B21B6', fontWeight: 600 }}>
+                <span>{textoFase()}</span>
+                <span>{progressoIa.percentual}%</span>
               </div>
-              <div style={{ height: '10px', overflow: 'hidden', borderRadius: '999px', backgroundColor: '#EDE9FE' }}>
-                <div style={{ width: `${progressoIa.percentual}%`, height: '100%', borderRadius: '999px', background: 'linear-gradient(90deg, #8B5CF6, #06B6D4)', transition: 'width 0.4s ease' }} />
+              
+              {/* Barra de progresso */}
+              <div style={{ height: '12px', overflow: 'hidden', borderRadius: '999px', backgroundColor: '#EDE9FE', position: 'relative' }}>
+                <div 
+                  style={{ 
+                    width: `${progressoIa.percentual}%`, 
+                    height: '100%', 
+                    borderRadius: '999px', 
+                    background: progressoIa.fase === 'concluido' 
+                      ? 'linear-gradient(90deg, #10B981, #059669)' 
+                      : 'linear-gradient(90deg, #8B5CF6, #06B6D4)', 
+                    transition: 'width 0.4s ease',
+                    position: 'relative'
+                  }}
+                >
+                  {/* Efeito de brilho */}
+                  {progressoIa.fase !== 'concluido' && (
+                    <div style={{
+                      position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                      background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)',
+                      animation: 'brilho 1.5s infinite'
+                    }} />
+                  )}
+                </div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', marginTop: '8px', fontSize: '12px', color: '#7C3AED' }}>
-                <span>Tempo decorrido: {Math.max(0, Math.round((Date.now() - progressoIa.inicio) / 1000))}s</span>
-                <span>Previsão: cerca de {progressoIa.estimativa}s</span>
+
+              {/* Informações de tempo */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', marginTop: '10px', fontSize: '12px', color: '#7C3AED' }}>
+                <span>⏱️ Decorrido: {Math.max(0, Math.round((Date.now() - progressoIa.inicio) / 1000))}s</span>
+                {progressoIa.fase !== 'concluido' && progressoIa.tempoRestante > 0 && (
+                  <span>⏳ Restante: ~{progressoIa.tempoRestante}s</span>
+                )}
+                {progressoIa.total > 0 && (
+                  <span>📦 ~{progressoIa.total} produtos estimados</span>
+                )}
               </div>
             </div>
           )}
+
           <button
             onClick={processarListaComIa}
             disabled={processandoIa}
@@ -423,7 +566,7 @@ Processador M4, 512GB SSD
             onMouseOut={e => !processandoIa && (e.target.style.backgroundColor = '#8B5CF6')}
           >
             {processandoIa ? (
-              <>⏳ Analisando lista...</>
+              <>⏳ Processando... não feche a página</>
             ) : (
               <>✨ Extrair Produtos com IA</>
             )}
@@ -749,6 +892,10 @@ Processador M4, 512GB SSD
       )}
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes brilho {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
       `}</style>
 
       {/* IMPORTADOR DE PREÇOS */}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { PlusIcon, PencilIcon, TrashIcon, MagnifyingGlassIcon, XMarkIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import api from '../services/api';
 import LayoutAdmin from '../components/LayoutAdmin';
@@ -38,6 +38,8 @@ export default function ProdutosCrud() {
   const [listaBruta, setListaBruta] = useState('');
   const [processandoIa, setProcessandoIa] = useState(false);
   const [mostrarProcessador, setMostrarProcessador] = useState(false);
+  const [progressoIa, setProgressoIa] = useState({ atual: 0, total: 0, percentual: 0, inicio: 0, estimativa: 0 });
+  const intervaloProgressoIa = useRef(null);
 
   // ✅ LISTA DE NOVOS PRODUTOS PARA CADASTRAR
   const [listaNovos, setListaNovos] = useState([produtoVazio()]);
@@ -49,6 +51,8 @@ export default function ProdutosCrud() {
 
   useEffect(() => { carregar(); }, []);
 
+  useEffect(() => () => window.clearInterval(intervaloProgressoIa.current), []);
+
   // 🤖 FUNÇÃO PRINCIPAL — Processar lista com Gemini
   const processarListaComIa = async () => {
     if (!listaBruta.trim()) {
@@ -57,6 +61,14 @@ export default function ProdutosCrud() {
     }
 
     setProcessandoIa(true);
+    const inicio = Date.now();
+    const totalEstimado = Math.max(8, Math.min(60, Math.round(listaBruta.length / 350)));
+    setProgressoIa({ atual: 0, total: 0, percentual: 5, inicio, estimativa: totalEstimado });
+    intervaloProgressoIa.current = window.setInterval(() => {
+      const decorrido = (Date.now() - inicio) / 1000;
+      const percentual = Math.min(88, Math.round(5 + (decorrido / totalEstimado) * 70));
+      setProgressoIa(atual => ({ ...atual, percentual }));
+    }, 500);
 
     try {
       const res = await api.post('/produtos/processar-lista', { listaBruta });
@@ -65,9 +77,12 @@ export default function ProdutosCrud() {
       if (sucesso && dados?.categorias) {
         // Converte JSON da IA para formato do formulário
         const produtosConvertidos = [];
+        const totalProdutos = dados.categorias.reduce((total, categoria) => total + (categoria.produtos?.length || 0), 0);
+        let produtosProcessados = 0;
+        setProgressoIa(atual => ({ ...atual, total: totalProdutos, atual: 0, percentual: 90 }));
 
         dados.categorias.forEach(cat => {
-          cat.produtos.forEach(p => {
+          (cat.produtos || []).forEach(p => {
             // Limpa o preço removendo "R$" e pontos, mantendo apenas números com vírgula
             const precoLimpo = String(p.preco || '')
               .replace(/[R$\s.]/g, '')
@@ -81,6 +96,12 @@ export default function ProdutosCrud() {
               imagem: p.imagemUrl?.trim() || '',
               descricao: p.descricao?.trim() || ''
             });
+            produtosProcessados += 1;
+            setProgressoIa(atual => ({
+              ...atual,
+              atual: produtosProcessados,
+              percentual: Math.min(99, 90 + Math.round((produtosProcessados / Math.max(1, totalProdutos)) * 9))
+            }));
           });
         });
 
@@ -93,6 +114,7 @@ export default function ProdutosCrud() {
         setMostrarProcessador(false);
         setListaBruta('');
         setMostrarForm(true);
+        setProgressoIa(atual => ({ ...atual, atual: produtosConvertidos.length, total: produtosConvertidos.length, percentual: 100 }));
 
         alert(`✅ ${produtosConvertidos.length} produto(s) extraído(s) e pronto(s) para salvar!`);
       } else {
@@ -102,6 +124,8 @@ export default function ProdutosCrud() {
       console.error(erro);
       alert('❌ Erro ao processar lista: ' + (erro.response?.data?.erro || erro.message));
     } finally {
+      window.clearInterval(intervaloProgressoIa.current);
+      intervaloProgressoIa.current = null;
       setProcessandoIa(false);
     }
   };
@@ -357,7 +381,7 @@ Exemplo:
 ---
 ## IPHONES
 Iphone 17 Pro Max 256GB - R$ 8.999,00
-Tela 6.9", câmera 48MP, titânio
+Tela de 6,9 polegadas, câmera 48MP, titânio
 ---
 ## MACBOOKS
 MacBook Pro M4 16GB - R$ 12.499,00
@@ -371,6 +395,21 @@ Processador M4, 512GB SSD
             onFocus={e => e.target.style.borderColor = '#8B5CF6'}
             onBlur={e => e.target.style.borderColor = '#C4B5FD'}
           />
+          {processandoIa && (
+            <div style={{ marginBottom: '14px', padding: '14px 16px', borderRadius: '12px', backgroundColor: 'white', border: '1px solid #DDD6FE' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', marginBottom: '8px', fontSize: '13px', color: '#5B21B6' }}>
+                <strong>{progressoIa.total ? `Processando produto ${progressoIa.atual} de ${progressoIa.total}` : 'Analisando a lista com Gemini...'}</strong>
+                <strong>{progressoIa.percentual}%</strong>
+              </div>
+              <div style={{ height: '10px', overflow: 'hidden', borderRadius: '999px', backgroundColor: '#EDE9FE' }}>
+                <div style={{ width: `${progressoIa.percentual}%`, height: '100%', borderRadius: '999px', background: 'linear-gradient(90deg, #8B5CF6, #06B6D4)', transition: 'width 0.4s ease' }} />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', marginTop: '8px', fontSize: '12px', color: '#7C3AED' }}>
+                <span>Tempo decorrido: {Math.max(0, Math.round((Date.now() - progressoIa.inicio) / 1000))}s</span>
+                <span>Previsão: cerca de {progressoIa.estimativa}s</span>
+              </div>
+            </div>
+          )}
           <button
             onClick={processarListaComIa}
             disabled={processandoIa}

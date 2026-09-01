@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { XMarkIcon, CheckIcon, ExclamationIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, CheckIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { parseListaPrecos } from '../utils/parseListaPrecos';
 import api from '../services/api';
 
@@ -246,7 +246,7 @@ export default function ImportadorPrecos({ isOpen, onClose, onSucesso }) {
               {erros.length > 0 && (
                 <div className="bg-red-50 border border-red-300 rounded-lg p-4">
                   <p className="font-semibold text-red-700 mb-2 flex items-center gap-2">
-                    <ExclamationIcon className="w-5 h-5" /> Erros encontrados:
+                    <ExclamationTriangleIcon className="w-5 h-5" /> Erros encontrados:
                   </p>
                   <ul className="text-sm text-red-600 space-y-1">
                     {erros.slice(0, 5).map((erro, i) => <li key={i}>• {erro}</li>)}

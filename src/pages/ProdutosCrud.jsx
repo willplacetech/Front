@@ -198,7 +198,7 @@ export default function ProdutosCrud() {
       </div>
 
       {/* 📝 FORMULÁRIO DE VÁRIOS PRODUTOS */}
-      {mostrarForm && (
+      {!importadorAberto && mostrarForm && (
         <form onSubmit={salvarTodos} style={{
           backgroundColor: 'white', padding: '24px', borderRadius: '16px',
           boxShadow: '0 1px 3px rgba(0,0,0,0.08)', marginBottom: '24px'
@@ -517,11 +517,16 @@ export default function ProdutosCrud() {
       `}</style>
 
       {/* IMPORTADOR DE PREÇOS */}
-      <ImportadorPrecos 
-        isOpen={importadorAberto} 
-        onClose={() => setImportadorAberto(false)}
-        onSucesso={() => carregar()}
-      />
+      {importadorAberto && (
+        <ImportadorPrecos 
+          isOpen={importadorAberto} 
+          onClose={() => {
+            setImportadorAberto(false);
+            setMostrarForm(false);
+          }}
+          onSucesso={() => carregar()}
+        />
+      )}
     </LayoutAdmin>
   );
 }

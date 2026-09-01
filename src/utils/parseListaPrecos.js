@@ -9,9 +9,53 @@ export function parseListaPrecos(texto, opcoes = {}) {
   const produtos = [];
   let categoriaAtual = '';
   let produtoAtual = null;
-  let ultimoEmoji = '';
 
   const linhas = texto.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+
+  const removerEmojis = (valor) => valor
+    .replace(/[\p{Extended_Pictographic}\p{Emoji_Presentation}\uFE0F\u200D]/gu, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const parsePreco = (valor) => {
+    const normalizado = valor.replace(/\s/g, '');
+    if (normalizado.includes(',') && normalizado.includes('.')) {
+      return Number(normalizado.replace(/\./g, '').replace(',', '.'));
+    }
+    if ((normalizado.match(/\./g) || []).length > 1) {
+      const partes = normalizado.split('.');
+      return Number(`${partes.slice(0, -1).join('')}.${partes.at(-1)}`);
+    }
+    if (normalizado.includes(',')) {
+      return Number(normalizado.replace(',', '.'));
+    }
+    return Number(normalizado);
+  };
+
+  const limparNome = (valor) => {
+    const semSimbolos = valor
+      .replace(/^[^A-Za-zÀ-ÿ0-9]+/, '')
+      .replace(/\s+/g, ' ')
+      .replace(/\s*(CPO|LACRADO|NOVIDADE|DE\s*\d+.*|M\d+)\s*/gi, ' ');
+    return removerEmojis(semSimbolos);
+  };
+
+  const adicionarProduto = (nome, precoCusto, cor = '') => {
+    if (!nome || !Number.isFinite(precoCusto) || precoCusto <= 0 || precoCusto >= 100000) return;
+    const nomeFinal = cor && cor !== nome ? `${nome} - ${cor}` : nome;
+    if (nomeFinal.length <= 5) return;
+
+    produtos.push({
+      nome: nomeFinal,
+      categoria: categoriaAtual || 'Sem Categoria',
+      preçoCusto: precoCusto,
+      precoFinal: parseFloat((precoCusto * (1 + percentual / 100) + valorFixo).toFixed(2)),
+      descricao: `Custo: R$ ${precoCusto.toFixed(2)} | Categoria: ${categoriaAtual}`,
+      imagem: '',
+      cor,
+      disponivel: true
+    });
+  };
 
   for (let i = 0; i < linhas.length; i++) {
     const linha = linhas[i];
@@ -22,57 +66,34 @@ export function parseListaPrecos(texto, opcoes = {}) {
         .replace(/[⬇️⬜️🟦🟧🟨🟩🟪⬛️🟫—⸻-]/g, '')
         .replace(/IPHONE|IPAD|MACBOOK|AIRPODS|APPLE|WATCH|ACESSORIOS/gi, '')
         .trim();
-      categoriaAtual = categoriaAtual.replace(/\s+/g, ' ').substring(0, 50);
+      categoriaAtual = removerEmojis(categoriaAtual).substring(0, 50);
       continue;
     }
 
-    // DETECTAR NOMES DE PRODUTOS
-    // Padrão: começa com emoji de produto (📱 🔲 💻 ⌚️ 🎧 etc)
-    const produtoMatch = linha.match(/^([📱🔲💻⌚️🎧🖥️🥚✏️⌨️🖱️⛓️])\s*([^*R$]+?)(?:\s*\d+[Gg][Bb])?(?:\s*2[0-9]{3})?(?:\s*\(.*?\))?$/);
-    
-    if (produtoMatch) {
-      ultimoEmoji = produtoMatch[1];
-      produtoAtual = produtoMatch[2].trim();
-      // Remove "CPO", "MACBOOK AIR", etc do nome para ficar mais limpo
-      produtoAtual = produtoAtual.replace(/\s*(CPO|LACRADO|NOVIDADE|DE\s*\d+.*|M[0-9])\s*/gi, ' ').trim();
+    // Linhas com preço na mesma linha do produto, como AIRPODS 4 REGULAR *R$ 710.00*.
+    const precoNaLinha = linha.match(/\*?R\$\s*([\d.,]+)\*?/i);
+    const textoSemPreco = precoNaLinha ? linha.slice(0, precoNaLinha.index).trim() : linha;
+    const comecaComEmoji = /^[^A-Za-zÀ-ÿ0-9\s]/u.test(textoSemPreco);
+
+    if (precoNaLinha && !comecaComEmoji) {
+      adicionarProduto(limparNome(textoSemPreco), parsePreco(precoNaLinha[1]));
+      produtoAtual = limparNome(textoSemPreco);
       continue;
     }
 
-    // DETECTAR LINHAS DE PREÇO
-    // Padrão: "🟦 COR *R$ PREÇO*" ou "🟫 COR *R$ PREÇO*" ou "⬜️ COR *R$ PREÇO*"
-    const precoMatch = linha.match(/^([🟫⬜️🟦🟧🟨🟩🟪⬛️])\s*([^*]*?)\s*\*?R\$\s*([\d.,]+)\*?$/);
-    
-    if (precoMatch && produtoAtual) {
-      const cor = precoMatch[2].trim();
-      const precoStr = precoMatch[3].trim();
-      
-      // Parse do preço: "6.990.00" -> 6990, ou "6,990.00" -> 6990
-      const precoCusto = parseFloat(precoStr.replace(/\./g, '').replace(',', '.'));
+    if (precoNaLinha && comecaComEmoji) {
+      const nome = limparNome(textoSemPreco);
+      const precoCusto = parsePreco(precoNaLinha[1]);
+      const linhaDeCor = produtoAtual && nome.length < 45 && !/\b(?:IPHONE|IPAD|MAC|WATCH|GARMIN|AIRPODS|PENCIL|MOUSE|KEYBOARD|TRACKPAD|AIRTAG)\b/i.test(nome);
+      adicionarProduto(linhaDeCor ? produtoAtual : nome, precoCusto, linhaDeCor ? nome : '');
+      if (!linhaDeCor) produtoAtual = nome;
+      continue;
+    }
 
-      if (precoCusto > 0 && precoCusto < 100000) { // Validação de preço
-        // Calcula o preço final com a fórmula definida pelo usuário.
-        const precoFinal = parseFloat((precoCusto * (1 + percentual / 100) + valorFixo).toFixed(2));
-        
-        const nomeFinal = cor && cor !== produtoAtual 
-          ? `${produtoAtual} - ${cor}` 
-          : produtoAtual;
-
-        // Verifica se já existe um produto com este nome (para não duplicar)
-        const existe = produtos.some(p => p.nome === nomeFinal);
-        
-        if (!existe && nomeFinal.length > 5) {
-          produtos.push({
-            nome: nomeFinal,
-            categoria: categoriaAtual || 'Sem Categoria',
-            preçoCusto: precoCusto,
-            precoFinal: precoFinal,
-            descricao: `Custo: R$ ${precoCusto.toFixed(2)} | Categoria: ${categoriaAtual}`,
-            imagem: '',
-            cor: cor,
-            disponivel: true
-          });
-        }
-      }
+    // Detecta qualquer linha de produto, inclusive com vários emojis no início.
+    if (comecaComEmoji) {
+      produtoAtual = limparNome(textoSemPreco);
+      continue;
     }
 
     // Linhas especiais que resetam o produto atual
@@ -81,25 +102,8 @@ export function parseListaPrecos(texto, opcoes = {}) {
     }
   }
 
-  // Remove duplicatas (mesma cor de um modelo em cores diferentes)
-  const nomeUnicos = new Map();
-  
-  return produtos.filter(p => {
-    const chave = p.nome.replace(/\s*-\s*[A-Z\s]+$/i, ''); // Remove a cor do final
-    
-    if (nomeUnicos.has(chave)) {
-      const existente = nomeUnicos.get(chave);
-      // Mantém o de menor preço (provavelmente a cor padrão)
-      if (p.precoFinal < existente.precoFinal) {
-        nomeUnicos.set(chave, p);
-        return true;
-      }
-      return false;
-    }
-    
-    nomeUnicos.set(chave, p);
-    return true;
-  });
+  // Cada cor é um produto distinto no catálogo; só remove linhas exatamente repetidas.
+  return produtos.filter((produto, indice, lista) => lista.findIndex(outro => outro.nome === produto.nome) === indice);
 }
 
 /**

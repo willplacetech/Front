@@ -997,7 +997,7 @@ Processador M4, 512GB SSD
                     >
                       <td style={{ padding: '12px 16px' }}><input type="checkbox" checked={selecionados.includes(p._id)} onChange={() => alternarSelecao(p._id)} aria-label={`Selecionar ${p.nome}`} style={{ width: '17px', height: '17px', cursor: 'pointer' }} /></td>
                       <td style={{ padding: '12px 16px', verticalAlign: 'middle' }}>
-                        <div style={{ width: '64px', height: '64px', borderRadius: '10px', overflow: 'hidden', backgroundColor: '#f7f7f7', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #f0f0f0' }}>
+                        <div style={{ width: '48px', height: '48px', borderRadius: '9px', overflow: 'hidden', backgroundColor: '#f7f7f7', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #f0f0f0' }}>
                           {p.imagem ? (
                             <img src={p.imagem} alt={p.nome} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = '/LogoEscrthinny.jpg'; }} />
                           ) : (

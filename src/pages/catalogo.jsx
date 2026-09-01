@@ -19,6 +19,25 @@ const precoVendaPadrao = (custo) => {
   return Number.isFinite(valor) && valor > 0 ? Number((valor * 1.07 + 500).toFixed(2)) : valor;
 };
 
+const IMAGEM_PADRAO = '/LogoEscrthinny.jpg';
+
+const renderImagemProduto = (src, alt, estilo = {}) => (
+  <img
+    src={src || IMAGEM_PADRAO}
+    alt={alt}
+    style={{
+      maxHeight: '180px',
+      maxWidth: '100%',
+      objectFit: 'contain',
+      ...estilo
+    }}
+    onError={e => {
+      e.currentTarget.onerror = null;
+      e.currentTarget.src = IMAGEM_PADRAO;
+    }}
+  />
+);
+
 export default function Catalogo() {
   const [produtos, setProdutos] = useState([]);
   const [carrinhoAberto, setCarrinhoAberto] = useState(false);
@@ -78,8 +97,24 @@ export default function Catalogo() {
         .card-produto { 
           border: none; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
           transition: transform 0.2s ease, box-shadow 0.2s ease; overflow: hidden;
+          min-height: 100%;
         }
         .card-produto:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.12); }
+        .imagem-produto-card {
+          display: flex; align-items: center; justify-content: center;
+          background: linear-gradient(180deg, #ffffff 0%, #f6f6f6 100%);
+          border-bottom: 1px solid #f0f0f0;
+          min-height: 220px;
+          height: 220px;
+          padding: 16px;
+          overflow: hidden;
+        }
+        .imagem-produto-card img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+          display: block;
+        }
 
         /* BOTÃO PADRÃO */
         .btn-placetech { 
@@ -264,13 +299,8 @@ export default function Catalogo() {
                 <div className="col-12 col-sm-6 col-md-4 col-lg-3" key={prod._id}>
                   <div className="card card-produto h-100">
                     {/* IMAGEM */}
-                    <div className="p-3 d-flex align-items-center justify-content-center bg-white" style={{height: '200px'}}>
-                      <img
-                        src={prod.imagem || 'https://placehold.co/300x300/EBEBEB/999?text=Produto'}
-                        alt={prod.nome}
-                        style={{maxHeight: '180px', maxWidth: '100%', objectFit: 'contain'}}
-                        onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = '/LogoEscrthinny.jpg'; }}
-                      />
+                    <div className="imagem-produto-card">
+                      {renderImagemProduto(prod.imagem, prod.nome, { height: '180px', width: '100%' })}
                     </div>
 
                     {/* CONTEÚDO */}

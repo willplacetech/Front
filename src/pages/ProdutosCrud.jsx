@@ -973,18 +973,18 @@ Processador M4, 512GB SSD
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ backgroundColor: CINZA }}>
-                  {['', 'Foto', 'Produto', 'Preço custo', 'Preço venda', 'Categoria', 'Status', 'Ações'].map((h, i) => (
+                  {['', 'Foto', 'Produto', 'Preço custo', 'Preço venda', 'Categoria', 'Ações'].map((h, i) => (
                     <th key={i} style={{
-                      padding: '14px 16px', textAlign: i === 7 ? 'right' : 'left',
+                      padding: '14px 16px', textAlign: i === 6 ? 'right' : 'left',
                       fontSize: '13px', fontWeight: 600, color: '#444', textTransform: 'uppercase'
-                    }}>{i === 0 ? <input type="checkbox" checked={todosFiltradosSelecionados} onChange={e => selecionarFiltrados(e.target.checked)} aria-label="Selecionar todos os produtos filtrados" style={{ width: '17px', height: '17px', cursor: 'pointer' }} /> : i === 2 || i === 3 || i === 4 || i === 5 || i === 6 ? <button type="button" onClick={() => ordenarPor({ 2: 'nome', 3: 'preco', 4: 'precoPersonalizado', 5: 'categoria', 6: 'status' }[i])} style={{ border: 0, background: 'transparent', color: '#444', padding: 0, font: 'inherit', cursor: 'pointer' }}>{h} <span aria-hidden="true">{indicadorOrdenacao({ 2: 'nome', 3: 'preco', 4: 'precoPersonalizado', 5: 'categoria', 6: 'status' }[i])}</span></button> : h}</th>
+                    }}>{i === 0 ? <input type="checkbox" checked={todosFiltradosSelecionados} onChange={e => selecionarFiltrados(e.target.checked)} aria-label="Selecionar todos os produtos filtrados" style={{ width: '17px', height: '17px', cursor: 'pointer' }} /> : i === 2 || i === 3 || i === 4 || i === 5 ? <button type="button" onClick={() => ordenarPor({ 2: 'nome', 3: 'preco', 4: 'precoPersonalizado', 5: 'categoria' }[i])} style={{ border: 0, background: 'transparent', color: '#444', padding: 0, font: 'inherit', cursor: 'pointer' }}>{h} <span aria-hidden="true">{indicadorOrdenacao({ 2: 'nome', 3: 'preco', 4: 'precoPersonalizado', 5: 'categoria' }[i])}</span></button> : h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {produtosFiltrados.length === 0 ? (
                   <tr>
-                    <td colSpan="8" style={{ padding: '60px 20px', textAlign: 'center', color: '#999' }}>
+                    <td colSpan="7" style={{ padding: '60px 20px', textAlign: 'center', color: '#999' }}>
                       Nenhum produto encontrado.
                     </td>
                   </tr>
@@ -996,12 +996,14 @@ Processador M4, 512GB SSD
                       onMouseOut={e => e.currentTarget.style.backgroundColor = 'transparent'}
                     >
                       <td style={{ padding: '12px 16px' }}><input type="checkbox" checked={selecionados.includes(p._id)} onChange={() => alternarSelecao(p._id)} aria-label={`Selecionar ${p.nome}`} style={{ width: '17px', height: '17px', cursor: 'pointer' }} /></td>
-                      <td style={{ padding: '12px 16px' }}>
-                        {p.imagem ? (
-                          <img src={p.imagem} alt={p.nome} style={{ width: '48px', height: '48px', objectFit: 'contain', borderRadius: '8px', backgroundColor: '#f8f8f8' }} onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = '/LogoEscrthinny.jpg'; }} />
-                        ) : (
-                          <div style={{ width: '48px', height: '48px', backgroundColor: '#f0f0f0', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>📦</div>
-                        )}
+                      <td style={{ padding: '12px 16px', verticalAlign: 'middle' }}>
+                        <div style={{ width: '64px', height: '64px', borderRadius: '10px', overflow: 'hidden', backgroundColor: '#f7f7f7', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #f0f0f0' }}>
+                          {p.imagem ? (
+                            <img src={p.imagem} alt={p.nome} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = '/LogoEscrthinny.jpg'; }} />
+                          ) : (
+                            <img src="/LogoEscrthinny.jpg" alt={p.nome} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          )}
+                        </div>
                       </td>
                       <td style={{ padding: '12px 16px', fontWeight: 500 }}>{p.nome}</td>
                       <td style={{ padding: '12px 16px' }}>
@@ -1011,28 +1013,23 @@ Processador M4, 512GB SSD
                         {precoEmEdicao?.id === p._id && precoEmEdicao.campo === 'precoPersonalizado' ? <input autoFocus type="number" min="0.01" step="0.01" value={valorPrecoEdicao} onChange={e => setValorPrecoEdicao(e.target.value)} onKeyDown={tratarTeclaPreco} onBlur={salvarPrecoInline} disabled={salvandoPreco} style={{ width: '110px', padding: '7px 8px', border: `1px solid ${VERDE}`, borderRadius: '7px' }} /> : <div><div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, fontSize: '15px', color: VERDE }}><span>R$ {Number(preco).toFixed(2).replace('.', ',')}</span><button type="button" onClick={() => iniciarEdicaoPreco(p, 'precoPersonalizado')} title="Editar preço de venda" aria-label="Editar preço de venda" style={{ border: 0, background: 'transparent', color: VERDE, cursor: 'pointer', padding: '3px' }}><PencilIcon style={{ width: '14px', height: '14px' }} /></button></div>{p.precoPersonalizado && <div style={{ fontSize: '12px', color: '#999' }}>Calculado/manual</div>}</div>}
                       </td>
                       <td style={{ padding: '12px 16px', color: '#555' }}>{p.categoria || '-'}</td>
-                      <td style={{ padding: '12px 16px' }}>
-                        <span style={{
-                          padding: '4px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: 500,
-                          backgroundColor: p.disponivel ? `${VERDE}15` : `${VERMELHO}15`,
-                          color: p.disponivel ? VERDE : VERMELHO
-                        }}>
-                          {p.disponivel ? '✅ Ativo' : '⏸️ Inativo'}
-                        </span>
-                      </td>
-                      <td style={{ padding: '12px 16px', textAlign: 'right' }}>
-                        <button onClick={() => editar(p)} style={{
-                          padding: '6px 10px', border: 'none', background: `${AZUL}10`,
-                          color: AZUL, borderRadius: '8px', marginRight: '6px', cursor: 'pointer'
-                        }} title="Editar">
-                          <PencilIcon style={{ width: '14px', height: '14px' }} />
-                        </button>
-                        <button onClick={() => deletar(p._id)} style={{
-                          padding: '6px 10px', border: 'none', background: `${VERMELHO}10`,
-                          color: VERMELHO, borderRadius: '8px', cursor: 'pointer'
-                        }} title="Excluir">
-                          <TrashIcon style={{ width: '14px', height: '14px' }} />
-                        </button>
+                      <td style={{ padding: '12px 16px', textAlign: 'right', verticalAlign: 'middle' }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px' }}>
+                          <button onClick={() => editar(p)} style={{
+                            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                            width: '34px', height: '34px', border: 'none', background: `${AZUL}10`,
+                            color: AZUL, borderRadius: '8px', cursor: 'pointer'
+                          }} title="Editar">
+                            <PencilIcon style={{ width: '14px', height: '14px' }} />
+                          </button>
+                          <button onClick={() => deletar(p._id)} style={{
+                            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                            width: '34px', height: '34px', border: 'none', background: `${VERMELHO}10`,
+                            color: VERMELHO, borderRadius: '8px', cursor: 'pointer'
+                          }} title="Excluir">
+                            <TrashIcon style={{ width: '14px', height: '14px' }} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );

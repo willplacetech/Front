@@ -179,7 +179,10 @@ export default function ProdutosCrud() {
           </button>
 
           <button
-            onClick={() => setImportadorAberto(true)}
+            onClick={() => {
+              setMostrarForm(false);
+              setImportadorAberto(true);
+            }}
             style={{
               display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px',
               backgroundColor: '#059669', color: 'white', border: 'none', borderRadius: '12px',

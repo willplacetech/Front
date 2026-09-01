@@ -124,155 +124,86 @@ export default function ImportadorPrecos({ isOpen, onClose, onSucesso }) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full max-h-screen overflow-y-auto">
-        
-        {/* HEADER */}
-        <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6 flex justify-between items-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-3 backdrop-blur-sm sm:p-6">
+      <div className="flex max-h-[calc(100vh-1.5rem)] w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl sm:max-h-[calc(100vh-3rem)]">
+        <header className="flex shrink-0 items-start justify-between gap-4 border-b border-slate-200 bg-slate-900 px-5 py-5 text-white sm:px-7">
           <div>
-            <h2 className="text-2xl font-bold">📊 Importador de Preços</h2>
-            <p className="text-blue-100">Cole a lista do fornecedor para cadastrar em lote</p>
+            <div className="mb-2 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-emerald-300">
+              <span className="h-2 w-2 rounded-full bg-emerald-400" /> Cadastro em lote
+            </div>
+            <h2 className="text-xl font-bold sm:text-2xl">Importar preços</h2>
+            <p className="mt-1 text-sm text-slate-300">Cole a lista do fornecedor, revise os dados e confirme o cadastro.</p>
           </div>
-          <button onClick={onClose} className="text-white hover:bg-blue-800 p-2 rounded">
-            <XMarkIcon className="w-6 h-6" />
+          <button onClick={onClose} aria-label="Fechar importador" className="rounded-lg p-2 text-slate-300 transition hover:bg-white/10 hover:text-white">
+            <XMarkIcon className="h-6 w-6" />
           </button>
-        </div>
+        </header>
 
-        <div className="p-6 space-y-6">
-          
-          {/* ETAPA 1: COLAR LISTA */}
+        <div className="min-h-0 flex-1 overflow-y-auto bg-slate-50 p-4 sm:p-7">
           {produtos.length === 0 ? (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  📋 Cole a lista de preços aqui:
-                </label>
+            <div className="mx-auto max-w-3xl space-y-5">
+              <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+                <div className="mb-4 flex items-start gap-3">
+                  <div className="rounded-lg bg-emerald-100 p-2 text-emerald-700">📋</div>
+                  <div>
+                    <label className="block text-base font-semibold text-slate-900">Lista de preços do fornecedor</label>
+                    <p className="mt-1 text-sm text-slate-500">Cole aqui a mensagem completa, incluindo produtos, cores e preços.</p>
+                  </div>
+                </div>
                 <textarea
                   value={texto}
                   onChange={(e) => setTexto(e.target.value)}
-                  placeholder="⌚️🖥️📱 LISTA IPHONE/IPHONE CPO... (cole a mensagem completa)"
-                  className="w-full h-40 p-4 border-2 border-gray-300 rounded-lg font-mono text-sm focus:border-blue-500 focus:outline-none resize-none"
+                  placeholder="Cole a mensagem do fornecedor aqui..."
+                  className="h-64 w-full resize-y rounded-lg border border-slate-300 bg-slate-50 p-4 font-mono text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100"
                 />
+                <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <span className="text-xs text-slate-500">Os dados poderão ser editados antes do cadastro.</span>
+                  <button
+                    onClick={handleParsear}
+                    disabled={processando || !texto.trim()}
+                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+                  >
+                    {processando ? <><span className="animate-spin">⏳</span> Processando...</> : <><CheckIcon className="h-5 w-5" /> Analisar lista</>}
+                  </button>
+                </div>
               </div>
 
-              <button
-                onClick={handleParsear}
-                disabled={processando || !texto.trim()}
-                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-3 rounded-lg transition flex items-center justify-center gap-2"
-              >
-                {processando ? (
-                  <>
-                    <div className="animate-spin">⏳</div>
-                    Processando... ({progresso.atual}/{progresso.total})
-                  </>
-                ) : (
-                  <>
-                    <CheckIcon className="w-5 h-5" /> Analisar Lista
-                  </>
-                )}
-              </button>
-
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-gray-700">
-                <p className="font-semibold mb-2">📝 Formato esperado:</p>
-                <ul className="list-disc list-inside space-y-1 text-xs">
-                  <li>A lista será parseada automaticamente</li>
-                  <li>Preço final = (custo × 1,07) + R$ 500</li>
-                  <li>Imagens serão buscadas automaticamente</li>
-                  <li>Você poderá revisar antes de confirmar</li>
-                </ul>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div className="rounded-xl border border-slate-200 bg-white p-4"><strong className="block text-sm text-slate-900">1. Cole</strong><span className="mt-1 block text-xs text-slate-500">Use a mensagem original do fornecedor.</span></div>
+                <div className="rounded-xl border border-slate-200 bg-white p-4"><strong className="block text-sm text-slate-900">2. Revise</strong><span className="mt-1 block text-xs text-slate-500">Confira nomes, categorias e preços.</span></div>
+                <div className="rounded-xl border border-slate-200 bg-white p-4"><strong className="block text-sm text-slate-900">3. Confirme</strong><span className="mt-1 block text-xs text-slate-500">Imagens são buscadas automaticamente.</span></div>
               </div>
             </div>
           ) : (
-            /* ETAPA 2: REVISAR PRODUTOS */
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-bold text-gray-800">
-                  ✅ {produtos.length} Produtos Extraídos
-                </h3>
-                <button
-                  onClick={() => setProdutos([])}
-                  className="text-sm text-gray-500 hover:text-gray-700"
-                >
-                  Voltar para colagem
-                </button>
+            <div className="space-y-5">
+              <div className="flex flex-col gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div><p className="font-bold text-emerald-900">{produtos.length} produtos encontrados</p><p className="text-sm text-emerald-700">Revise os dados antes de confirmar a importação.</p></div>
+                <button onClick={() => setProdutos([])} className="text-left text-sm font-semibold text-emerald-700 hover:text-emerald-900 sm:text-right">← Voltar e colar outra lista</button>
               </div>
 
-              {/* LISTA DE PRODUTOS */}
-              <div className="max-h-96 overflow-y-auto space-y-3 border rounded-lg p-3 bg-gray-50">
+              <div className="space-y-3">
                 {produtos.map((produto, idx) => (
-                  <div key={idx} className="bg-white p-4 rounded-lg border border-gray-200 hover:border-blue-300">
-                    <div className="grid grid-cols-2 gap-3">
-                      <input
-                        type="text"
-                        value={produto.nome}
-                        onChange={(e) => editarProduto(idx, 'nome', e.target.value)}
-                        placeholder="Nome"
-                        className="col-span-2 p-2 border rounded text-sm"
-                      />
-                      <input
-                        type="text"
-                        value={produto.categoria}
-                        onChange={(e) => editarProduto(idx, 'categoria', e.target.value)}
-                        placeholder="Categoria"
-                        className="p-2 border rounded text-sm"
-                      />
-                      <input
-                        type="number"
-                        value={produto.precoFinal}
-                        onChange={(e) => editarProduto(idx, 'precoFinal', parseFloat(e.target.value))}
-                        placeholder="Preço Final"
-                        className="p-2 border rounded text-sm"
-                        step="0.01"
-                      />
-                      <input
-                        type="text"
-                        value={produto.imagem}
-                        onChange={(e) => editarProduto(idx, 'imagem', e.target.value)}
-                        placeholder="URL da imagem"
-                        className="col-span-2 p-2 border rounded text-xs"
-                      />
+                  <div key={idx} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-emerald-300 sm:p-5">
+                    <div className="mb-3 flex items-center justify-between"><span className="text-xs font-bold uppercase tracking-wide text-slate-400">Produto {String(idx + 1).padStart(2, '0')}</span><button onClick={() => removerProduto(idx)} aria-label={`Remover ${produto.nome}`} className="text-sm font-semibold text-red-500 hover:text-red-700">Remover</button></div>
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                      <label className="block text-xs font-semibold text-slate-600 md:col-span-2">Nome<input type="text" value={produto.nome} onChange={(e) => editarProduto(idx, 'nome', e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 p-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100" /></label>
+                      <label className="block text-xs font-semibold text-slate-600">Categoria<input type="text" value={produto.categoria} onChange={(e) => editarProduto(idx, 'categoria', e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 p-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100" /></label>
+                      <label className="block text-xs font-semibold text-slate-600">Preço final<input type="number" value={produto.precoFinal} onChange={(e) => editarProduto(idx, 'precoFinal', parseFloat(e.target.value))} step="0.01" className="mt-1 w-full rounded-lg border border-slate-300 p-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100" /></label>
+                      <label className="block text-xs font-semibold text-slate-600 md:col-span-2">URL da imagem (opcional)<input type="text" value={produto.imagem} onChange={(e) => editarProduto(idx, 'imagem', e.target.value)} placeholder="Será buscada automaticamente se ficar vazio" className="mt-1 w-full rounded-lg border border-slate-300 p-2.5 text-xs outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100" /></label>
                     </div>
-                    <button
-                      onClick={() => removerProduto(idx)}
-                      className="mt-2 text-red-600 hover:text-red-800 text-sm font-semibold"
-                    >
-                      🗑️ Remover
-                    </button>
                   </div>
                 ))}
               </div>
 
-              {/* ERROS */}
-              {erros.length > 0 && (
-                <div className="bg-red-50 border border-red-300 rounded-lg p-4">
-                  <p className="font-semibold text-red-700 mb-2 flex items-center gap-2">
-                    <ExclamationTriangleIcon className="w-5 h-5" /> Erros encontrados:
-                  </p>
-                  <ul className="text-sm text-red-600 space-y-1">
-                    {erros.slice(0, 5).map((erro, i) => <li key={i}>• {erro}</li>)}
-                  </ul>
-                </div>
-              )}
-
-              {/* BOTÕES */}
-              <div className="flex gap-3">
-                <button
-                  onClick={handleSalvarTodos}
-                  disabled={salvando || produtos.length === 0}
-                  className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-3 rounded-lg transition"
-                >
-                  {salvando ? `💾 Salvando... (${progresso.atual}/${progresso.total})` : `✅ Confirmar & Importar ${produtos.length}`}
-                </button>
-                <button
-                  onClick={() => setProdutos([])}
-                  className="px-6 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 rounded-lg"
-                >
-                  ↩️ Voltar
-                </button>
-              </div>
+              {erros.length > 0 && <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"><p className="mb-2 flex items-center gap-2 font-semibold"><ExclamationTriangleIcon className="h-5 w-5" /> Erros encontrados</p><ul className="space-y-1">{erros.slice(0, 5).map((erro, i) => <li key={i}>• {erro.nome}: {erro.erro}</li>)}</ul></div>}
             </div>
           )}
         </div>
+
+        {produtos.length > 0 && <footer className="flex shrink-0 flex-col-reverse gap-3 border-t border-slate-200 bg-white p-4 sm:flex-row sm:justify-end sm:p-5">
+          <button onClick={() => setProdutos([])} className="rounded-lg border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">Voltar</button>
+          <button onClick={handleSalvarTodos} disabled={salvando || produtos.length === 0} className="rounded-lg bg-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-slate-300">{salvando ? `Salvando... (${progresso.atual}/${progresso.total})` : `Confirmar importação (${produtos.length})`}</button>
+        </footer>}
       </div>
     </div>
   );

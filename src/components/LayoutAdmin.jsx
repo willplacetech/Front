@@ -15,7 +15,7 @@ const MENU = [
   { path: 'relatorios',icon: ChartBarIcon,      label: 'Relatórios',  desc: 'Dados gerenciais' },
 ];
 
-export default function LayoutAdmin({ children, loading = false, titulo = '', subtitulo = '' }) {
+export default function LayoutAdmin({ children, loading = false, titulo = '', subtitulo = '', contentMaxWidth = '1400px' }) {
   const location = useLocation();
   const [menuAberto, setMenuAberto] = useState(false);
   const { sair } = useAuth();
@@ -262,7 +262,7 @@ export default function LayoutAdmin({ children, loading = false, titulo = '', su
         </header>
 
         {/* CONTEÚDO */}
-        <main style={{ padding: '28px 32px', maxWidth: '1400px', width: '100%', margin: '0 auto' }}>
+        <main style={{ padding: '28px 32px', maxWidth: contentMaxWidth, width: '100%', margin: '0 auto' }}>
           {loading ? (
             <div style={{
               background: 'white', borderRadius: '16px', padding: '80px',

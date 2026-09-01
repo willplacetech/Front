@@ -497,7 +497,7 @@ export default function ProdutosCrud() {
   };
 
   return (
-    <LayoutAdmin titulo="Produtos" subtitulo="Cadastre manualmente ou cole sua lista e a IA extrai tudo automaticamente ✨">
+    <LayoutAdmin titulo="Produtos" subtitulo="Cadastre manualmente ou cole sua lista e a IA extrai tudo automaticamente ✨" contentMaxWidth="1800px">
 
       {/* 🔍 FILTRO + BOTÕES */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>

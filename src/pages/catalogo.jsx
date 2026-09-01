@@ -47,8 +47,17 @@ export default function Catalogo() {
     return matchBusca && matchCat;
   });
 
-  const executarBusca = (e) => { e.preventDefault(); setBuscaAtiva(busca); };
+  const executarBusca = (e) => {
+    e.preventDefault();
+    setBuscaAtiva(busca);
+  };
+
   const limparFiltros = () => { setBusca(''); setBuscaAtiva(''); setCategoria('todas'); };
+
+  const atualizarBusca = (valor) => {
+    setBusca(valor);
+    setBuscaAtiva(valor);
+  };
 
   return (
     <div style={{backgroundColor: FUNDO, minHeight: '100vh'}}>
@@ -118,7 +127,7 @@ export default function Catalogo() {
                 <input
                   type="text"
                   value={busca}
-                  onChange={e => setBusca(e.target.value)}
+                  onChange={e => atualizarBusca(e.target.value)}
                   placeholder="Buscar produtos..."
                   className="form-control rounded-pill border-0 shadow-sm"
                   style={{height: '44px', paddingLeft: '44px', fontSize: '15px'}}
@@ -206,11 +215,11 @@ export default function Catalogo() {
           <div className="row align-items-center">
             <div className="col-md-8">
               <h2 className="h5 fw-bold mb-1">As melhores ofertas da região!</h2>
-              <p className="opacity-75 mb-0 small">Produtos com qualidade e entrega rápida em Lindoia e região</p>
+              <p className="opacity-75 mb-0 small">Produtos com qualidade e variedade em Lindoia e região</p>
             </div>
             <div className="col-md-4 text-md-end mt-2">
               <span className="badge px-3 py-2" style={{backgroundColor: AMARELO, color: PRETO, fontSize: '14px', fontWeight: 600}}>
-                ⚡ Entrega em até 24h*
+                🔥 Destaques do mês
               </span>
             </div>
           </div>
@@ -272,7 +281,6 @@ export default function Catalogo() {
                         R$ {Number(precoExib).toFixed(2).replace('.', ',')}
                       </p>
                       <p className="parcelamento mb-1">em até 10x de R$ {parcela.replace('.', ',')}</p>
-                      <p className="frete-texto mb-2">🚚 Entrega grátis</p>
 
                       {/* NOME */}
                       <h3 className="h6 fw-normal text-dark mb-3" style={{fontSize: '14px', lineHeight: '1.3', height: '36px', overflow: 'hidden'}}>

@@ -3,7 +3,9 @@
  * Identifica padrões estruturados de: PRODUTO SPECS + cores + preços
  */
 
-export function parseListaPrecos(texto) {
+export function parseListaPrecos(texto, opcoes = {}) {
+  const percentual = Number.isFinite(Number(opcoes.percentual)) ? Number(opcoes.percentual) : 7;
+  const valorFixo = Number.isFinite(Number(opcoes.valorFixo)) ? Number(opcoes.valorFixo) : 500;
   const produtos = [];
   let categoriaAtual = '';
   let produtoAtual = null;
@@ -48,8 +50,8 @@ export function parseListaPrecos(texto) {
       const precoCusto = parseFloat(precoStr.replace(/\./g, '').replace(',', '.'));
 
       if (precoCusto > 0 && precoCusto < 100000) { // Validação de preço
-        // Calcula o preço final: (custo × 1,07) + R$ 500
-        const precoFinal = parseFloat(((precoCusto * 1.07) + 500).toFixed(2));
+        // Calcula o preço final com a fórmula definida pelo usuário.
+        const precoFinal = parseFloat((precoCusto * (1 + percentual / 100) + valorFixo).toFixed(2));
         
         const nomeFinal = cor && cor !== produtoAtual 
           ? `${produtoAtual} - ${cor}` 

@@ -10,6 +10,23 @@ export default function ImportadorPrecos({ isOpen, onClose, onSucesso }) {
   const [salvando, setSalvando] = useState(false);
   const [progresso, setProgresso] = useState({ atual: 0, total: 0 });
   const [erros, setErros] = useState([]);
+  const [percentual, setPercentual] = useState(7);
+  const [valorFixo, setValorFixo] = useState(500);
+  const [adicionados, setAdicionados] = useState([]);
+
+  const fechar = () => {
+    setTexto('');
+    setProdutos([]);
+    setAdicionados([]);
+    setErros([]);
+    onClose();
+  };
+
+  const calcularPreco = (custo) => parseFloat((Number(custo) * (1 + Number(percentual || 0) / 100) + Number(valorFixo || 0)).toFixed(2));
+
+  const aplicarFormula = () => {
+    setProdutos(produtos.map((produto) => ({ ...produto, precoFinal: calcularPreco(produto.preçoCusto) })));
+  };
 
   // Etapa 1: Parsear a lista
   const handleParsear = async () => {
@@ -22,7 +39,7 @@ export default function ImportadorPrecos({ isOpen, onClose, onSucesso }) {
     setErros([]);
 
     try {
-      const produtosParsados = parseListaPrecos(texto);
+      const produtosParsados = parseListaPrecos(texto, { percentual, valorFixo });
       
       if (produtosParsados.length === 0) {
         alert('❌ Nenhum produto encontrado. Verifique o formato da lista.');
@@ -32,7 +49,6 @@ export default function ImportadorPrecos({ isOpen, onClose, onSucesso }) {
 
       // Não busca imagens aqui - o backend fará isso
       setProdutos(produtosParsados);
-      alert(`✅ ${produtosParsados.length} produtos extraídos!\n\nRevise os dados antes de salvar.\nAs imagens serão buscadas automaticamente ao salvar.`);
       setProgresso({ atual: produtosParsados.length, total: produtosParsados.length });
 
     } catch (erro) {
@@ -75,8 +91,6 @@ export default function ImportadorPrecos({ isOpen, onClose, onSucesso }) {
 
     setSalvando(true);
     setProgresso({ atual: 0, total: produtos.length });
-    const errosList = [];
-
     try {
       // Prepara os dados para enviar ao backend
       const dadosProdutos = produtos.map(produto => ({
@@ -93,25 +107,29 @@ export default function ImportadorPrecos({ isOpen, onClose, onSucesso }) {
       const response = await api.post('/produtos/importar-lote', {
         produtos: dadosProdutos
       });
+      const resultados = response.data.resultados;
 
-      if (response.data.resultados) {
-        const resultados = response.data.resultados;
-        
-        if (resultados.erros.length > 0) {
-          setErros(resultados.erros);
-          alert(`⚠️ ${resultados.sucesso.length}/${resultados.total} salvos.\n\nErros:\n${resultados.erros.slice(0, 3).map(e => `${e.nome}: ${e.erro}`).join('\n')}`);
-        } else {
-          alert(`✅ ${resultados.sucesso.length} produtos importados com sucesso!`);
-        }
+      if (!resultados) {
+        throw new Error('O servidor não retornou o resultado da importação.');
+      }
+
+      if (resultados.erros.length > 0) {
+        setErros(resultados.erros);
+        alert(`⚠️ ${resultados.sucesso.length}/${resultados.total} salvos.\n\nErros:\n${resultados.erros.slice(0, 3).map(e => `${e.nome}: ${e.erro}`).join('\n')}`);
+      } else {
+        alert(`✅ ${resultados.sucesso.length} produtos importados com sucesso!`);
       }
 
       setProgresso({ atual: produtos.length, total: produtos.length });
 
-      // Limpa e fecha
-      setTexto('');
+      const produtosAdicionados = resultados?.sucesso?.map((resultado) => ({
+        ...produtos[resultado.indice],
+        id: resultado.id,
+        nome: resultado.nome
+      })) || [];
+      setAdicionados(produtosAdicionados);
       setProdutos([]);
       onSucesso?.();
-      onClose();
 
     } catch (erro) {
       console.error('Erro ao salvar:', erro);
@@ -134,13 +152,28 @@ export default function ImportadorPrecos({ isOpen, onClose, onSucesso }) {
             <h2 className="text-xl font-bold sm:text-2xl">Importar preços</h2>
             <p className="mt-1 text-sm text-slate-300">Cole a lista do fornecedor, revise os dados e confirme o cadastro.</p>
           </div>
-          <button onClick={onClose} aria-label="Fechar importador" className="rounded-lg p-2 text-slate-300 transition hover:bg-white/10 hover:text-white">
+          <button onClick={fechar} aria-label="Fechar importador" className="rounded-lg p-2 text-slate-300 transition hover:bg-white/10 hover:text-white">
             <XMarkIcon className="h-6 w-6" />
           </button>
         </header>
 
         <div className="min-h-0 flex-1 overflow-y-auto bg-slate-50 p-4 sm:p-7">
-          {produtos.length === 0 ? (
+          {adicionados.length > 0 ? (
+            <div className="space-y-5">
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5">
+                <p className="text-sm font-semibold uppercase tracking-wide text-emerald-700">Importação concluída</p>
+                <h3 className="mt-1 text-xl font-bold text-emerald-950">{adicionados.length} produtos adicionados ao catálogo</h3>
+                <p className="mt-1 text-sm text-emerald-800">Os preços abaixo já foram salvos com a fórmula atual.</p>
+              </div>
+              <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                <div className="grid grid-cols-[1fr_auto] gap-4 border-b border-slate-200 bg-slate-50 px-4 py-3 text-xs font-bold uppercase tracking-wide text-slate-500"><span>Produto</span><span>Preço de venda</span></div>
+                <div className="max-h-[calc(100vh-22rem)] divide-y divide-slate-100 overflow-y-auto">
+                  {adicionados.map((produto, indice) => <div key={produto.id || indice} className="grid grid-cols-[1fr_auto] items-center gap-4 px-4 py-3"><div><p className="font-semibold text-slate-800">{produto.nome}</p><p className="text-xs text-slate-500">Custo: R$ {Number(produto.preçoCusto).toFixed(2).replace('.', ',')}</p></div><p className="font-bold text-emerald-700">R$ {Number(produto.precoFinal).toFixed(2).replace('.', ',')}</p></div>)}
+                </div>
+              </div>
+              <div className="flex justify-end"><button onClick={fechar} className="rounded-lg bg-emerald-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-700">Concluir</button></div>
+            </div>
+          ) : produtos.length === 0 ? (
             <div className="mx-auto max-w-3xl space-y-5">
               <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
                 <div className="mb-4 flex items-start gap-3">
@@ -156,6 +189,11 @@ export default function ImportadorPrecos({ isOpen, onClose, onSucesso }) {
                   placeholder="Cole a mensagem do fornecedor aqui..."
                   className="h-64 w-full resize-y rounded-lg border border-slate-300 bg-slate-50 p-4 font-mono text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100"
                 />
+                <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
+                  <div className="mb-3 flex items-center justify-between gap-3"><div><p className="text-sm font-semibold text-slate-800">Regra de preço de venda</p><p className="text-xs text-slate-500">Aplicada sobre o preço de custo de cada produto.</p></div><span className="text-xs font-semibold text-emerald-700">custo + margem + fixo</span></div>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2"><label className="text-xs font-semibold text-slate-600">Margem percentual<input type="number" min="0" step="0.1" value={percentual} onChange={(e) => setPercentual(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100" /></label><label className="text-xs font-semibold text-slate-600">Valor fixo (R$)<input type="number" min="0" step="0.01" value={valorFixo} onChange={(e) => setValorFixo(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100" /></label></div>
+                  <p className="mt-3 text-xs text-slate-500">Exemplo: custo R$ 1.000, margem {percentual}% + R$ {Number(valorFixo || 0).toFixed(2)} = R$ {calcularPreco(1000).toFixed(2).replace('.', ',')}</p>
+                </div>
                 <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <span className="text-xs text-slate-500">Os dados poderão ser editados antes do cadastro.</span>
                   <button
@@ -180,6 +218,7 @@ export default function ImportadorPrecos({ isOpen, onClose, onSucesso }) {
                 <div><p className="font-bold text-emerald-900">{produtos.length} produtos encontrados</p><p className="text-sm text-emerald-700">Revise os dados antes de confirmar a importação.</p></div>
                 <button onClick={() => setProdutos([])} className="text-left text-sm font-semibold text-emerald-700 hover:text-emerald-900 sm:text-right">← Voltar e colar outra lista</button>
               </div>
+              <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-end sm:justify-between"><div className="grid grid-cols-2 gap-3"><label className="text-xs font-semibold text-slate-600">Margem (%)<input type="number" min="0" step="0.1" value={percentual} onChange={(e) => setPercentual(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 p-2.5 text-sm outline-none focus:border-emerald-500" /></label><label className="text-xs font-semibold text-slate-600">Fixo (R$)<input type="number" min="0" step="0.01" value={valorFixo} onChange={(e) => setValorFixo(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 p-2.5 text-sm outline-none focus:border-emerald-500" /></label></div><button onClick={aplicarFormula} className="rounded-lg border border-emerald-600 px-4 py-2.5 text-sm font-bold text-emerald-700 transition hover:bg-emerald-50">Atualizar preços</button></div>
 
               <div className="space-y-3">
                 {produtos.map((produto, idx) => (

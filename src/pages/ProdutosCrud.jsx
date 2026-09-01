@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { PlusIcon, PencilIcon, TrashIcon, MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import api from '../services/api';
 import LayoutAdmin from '../components/LayoutAdmin';
+import ImportadorPrecos from '../components/ImportadorPrecos';
 
 // CORES OFICIAIS
 const AZUL = '#3483FA';
@@ -26,6 +27,7 @@ export default function ProdutosCrud() {
   const [mostrarForm, setMostrarForm] = useState(false);
   const [filtro, setFiltro] = useState('');
   const [salvando, setSalvando] = useState(false);
+  const [importadorAberto, setImportadorAberto] = useState(false);
 
   // ✅ LISTA DE NOVOS PRODUTOS PARA CADASTRAR
   const [listaNovos, setListaNovos] = useState([produtoVazio()]);
@@ -156,23 +158,40 @@ export default function ProdutosCrud() {
           />
         </div>
 
-        <button
-          onClick={() => {
-            setMostrarForm(!mostrarForm);
-            setEditando(null);
-            setListaNovos([produtoVazio()]);
-          }}
-          style={{
-            display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px',
-            backgroundColor: AZUL, color: 'white', border: 'none', borderRadius: '12px',
-            fontSize: '15px', fontWeight: 500, cursor: 'pointer', transition: 'background 0.2s'
-          }}
-          onMouseOver={e => e.target.style.backgroundColor = '#2968D3'}
-          onMouseOut={e => e.target.style.backgroundColor = AZUL}
-        >
-          <PlusIcon style={{width: '18px', height: '18px'}} />
-          {mostrarForm ? 'Fechar' : 'Cadastrar em Lote'}
-        </button>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+          <button
+            onClick={() => {
+              setMostrarForm(!mostrarForm);
+              setEditando(null);
+              setListaNovos([produtoVazio()]);
+              setImportadorAberto(false);
+            }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px',
+              backgroundColor: AZUL, color: 'white', border: 'none', borderRadius: '12px',
+              fontSize: '15px', fontWeight: 500, cursor: 'pointer', transition: 'background 0.2s'
+            }}
+            onMouseOver={e => e.target.style.backgroundColor = '#2968D3'}
+            onMouseOut={e => e.target.style.backgroundColor = AZUL}
+          >
+            <PlusIcon style={{width: '18px', height: '18px'}} />
+            {mostrarForm ? 'Fechar' : 'Cadastro Manual'}
+          </button>
+
+          <button
+            onClick={() => setImportadorAberto(true)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px',
+              backgroundColor: '#059669', color: 'white', border: 'none', borderRadius: '12px',
+              fontSize: '15px', fontWeight: 500, cursor: 'pointer', transition: 'background 0.2s'
+            }}
+            onMouseOver={e => e.target.style.backgroundColor = '#047857'}
+            onMouseOut={e => e.target.style.backgroundColor = '#059669'}
+          >
+            📊
+            Importar Preços
+          </button>
+        </div>
       </div>
 
       {/* 📝 FORMULÁRIO DE VÁRIOS PRODUTOS */}
@@ -493,6 +512,13 @@ export default function ProdutosCrud() {
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
+
+      {/* IMPORTADOR DE PREÇOS */}
+      <ImportadorPrecos 
+        isOpen={importadorAberto} 
+        onClose={() => setImportadorAberto(false)}
+        onSucesso={() => carregar()}
+      />
     </LayoutAdmin>
   );
 }

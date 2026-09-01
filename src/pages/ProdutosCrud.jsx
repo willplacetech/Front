@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { PlusIcon, PencilIcon, TrashIcon, MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, PencilIcon, TrashIcon, MagnifyingGlassIcon, XMarkIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import api from '../services/api';
 import LayoutAdmin from '../components/LayoutAdmin';
 import ImportadorPrecos from '../components/ImportadorPrecos';
@@ -34,6 +34,11 @@ export default function ProdutosCrud() {
   const [ajustandoLote, setAjustandoLote] = useState(false);
   const [excluindoLote, setExcluindoLote] = useState(false);
 
+  // 🤖 PROCESSAMENTO POR IA
+  const [listaBruta, setListaBruta] = useState('');
+  const [processandoIa, setProcessandoIa] = useState(false);
+  const [mostrarProcessador, setMostrarProcessador] = useState(false);
+
   // ✅ LISTA DE NOVOS PRODUTOS PARA CADASTRAR
   const [listaNovos, setListaNovos] = useState([produtoVazio()]);
 
@@ -43,6 +48,63 @@ export default function ProdutosCrud() {
   };
 
   useEffect(() => { carregar(); }, []);
+
+  // 🤖 FUNÇÃO PRINCIPAL — Processar lista com Gemini
+  const processarListaComIa = async () => {
+    if (!listaBruta.trim()) {
+      alert('⚠️ Cole sua lista de produtos antes de processar!');
+      return;
+    }
+
+    setProcessandoIa(true);
+
+    try {
+      const res = await api.post('/produtos/processar-lista', { listaBruta });
+      const { sucesso, dados } = res.data;
+
+      if (sucesso && dados?.categorias) {
+        // Converte JSON da IA para formato do formulário
+        const produtosConvertidos = [];
+
+        dados.categorias.forEach(cat => {
+          cat.produtos.forEach(p => {
+            // Limpa o preço removendo "R$" e pontos, mantendo apenas números com vírgula
+            const precoLimpo = String(p.preco || '')
+              .replace(/[R$\s.]/g, '')
+              .replace(',', '.');
+
+            produtosConvertidos.push({
+              ...produtoVazio(),
+              nome: p.nome?.trim() || '',
+              categoria: cat.nomeCategoria?.trim() || p.categoria?.trim() || '',
+              preco: precoLimpo || '',
+              imagem: p.imagemUrl?.trim() || '',
+              descricao: p.descricao?.trim() || ''
+            });
+          });
+        });
+
+        if (produtosConvertidos.length === 0) {
+          alert('⚠️ Nenhum produto foi reconhecido na lista.');
+          return;
+        }
+
+        setListaNovos(produtosConvertidos);
+        setMostrarProcessador(false);
+        setListaBruta('');
+        setMostrarForm(true);
+
+        alert(`✅ ${produtosConvertidos.length} produto(s) extraído(s) e pronto(s) para salvar!`);
+      } else {
+        alert('❌ Não foi possível interpretar a lista.');
+      }
+    } catch (erro) {
+      console.error(erro);
+      alert('❌ Erro ao processar lista: ' + (erro.response?.data?.erro || erro.message));
+    } finally {
+      setProcessandoIa(false);
+    }
+  };
 
   // ✅ ADICIONA UMA NOVA LINHA NA LISTA
   const adicionarLinha = () => {
@@ -65,16 +127,13 @@ export default function ProdutosCrud() {
   // ✅ SALVA TODOS OS PRODUTOS DE UMA VEZ
   const salvarTodos = async (e) => {
     e.preventDefault();
-
     // 🛡️ VALIDAÇÃO
     const invalidos = listaNovos.filter(p => !p.nome.trim() || !p.preco);
     if (invalidos.length > 0) {
       alert(`⚠️ Preencha Nome e Preço em todos os produtos! (${invalidos.length} sem dados)`);
       return;
     }
-
     setSalvando(true);
-
     try {
       // 🔄 Faz todas as requisições em paralelo
       const promessas = listaNovos.map(produto => {
@@ -85,15 +144,12 @@ export default function ProdutosCrud() {
         };
         return api.post('/produtos', dados);
       });
-
       await Promise.all(promessas);
-
       // ✅ SUCESSO
       alert(`✅ ${listaNovos.length} produto(s) cadastrado(s) com sucesso!`);
-      setListaNovos([produtoVazio()]); // Limpa a lista
+      setListaNovos([produtoVazio()]);
       setMostrarForm(false);
-      carregar(); // Recarrega a tabela
-
+      carregar();
     } catch (erro) {
       console.error(erro);
       alert('❌ Erro ao cadastrar um ou mais produtos!');
@@ -102,7 +158,7 @@ export default function ProdutosCrud() {
     }
   };
 
-  // Editar e Excluir continuam funcionando para produtos individuais
+  // Editar e Excluir
   const [editando, setEditando] = useState(null);
   const [formEdicao, setFormEdicao] = useState(produtoVazio());
 
@@ -110,6 +166,7 @@ export default function ProdutosCrud() {
     setFormEdicao({ ...p });
     setEditando(p);
     setMostrarForm(false);
+    setMostrarProcessador(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -151,14 +208,11 @@ export default function ProdutosCrud() {
     const percentual = Number(percentualLote);
     const valorFixo = Number(valorFixoLote);
     const escolhidos = produtos.filter(p => selecionados.includes(p._id));
-
     if (!escolhidos.length || !Number.isFinite(percentual) || percentual < 0 || !Number.isFinite(valorFixo) || valorFixo < 0) {
       alert('Informe uma margem e um valor fixo válidos.');
       return;
     }
-
     if (!window.confirm(`Atualizar o preço de venda de ${escolhidos.length} produto(s)?`)) return;
-
     setAjustandoLote(true);
     try {
       await Promise.all(escolhidos.map(produto => {
@@ -180,9 +234,7 @@ export default function ProdutosCrud() {
   const excluirSelecionados = async () => {
     const escolhidos = produtos.filter(p => selecionados.includes(p._id));
     if (!escolhidos.length) return;
-
     if (!window.confirm(`Excluir permanentemente ${escolhidos.length} produto(s) selecionado(s)?`)) return;
-
     setExcluindoLote(true);
     try {
       await Promise.all(escolhidos.map(produto => api.delete(`/produtos/${produto._id}`)));
@@ -199,17 +251,18 @@ export default function ProdutosCrud() {
   };
 
   // Filtrar
-  const produtosFiltrados = filtro 
+  const produtosFiltrados = filtro
     ? produtos.filter(p => Object.values(p).join(' ').toLowerCase().includes(filtro.toLowerCase()))
     : produtos;
+
   const todosFiltradosSelecionados = produtosFiltrados.length > 0 && produtosFiltrados.every(p => selecionados.includes(p._id));
 
   return (
-    <LayoutAdmin titulo="Produtos" subtitulo="Cadastrar vários produtos de uma vez">
-      
-      {/* 🔍 FILTRO + BOTÃO NOVO */}
-      <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '24px'}}>
-        <div style={{position: 'relative', flex: 1, maxWidth: '420px'}}>
+    <LayoutAdmin titulo="Produtos" subtitulo="Cadastre manualmente ou cole sua lista e a IA extrai tudo automaticamente ✨">
+
+      {/* 🔍 FILTRO + BOTÕES */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
+        <div style={{ position: 'relative', flex: 1, maxWidth: '420px' }}>
           <MagnifyingGlassIcon style={{
             position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)',
             width: '18px', height: '18px', color: '#888'
@@ -227,14 +280,31 @@ export default function ProdutosCrud() {
             onBlur={e => e.target.style.borderColor = '#ddd'}
           />
         </div>
-
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+          <button
+            onClick={() => {
+              setMostrarProcessador(!mostrarProcessador);
+              setMostrarForm(false);
+              setEditando(null);
+              setListaBruta('');
+            }}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px',
+              backgroundColor: '#8B5CF6', color: 'white', border: 'none', borderRadius: '12px',
+              fontSize: '15px', fontWeight: 500, cursor: 'pointer', transition: 'background 0.2s'
+            }}
+            onMouseOver={e => e.target.style.backgroundColor = '#7C3AED'}
+            onMouseOut={e => e.target.style.backgroundColor = '#8B5CF6'}
+          >
+            <SparklesIcon style={{ width: '18px', height: '18px' }} />
+            {mostrarProcessador ? 'Fechar' : '📋 Colar Lista (IA)'}
+          </button>
           <button
             onClick={() => {
               setMostrarForm(!mostrarForm);
               setEditando(null);
               setListaNovos([produtoVazio()]);
-              setImportadorAberto(false);
+              setMostrarProcessador(false);
             }}
             style={{
               display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px',
@@ -244,13 +314,13 @@ export default function ProdutosCrud() {
             onMouseOver={e => e.target.style.backgroundColor = '#2968D3'}
             onMouseOut={e => e.target.style.backgroundColor = AZUL}
           >
-            <PlusIcon style={{width: '18px', height: '18px'}} />
+            <PlusIcon style={{ width: '18px', height: '18px' }} />
             {mostrarForm ? 'Fechar' : 'Cadastro Manual'}
           </button>
-
           <button
             onClick={() => {
               setMostrarForm(false);
+              setMostrarProcessador(false);
               setImportadorAberto(true);
             }}
             style={{
@@ -261,24 +331,79 @@ export default function ProdutosCrud() {
             onMouseOver={e => e.target.style.backgroundColor = '#047857'}
             onMouseOut={e => e.target.style.backgroundColor = '#059669'}
           >
-            📊
-            Importar Preços
+            📊 Importar Preços
           </button>
         </div>
       </div>
 
+      {/* 🤖 PROCESSADOR DE LISTA COM IA */}
+      {mostrarProcessador && (
+        <div style={{
+          backgroundColor: '#FAF5FF', padding: '24px', borderRadius: '16px',
+          border: '1px solid #EDE9FE', marginBottom: '24px'
+        }}>
+          <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 8px 0', color: '#5B21B6' }}>
+            ✨ Cole sua lista — a IA reconhece e preenche tudo!
+          </h3>
+          <p style={{ fontSize: '13px', color: '#7C3AED', margin: '0 0 16px 0' }}>
+            Cole a lista de produtos com preços, categorias e descrições. A IA extrai nome, preço, categoria, imagem e descrição automaticamente.
+          </p>
+          <textarea
+            value={listaBruta}
+            onChange={(e) => setListaBruta(e.target.value)}
+            placeholder="Cole sua lista aqui...
+
+Exemplo:
+---
+## IPHONES
+Iphone 17 Pro Max 256GB - R$ 8.999,00
+Tela 6.9", câmera 48MP, titânio
+---
+## MACBOOKS
+MacBook Pro M4 16GB - R$ 12.499,00
+Processador M4, 512GB SSD
+---"
+            style={{
+              width: '100%', minHeight: '180px', padding: '14px', borderRadius: '12px',
+              border: '1px solid #C4B5FD', fontSize: '14px', fontFamily: 'monospace',
+              outline: 'none', marginBottom: '14px', resize: 'vertical'
+            }}
+            onFocus={e => e.target.style.borderColor = '#8B5CF6'}
+            onBlur={e => e.target.style.borderColor = '#C4B5FD'}
+          />
+          <button
+            onClick={processarListaComIa}
+            disabled={processandoIa}
+            style={{
+              padding: '12px 30px', backgroundColor: processandoIa ? '#C4B5FD' : '#8B5CF6',
+              color: 'white', border: 'none', borderRadius: '12px', fontSize: '15px',
+              fontWeight: 600, cursor: processandoIa ? 'wait' : 'pointer',
+              transition: 'background 0.2s'
+            }}
+            onMouseOver={e => !processandoIa && (e.target.style.backgroundColor = '#7C3AED')}
+            onMouseOut={e => !processandoIa && (e.target.style.backgroundColor = '#8B5CF6')}
+          >
+            {processandoIa ? (
+              <>⏳ Analisando lista...</>
+            ) : (
+              <>✨ Extrair Produtos com IA</>
+            )}
+          </button>
+        </div>
+      )}
+
       {selecionados.length > 0 && (
-        <div style={{display: 'flex', alignItems: 'end', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap', backgroundColor: '#F0FDF4', border: '1px solid #A7F3D0', borderRadius: '14px', padding: '16px 20px', marginBottom: '20px'}}>
+        <div style={{ display: 'flex', alignItems: 'end', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap', backgroundColor: '#F0FDF4', border: '1px solid #A7F3D0', borderRadius: '14px', padding: '16px 20px', marginBottom: '20px' }}>
           <div>
-            <strong style={{display: 'block', color: '#065F46', fontSize: '15px'}}>{selecionados.length} produto(s) selecionado(s)</strong>
-            <span style={{fontSize: '12px', color: '#047857'}}>Preço de venda = preço base + percentual + valor fixo</span>
+            <strong style={{ display: 'block', color: '#065F46', fontSize: '15px' }}>{selecionados.length} produto(s) selecionado(s)</strong>
+            <span style={{ fontSize: '12px', color: '#047857' }}>Preço de venda = preço base + percentual + valor fixo</span>
           </div>
-          <div style={{display: 'flex', alignItems: 'end', gap: '10px', flexWrap: 'wrap'}}>
-            <label style={{fontSize: '12px', color: '#065F46'}}>Percentual (%)<input type="number" min="0" step="0.1" value={percentualLote} onChange={e => setPercentualLote(e.target.value)} style={{display: 'block', width: '105px', marginTop: '4px', padding: '9px 10px', border: '1px solid #A7F3D0', borderRadius: '8px', backgroundColor: 'white'}} /></label>
-            <label style={{fontSize: '12px', color: '#065F46'}}>Fixo (R$)<input type="number" min="0" step="0.01" value={valorFixoLote} onChange={e => setValorFixoLote(e.target.value)} style={{display: 'block', width: '105px', marginTop: '4px', padding: '9px 10px', border: '1px solid #A7F3D0', borderRadius: '8px', backgroundColor: 'white'}} /></label>
-            <button type="button" onClick={aplicarAjusteLote} disabled={ajustandoLote} style={{padding: '10px 16px', backgroundColor: VERDE, color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: ajustandoLote ? 'wait' : 'pointer'}}>{ajustandoLote ? 'Atualizando...' : 'Atualizar preços'}</button>
-            <button type="button" onClick={excluirSelecionados} disabled={excluindoLote || ajustandoLote} style={{padding: '10px 16px', backgroundColor: VERMELHO, color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: excluindoLote ? 'wait' : 'pointer'}}>{excluindoLote ? 'Excluindo...' : 'Excluir selecionados'}</button>
-            <button type="button" onClick={() => setSelecionados([])} style={{padding: '10px 12px', backgroundColor: 'transparent', color: '#047857', border: '1px solid #A7F3D0', borderRadius: '8px', cursor: 'pointer'}}>Limpar</button>
+          <div style={{ display: 'flex', alignItems: 'end', gap: '10px', flexWrap: 'wrap' }}>
+            <label style={{ fontSize: '12px', color: '#065F46' }}>Percentual (%)<input type="number" min="0" step="0.1" value={percentualLote} onChange={e => setPercentualLote(e.target.value)} style={{ display: 'block', width: '105px', marginTop: '4px', padding: '9px 10px', border: '1px solid #A7F3D0', borderRadius: '8px', backgroundColor: 'white' }} /></label>
+            <label style={{ fontSize: '12px', color: '#065F46' }}>Fixo (R$)<input type="number" min="0" step="0.01" value={valorFixoLote} onChange={e => setValorFixoLote(e.target.value)} style={{ display: 'block', width: '105px', marginTop: '4px', padding: '9px 10px', border: '1px solid #A7F3D0', borderRadius: '8px', backgroundColor: 'white' }} /></label>
+            <button type="button" onClick={aplicarAjusteLote} disabled={ajustandoLote} style={{ padding: '10px 16px', backgroundColor: VERDE, color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: ajustandoLote ? 'wait' : 'pointer' }}>{ajustandoLote ? 'Atualizando...' : 'Atualizar preços'}</button>
+            <button type="button" onClick={excluirSelecionados} disabled={excluindoLote || ajustandoLote} style={{ padding: '10px 16px', backgroundColor: VERMELHO, color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: excluindoLote ? 'wait' : 'pointer' }}>{excluindoLote ? 'Excluindo...' : 'Excluir selecionados'}</button>
+            <button type="button" onClick={() => setSelecionados([])} style={{ padding: '10px 12px', backgroundColor: 'transparent', color: '#047857', border: '1px solid #A7F3D0', borderRadius: '8px', cursor: 'pointer' }}>Limpar</button>
           </div>
         </div>
       )}
@@ -289,44 +414,40 @@ export default function ProdutosCrud() {
           backgroundColor: 'white', padding: '24px', borderRadius: '16px',
           boxShadow: '0 1px 3px rgba(0,0,0,0.08)', marginBottom: '24px'
         }}>
-          <h3 style={{fontSize: '18px', fontWeight: 700, margin: '0 0 16px 0', paddingBottom: '12px', borderBottom: '1px solid #eee'}}>
-            📦 Cadastrar Vários Produtos — {listaNovos.length} produto(s) na lista
+          <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 16px 0', paddingBottom: '12px', borderBottom: '1px solid #eee' }}>
+            📦 Produtos prontos para cadastrar — {listaNovos.length} produto(s) na lista
           </h3>
-
-          {/* ✅ LISTA DINÂMICA DE PRODUTOS */}
-          <div style={{display: 'flex', flexDirection: 'column', gap: '16px'}}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {listaNovos.map((produto, indice) => (
               <div key={indice} style={{
                 border: '1px solid #E5E7EB', borderRadius: '12px', padding: '16px',
                 backgroundColor: '#FAFAFA'
               }}>
-                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px'}}>
-                  <span style={{fontWeight: 600, fontSize: '14px', color: '#444'}}>Produto #{indice + 1}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <span style={{ fontWeight: 600, fontSize: '14px', color: '#444' }}>Produto #{indice + 1}</span>
                   {listaNovos.length > 1 && (
                     <button
                       type="button"
                       onClick={() => removerLinha(indice)}
-                      style={{border: 'none', background: 'transparent', color: VERMELHO, cursor: 'pointer', padding: '4px'}}
+                      style={{ border: 'none', background: 'transparent', color: VERMELHO, cursor: 'pointer', padding: '4px' }}
                     >
-                      <XMarkIcon style={{width: '18px', height: '18px'}} />
+                      <XMarkIcon style={{ width: '18px', height: '18px' }} />
                     </button>
                   )}
                 </div>
-
-                <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px'}}>
-                  <div style={{gridColumn: '1 / -1'}}>
-                    <label style={{display: 'block', fontSize: '12px', color: '#666', marginBottom: '4px'}}>Nome *</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <label style={{ display: 'block', fontSize: '12px', color: '#666', marginBottom: '4px' }}>Nome *</label>
                     <input
                       required
                       placeholder="Nome do produto"
                       value={produto.nome}
                       onChange={e => alterarLinha(indice, 'nome', e.target.value)}
-                      style={{width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px'}}
+                      style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px' }}
                     />
                   </div>
-
                   <div>
-                    <label style={{display: 'block', fontSize: '12px', color: '#666', marginBottom: '4px'}}>Preço R$ *</label>
+                    <label style={{ display: 'block', fontSize: '12px', color: '#666', marginBottom: '4px' }}>Preço R$ *</label>
                     <input
                       required
                       type="number"
@@ -334,67 +455,60 @@ export default function ProdutosCrud() {
                       placeholder="0,00"
                       value={produto.preco}
                       onChange={e => alterarLinha(indice, 'preco', e.target.value)}
-                      style={{width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px'}}
+                      style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px' }}
                     />
                   </div>
-
                   <div>
-                    <label style={{display: 'block', fontSize: '12px', color: '#666', marginBottom: '4px'}}>Seu Preço (opcional)</label>
+                    <label style={{ display: 'block', fontSize: '12px', color: '#666', marginBottom: '4px' }}>Seu Preço (opcional)</label>
                     <input
                       type="number"
                       step="0.01"
                       placeholder="0,00"
                       value={produto.precoPersonalizado}
                       onChange={e => alterarLinha(indice, 'precoPersonalizado', e.target.value)}
-                      style={{width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px'}}
+                      style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px' }}
                     />
                   </div>
-
                   <div>
-                    <label style={{display: 'block', fontSize: '12px', color: '#666', marginBottom: '4px'}}>Categoria</label>
+                    <label style={{ display: 'block', fontSize: '12px', color: '#666', marginBottom: '4px' }}>Categoria</label>
                     <input
                       placeholder="Ex: Eletrônicos"
                       value={produto.categoria}
                       onChange={e => alterarLinha(indice, 'categoria', e.target.value)}
-                      style={{width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px'}}
+                      style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px' }}
                     />
                   </div>
-
-                  <div style={{gridColumn: '1 / -1'}}>
-                    <label style={{display: 'block', fontSize: '12px', color: '#666', marginBottom: '4px'}}>URL da Imagem</label>
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <label style={{ display: 'block', fontSize: '12px', color: '#666', marginBottom: '4px' }}>URL da Imagem</label>
                     <input
                       placeholder="https://..."
                       value={produto.imagem}
                       onChange={e => alterarLinha(indice, 'imagem', e.target.value)}
-                      style={{width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px'}}
+                      style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px' }}
                     />
                   </div>
-
-                  <div style={{gridColumn: '1 / -1'}}>
-                    <label style={{display: 'block', fontSize: '12px', color: '#666', marginBottom: '4px'}}>Descrição</label>
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <label style={{ display: 'block', fontSize: '12px', color: '#666', marginBottom: '4px' }}>Descrição</label>
                     <textarea
                       placeholder="Descrição do produto"
                       value={produto.descricao}
                       onChange={e => alterarLinha(indice, 'descricao', e.target.value)}
-                      style={{width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px', minHeight: '60px'}}
+                      style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px', minHeight: '60px' }}
                     />
                   </div>
-
-                  <label style={{gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer'}}>
+                  <label style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
                     <input
                       type="checkbox"
                       checked={produto.disponivel ?? true}
                       onChange={e => alterarLinha(indice, 'disponivel', e.target.checked)}
-                      style={{width: '16px', height: '16px', accentColor: AZUL}}
+                      style={{ width: '16px', height: '16px', accentColor: AZUL }}
                     />
-                    <span style={{fontSize: '13px'}}>Disponível no catálogo</span>
+                    <span style={{ fontSize: '13px' }}>Disponível no catálogo</span>
                   </label>
                 </div>
               </div>
             ))}
           </div>
-
-          {/* ➕ ADICIONAR MAIS LINHAS */}
           <button
             type="button"
             onClick={adicionarLinha}
@@ -406,8 +520,6 @@ export default function ProdutosCrud() {
           >
             ➕ Adicionar Outro Produto na Lista
           </button>
-
-          {/* 💾 SALVAR TODOS */}
           <button
             type="submit"
             disabled={salvando}
@@ -431,82 +543,80 @@ export default function ProdutosCrud() {
           backgroundColor: 'white', padding: '24px', borderRadius: '16px',
           boxShadow: '0 1px 3px rgba(0,0,0,0.08)', marginBottom: '24px'
         }}>
-          <h3 style={{fontSize: '18px', fontWeight: 700, margin: '0 0 16px 0'}}>✏️ Editar Produto</h3>
-
-          <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px'}}>
-            <div style={{gridColumn: '1 / -1'}}>
-              <label style={{display: 'block', fontSize: '13px', color: '#666', marginBottom: '4px'}}>Nome *</label>
+          <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 16px 0' }}>✏️ Editar Produto</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <label style={{ display: 'block', fontSize: '13px', color: '#666', marginBottom: '4px' }}>Nome *</label>
               <input
                 required
                 value={formEdicao.nome}
-                onChange={e => setFormEdicao({...formEdicao, nome: e.target.value})}
-                style={{width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #ddd', fontSize: '14px'}}
+                onChange={e => setFormEdicao({ ...formEdicao, nome: e.target.value })}
+                style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #ddd', fontSize: '14px' }}
               />
             </div>
             <div>
-              <label style={{display: 'block', fontSize: '13px', color: '#666', marginBottom: '4px'}}>Preço Base R$ *</label>
+              <label style={{ display: 'block', fontSize: '13px', color: '#666', marginBottom: '4px' }}>Preço Base R$ *</label>
               <input
                 required type="number" step="0.01"
                 value={formEdicao.preco}
-                onChange={e => setFormEdicao({...formEdicao, preco: e.target.value})}
-                style={{width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #ddd', fontSize: '14px'}}
+                onChange={e => setFormEdicao({ ...formEdicao, preco: e.target.value })}
+                style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #ddd', fontSize: '14px' }}
               />
             </div>
             <div>
-              <label style={{display: 'block', fontSize: '13px', color: '#666', marginBottom: '4px'}}>Seu Preço R$</label>
+              <label style={{ display: 'block', fontSize: '13px', color: '#666', marginBottom: '4px' }}>Seu Preço R$</label>
               <input
                 type="number" step="0.01"
                 value={formEdicao.precoPersonalizado || ''}
-                onChange={e => setFormEdicao({...formEdicao, precoPersonalizado: e.target.value})}
-                style={{width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #ddd', fontSize: '14px'}}
+                onChange={e => setFormEdicao({ ...formEdicao, precoPersonalizado: e.target.value })}
+                style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #ddd', fontSize: '14px' }}
               />
             </div>
             <div>
-              <label style={{display: 'block', fontSize: '13px', color: '#666', marginBottom: '4px'}}>Categoria</label>
+              <label style={{ display: 'block', fontSize: '13px', color: '#666', marginBottom: '4px' }}>Categoria</label>
               <input
                 value={formEdicao.categoria}
-                onChange={e => setFormEdicao({...formEdicao, categoria: e.target.value})}
-                style={{width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #ddd', fontSize: '14px'}}
+                onChange={e => setFormEdicao({ ...formEdicao, categoria: e.target.value })}
+                style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #ddd', fontSize: '14px' }}
               />
             </div>
             <div>
-              <label style={{display: 'block', fontSize: '13px', color: '#666', marginBottom: '4px'}}>Imagem URL</label>
+              <label style={{ display: 'block', fontSize: '13px', color: '#666', marginBottom: '4px' }}>Imagem URL</label>
               <input
                 value={formEdicao.imagem}
-                onChange={e => setFormEdicao({...formEdicao, imagem: e.target.value})}
-                style={{width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #ddd', fontSize: '14px'}}
+                onChange={e => setFormEdicao({ ...formEdicao, imagem: e.target.value })}
+                style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #ddd', fontSize: '14px' }}
               />
             </div>
-            <div style={{gridColumn: '1 / -1'}}>
-              <label style={{display: 'block', fontSize: '13px', color: '#666', marginBottom: '4px'}}>Descrição</label>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <label style={{ display: 'block', fontSize: '13px', color: '#666', marginBottom: '4px' }}>Descrição</label>
               <textarea
                 value={formEdicao.descricao}
-                onChange={e => setFormEdicao({...formEdicao, descricao: e.target.value})}
-                style={{width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #ddd', fontSize: '14px', minHeight: '80px'}}
+                onChange={e => setFormEdicao({ ...formEdicao, descricao: e.target.value })}
+                style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #ddd', fontSize: '14px', minHeight: '80px' }}
               />
             </div>
-            <label style={{gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: '8px'}}>
+            <label style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <input
                 type="checkbox"
                 checked={formEdicao.disponivel ?? true}
-                onChange={e => setFormEdicao({...formEdicao, disponivel: e.target.checked})}
-                style={{width: '18px', height: '18px'}}
+                onChange={e => setFormEdicao({ ...formEdicao, disponivel: e.target.checked })}
+                style={{ width: '18px', height: '18px' }}
               />
               <span>Disponível no catálogo</span>
             </label>
           </div>
-
-          <div style={{display: 'flex', gap: '10px', marginTop: '20px'}}>
+          <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
             <button
               type="button"
-              onClick={() => {setEditando(null); setFormEdicao(produtoVazio());}}
-              style={{padding: '12px 24px', backgroundColor: CINZA, border: 'none', borderRadius: '10px', cursor: 'pointer'}}
+              onClick={() => { setEditando(null); setFormEdicao(produtoVazio()); }}
+              style={{ padding: '12px 24px', backgroundColor: CINZA, border: 'none', borderRadius: '10px', cursor: 'pointer' }}
             >
               Cancelar
             </button>
             <button
               type="submit"
-              style={{padding: '12px 24px', backgroundColor: VERDE, color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 600}}
+              style={{ padding: '12px 24px', backgroundColor: VERDE, color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 600 }}
             >
               💾 Salvar Alterações
             </button>
@@ -514,60 +624,60 @@ export default function ProdutosCrud() {
         </form>
       )}
 
-      {/* 📋 TABELA — CONTINUA IGUAL */}
+      {/* 📋 TABELA */}
       {loading ? (
-        <div style={{padding: '60px', textAlign: 'center'}}>
-          <div style={{width: '40px', height: '40px', border: '3px solid #eee', borderTopColor: AZUL, borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto'}} />
-          <p style={{marginTop: '12px', color: '#666'}}>Carregando produtos...</p>
+        <div style={{ padding: '60px', textAlign: 'center' }}>
+          <div style={{ width: '40px', height: '40px', border: '3px solid #eee', borderTopColor: AZUL, borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto' }} />
+          <p style={{ marginTop: '12px', color: '#666' }}>Carregando produtos...</p>
         </div>
       ) : (
         <div style={{
           backgroundColor: 'white', borderRadius: '16px',
           boxShadow: '0 1px 3px rgba(0,0,0,0.08)', overflow: 'hidden'
         }}>
-          <div style={{overflowX: 'auto'}}>
-            <table style={{width: '100%', borderCollapse: 'collapse'}}>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr style={{backgroundColor: CINZA}}>
-                  {['', 'Foto', 'Produto', 'Preço', 'Categoria', 'Status', 'Ações'].map((h,i) => (
+                <tr style={{ backgroundColor: CINZA }}>
+                  {['', 'Foto', 'Produto', 'Preço', 'Categoria', 'Status', 'Ações'].map((h, i) => (
                     <th key={i} style={{
-                      padding: '14px 16px', textAlign: i===6 ? 'right' : 'left',
+                      padding: '14px 16px', textAlign: i === 6 ? 'right' : 'left',
                       fontSize: '13px', fontWeight: 600, color: '#444', textTransform: 'uppercase'
-                    }}>{i === 0 ? <input type="checkbox" checked={todosFiltradosSelecionados} onChange={e => selecionarFiltrados(e.target.checked)} aria-label="Selecionar todos os produtos filtrados" style={{width: '17px', height: '17px', cursor: 'pointer'}} /> : h}</th>
+                    }}>{i === 0 ? <input type="checkbox" checked={todosFiltradosSelecionados} onChange={e => selecionarFiltrados(e.target.checked)} aria-label="Selecionar todos os produtos filtrados" style={{ width: '17px', height: '17px', cursor: 'pointer' }} /> : h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {produtosFiltrados.length === 0 ? (
                   <tr>
-                    <td colSpan="7" style={{padding: '60px 20px', textAlign: 'center', color: '#999'}}>
+                    <td colSpan="7" style={{ padding: '60px 20px', textAlign: 'center', color: '#999' }}>
                       Nenhum produto encontrado.
                     </td>
                   </tr>
                 ) : produtosFiltrados.map(p => {
                   const preco = p.precoPersonalizado || p.preco;
                   return (
-                    <tr key={p._id} style={{borderTop: '1px solid #f0f0f0', transition: 'background 0.15s'}}
+                    <tr key={p._id} style={{ borderTop: '1px solid #f0f0f0', transition: 'background 0.15s' }}
                       onMouseOver={e => e.currentTarget.style.backgroundColor = '#fafafa'}
                       onMouseOut={e => e.currentTarget.style.backgroundColor = 'transparent'}
                     >
-                      <td style={{padding: '12px 16px'}}><input type="checkbox" checked={selecionados.includes(p._id)} onChange={() => alternarSelecao(p._id)} aria-label={`Selecionar ${p.nome}`} style={{width: '17px', height: '17px', cursor: 'pointer'}} /></td>
-                      <td style={{padding: '12px 16px'}}>
+                      <td style={{ padding: '12px 16px' }}><input type="checkbox" checked={selecionados.includes(p._id)} onChange={() => alternarSelecao(p._id)} aria-label={`Selecionar ${p.nome}`} style={{ width: '17px', height: '17px', cursor: 'pointer' }} /></td>
+                      <td style={{ padding: '12px 16px' }}>
                         {p.imagem ? (
-                          <img src={p.imagem} alt={p.nome} style={{width: '48px', height: '48px', objectFit: 'contain', borderRadius: '8px', backgroundColor: '#f8f8f8'}} />
+                          <img src={p.imagem} alt={p.nome} style={{ width: '48px', height: '48px', objectFit: 'contain', borderRadius: '8px', backgroundColor: '#f8f8f8' }} />
                         ) : (
-                          <div style={{width: '48px', height: '48px', backgroundColor: '#f0f0f0', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px'}}>📦</div>
+                          <div style={{ width: '48px', height: '48px', backgroundColor: '#f0f0f0', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>📦</div>
                         )}
                       </td>
-                      <td style={{padding: '12px 16px', fontWeight: 500}}>{p.nome}</td>
-                      <td style={{padding: '12px 16px'}}>
-                        <div style={{fontWeight: 700, fontSize: '15px', color: AZUL}}>R$ {Number(preco).toFixed(2)}</div>
+                      <td style={{ padding: '12px 16px', fontWeight: 500 }}>{p.nome}</td>
+                      <td style={{ padding: '12px 16px' }}>
+                        <div style={{ fontWeight: 700, fontSize: '15px', color: AZUL }}>R$ {Number(preco).toFixed(2)}</div>
                         {p.precoPersonalizado && (
-                          <div style={{fontSize: '12px', color: '#999', textDecoration: 'line-through'}}>De R$ {Number(p.preco).toFixed(2)}</div>
+                          <div style={{ fontSize: '12px', color: '#999', textDecoration: 'line-through' }}>De R$ {Number(p.preco).toFixed(2)}</div>
                         )}
                       </td>
-                      <td style={{padding: '12px 16px', color: '#555'}}>{p.categoria || '-'}</td>
-                      <td style={{padding: '12px 16px'}}>
+                      <td style={{ padding: '12px 16px', color: '#555' }}>{p.categoria || '-'}</td>
+                      <td style={{ padding: '12px 16px' }}>
                         <span style={{
                           padding: '4px 10px', borderRadius: '20px', fontSize: '12px', fontWeight: 500,
                           backgroundColor: p.disponivel ? `${VERDE}15` : `${VERMELHO}15`,
@@ -576,18 +686,18 @@ export default function ProdutosCrud() {
                           {p.disponivel ? '✅ Ativo' : '⏸️ Inativo'}
                         </span>
                       </td>
-                      <td style={{padding: '12px 16px', textAlign: 'right'}}>
+                      <td style={{ padding: '12px 16px', textAlign: 'right' }}>
                         <button onClick={() => editar(p)} style={{
                           padding: '6px 10px', border: 'none', background: `${AZUL}10`,
                           color: AZUL, borderRadius: '8px', marginRight: '6px', cursor: 'pointer'
                         }} title="Editar">
-                          <PencilIcon style={{width: '14px', height: '14px'}} />
+                          <PencilIcon style={{ width: '14px', height: '14px' }} />
                         </button>
                         <button onClick={() => deletar(p._id)} style={{
                           padding: '6px 10px', border: 'none', background: `${VERMELHO}10`,
                           color: VERMELHO, borderRadius: '8px', cursor: 'pointer'
                         }} title="Excluir">
-                          <TrashIcon style={{width: '14px', height: '14px'}} />
+                          <TrashIcon style={{ width: '14px', height: '14px' }} />
                         </button>
                       </td>
                     </tr>
@@ -598,15 +708,14 @@ export default function ProdutosCrud() {
           </div>
         </div>
       )}
-
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
 
       {/* IMPORTADOR DE PREÇOS */}
       {importadorAberto && (
-        <ImportadorPrecos 
-          isOpen={importadorAberto} 
+        <ImportadorPrecos
+          isOpen={importadorAberto}
           onClose={() => {
             setImportadorAberto(false);
             setMostrarForm(false);

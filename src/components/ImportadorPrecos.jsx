@@ -99,7 +99,7 @@ export default function ImportadorPrecos({ isOpen, onClose, onSucesso }) {
         categoria: produto.categoria || 'Importado',
         preco: produto.precoFinal,
         precoPersonalizado: null,
-        descricao: produto.descricao,
+        descricao: produto.descricao || '',
         imagem: produto.imagem || '',
         disponivel: produto.disponivel
       }));

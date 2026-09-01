@@ -28,6 +28,10 @@ export default function ProdutosCrud() {
   const [filtro, setFiltro] = useState('');
   const [salvando, setSalvando] = useState(false);
   const [importadorAberto, setImportadorAberto] = useState(false);
+  const [selecionados, setSelecionados] = useState([]);
+  const [percentualLote, setPercentualLote] = useState(7);
+  const [valorFixoLote, setValorFixoLote] = useState(500);
+  const [ajustandoLote, setAjustandoLote] = useState(false);
 
   // ✅ LISTA DE NOVOS PRODUTOS PARA CADASTRAR
   const [listaNovos, setListaNovos] = useState([produtoVazio()]);
@@ -129,10 +133,54 @@ export default function ProdutosCrud() {
     }
   };
 
+  const alternarSelecao = (id) => {
+    setSelecionados(atual => atual.includes(id)
+      ? atual.filter(item => item !== id)
+      : [...atual, id]);
+  };
+
+  const selecionarFiltrados = (marcado) => {
+    const idsFiltrados = produtosFiltrados.map(p => p._id);
+    setSelecionados(atual => marcado
+      ? [...new Set([...atual, ...idsFiltrados])]
+      : atual.filter(id => !idsFiltrados.includes(id)));
+  };
+
+  const aplicarAjusteLote = async () => {
+    const percentual = Number(percentualLote);
+    const valorFixo = Number(valorFixoLote);
+    const escolhidos = produtos.filter(p => selecionados.includes(p._id));
+
+    if (!escolhidos.length || !Number.isFinite(percentual) || percentual < 0 || !Number.isFinite(valorFixo) || valorFixo < 0) {
+      alert('Informe uma margem e um valor fixo válidos.');
+      return;
+    }
+
+    if (!window.confirm(`Atualizar o preço de venda de ${escolhidos.length} produto(s)?`)) return;
+
+    setAjustandoLote(true);
+    try {
+      await Promise.all(escolhidos.map(produto => {
+        const precoBase = Number(produto.preco);
+        const precoVenda = Number((precoBase * (1 + percentual / 100) + valorFixo).toFixed(2));
+        return api.put(`/produtos/${produto._id}`, { precoPersonalizado: precoVenda });
+      }));
+      alert(`${escolhidos.length} preço(s) de venda atualizado(s)!`);
+      setSelecionados([]);
+      carregar();
+    } catch (erro) {
+      console.error('Erro no ajuste em lote:', erro);
+      alert('Não foi possível atualizar todos os preços.');
+    } finally {
+      setAjustandoLote(false);
+    }
+  };
+
   // Filtrar
   const produtosFiltrados = filtro 
     ? produtos.filter(p => Object.values(p).join(' ').toLowerCase().includes(filtro.toLowerCase()))
     : produtos;
+  const todosFiltradosSelecionados = produtosFiltrados.length > 0 && produtosFiltrados.every(p => selecionados.includes(p._id));
 
   return (
     <LayoutAdmin titulo="Produtos" subtitulo="Cadastrar vários produtos de uma vez">
@@ -196,6 +244,21 @@ export default function ProdutosCrud() {
           </button>
         </div>
       </div>
+
+      {selecionados.length > 0 && (
+        <div style={{display: 'flex', alignItems: 'end', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap', backgroundColor: '#F0FDF4', border: '1px solid #A7F3D0', borderRadius: '14px', padding: '16px 20px', marginBottom: '20px'}}>
+          <div>
+            <strong style={{display: 'block', color: '#065F46', fontSize: '15px'}}>{selecionados.length} produto(s) selecionado(s)</strong>
+            <span style={{fontSize: '12px', color: '#047857'}}>Preço de venda = preço base + percentual + valor fixo</span>
+          </div>
+          <div style={{display: 'flex', alignItems: 'end', gap: '10px', flexWrap: 'wrap'}}>
+            <label style={{fontSize: '12px', color: '#065F46'}}>Percentual (%)<input type="number" min="0" step="0.1" value={percentualLote} onChange={e => setPercentualLote(e.target.value)} style={{display: 'block', width: '105px', marginTop: '4px', padding: '9px 10px', border: '1px solid #A7F3D0', borderRadius: '8px', backgroundColor: 'white'}} /></label>
+            <label style={{fontSize: '12px', color: '#065F46'}}>Fixo (R$)<input type="number" min="0" step="0.01" value={valorFixoLote} onChange={e => setValorFixoLote(e.target.value)} style={{display: 'block', width: '105px', marginTop: '4px', padding: '9px 10px', border: '1px solid #A7F3D0', borderRadius: '8px', backgroundColor: 'white'}} /></label>
+            <button type="button" onClick={aplicarAjusteLote} disabled={ajustandoLote} style={{padding: '10px 16px', backgroundColor: VERDE, color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: ajustandoLote ? 'wait' : 'pointer'}}>{ajustandoLote ? 'Atualizando...' : 'Atualizar preços'}</button>
+            <button type="button" onClick={() => setSelecionados([])} style={{padding: '10px 12px', backgroundColor: 'transparent', color: '#047857', border: '1px solid #A7F3D0', borderRadius: '8px', cursor: 'pointer'}}>Limpar</button>
+          </div>
+        </div>
+      )}
 
       {/* 📝 FORMULÁRIO DE VÁRIOS PRODUTOS */}
       {!importadorAberto && mostrarForm && (
@@ -443,18 +506,18 @@ export default function ProdutosCrud() {
             <table style={{width: '100%', borderCollapse: 'collapse'}}>
               <thead>
                 <tr style={{backgroundColor: CINZA}}>
-                  {['Foto', 'Produto', 'Preço', 'Categoria', 'Status', 'Ações'].map((h,i) => (
+                  {['', 'Foto', 'Produto', 'Preço', 'Categoria', 'Status', 'Ações'].map((h,i) => (
                     <th key={i} style={{
-                      padding: '14px 16px', textAlign: i===5 ? 'right' : 'left',
+                      padding: '14px 16px', textAlign: i===6 ? 'right' : 'left',
                       fontSize: '13px', fontWeight: 600, color: '#444', textTransform: 'uppercase'
-                    }}>{h}</th>
+                    }}>{i === 0 ? <input type="checkbox" checked={todosFiltradosSelecionados} onChange={e => selecionarFiltrados(e.target.checked)} aria-label="Selecionar todos os produtos filtrados" style={{width: '17px', height: '17px', cursor: 'pointer'}} /> : h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {produtosFiltrados.length === 0 ? (
                   <tr>
-                    <td colSpan="6" style={{padding: '60px 20px', textAlign: 'center', color: '#999'}}>
+                    <td colSpan="7" style={{padding: '60px 20px', textAlign: 'center', color: '#999'}}>
                       Nenhum produto encontrado.
                     </td>
                   </tr>
@@ -465,6 +528,7 @@ export default function ProdutosCrud() {
                       onMouseOver={e => e.currentTarget.style.backgroundColor = '#fafafa'}
                       onMouseOut={e => e.currentTarget.style.backgroundColor = 'transparent'}
                     >
+                      <td style={{padding: '12px 16px'}}><input type="checkbox" checked={selecionados.includes(p._id)} onChange={() => alternarSelecao(p._id)} aria-label={`Selecionar ${p.nome}`} style={{width: '17px', height: '17px', cursor: 'pointer'}} /></td>
                       <td style={{padding: '12px 16px'}}>
                         {p.imagem ? (
                           <img src={p.imagem} alt={p.nome} style={{width: '48px', height: '48px', objectFit: 'contain', borderRadius: '8px', backgroundColor: '#f8f8f8'}} />

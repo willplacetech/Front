@@ -14,6 +14,11 @@ const AZUL = '#3483FA';
 const VERDE = '#00A650';
 const FUNDO = '#EBEBEB';
 
+const precoVendaPadrao = (custo) => {
+  const valor = Number(custo);
+  return Number.isFinite(valor) && valor > 0 ? Number((valor * 1.07 + 500).toFixed(2)) : valor;
+};
+
 export default function Catalogo() {
   const [produtos, setProdutos] = useState([]);
   const [carrinhoAberto, setCarrinhoAberto] = useState(false);
@@ -242,7 +247,7 @@ export default function Catalogo() {
         ) : (
           <div className="row g-4">
             {filtrados.map(prod => {
-              const precoExib = prod.precoPersonalizado || prod.preco;
+              const precoExib = prod.precoPersonalizado || precoVendaPadrao(prod.preco);
               const temDesconto = prod.precoPersonalizado && prod.precoPersonalizado < prod.preco;
               const parcela = (precoExib / 10).toFixed(2);
 

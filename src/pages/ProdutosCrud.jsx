@@ -39,6 +39,9 @@ export default function ProdutosCrud() {
   const [ajustandoLote, setAjustandoLote] = useState(false);
   const [excluindoLote, setExcluindoLote] = useState(false);
   const [ordenacao, setOrdenacao] = useState({ campo: 'nome', direcao: 'asc' });
+  const [precoEmEdicao, setPrecoEmEdicao] = useState(null);
+  const [valorPrecoEdicao, setValorPrecoEdicao] = useState('');
+  const [salvandoPreco, setSalvandoPreco] = useState(false);
 
   // 🤖 PROCESSAMENTO POR IA — NOVO SISTEMA DE SESSÕES
   const [listaBruta, setListaBruta] = useState('');
@@ -352,6 +355,42 @@ export default function ProdutosCrud() {
     if (confirm('Excluir este produto?')) {
       api.delete(`/produtos/${id}`).then(carregar);
     }
+  };
+
+  const iniciarEdicaoPreco = (produto, campo) => {
+    setPrecoEmEdicao({ id: produto._id, campo });
+    setValorPrecoEdicao(campo === 'preco' ? produto.preco : (produto.precoPersonalizado || calcularPrecoVendaPadrao(produto.preco)));
+  };
+
+  const cancelarEdicaoPreco = () => {
+    setPrecoEmEdicao(null);
+    setValorPrecoEdicao('');
+  };
+
+  const salvarPrecoInline = async () => {
+    if (!precoEmEdicao) return;
+    const valor = Number(String(valorPrecoEdicao).replace(',', '.'));
+    if (!Number.isFinite(valor) || valor <= 0) {
+      alert('Informe um valor de preço válido.');
+      return;
+    }
+
+    setSalvandoPreco(true);
+    try {
+      await api.put(`/produtos/${precoEmEdicao.id}`, { [precoEmEdicao.campo]: Number(valor.toFixed(2)) });
+      cancelarEdicaoPreco();
+      carregar();
+    } catch (erro) {
+      console.error('Erro ao salvar preço:', erro);
+      alert('Não foi possível salvar o preço.');
+    } finally {
+      setSalvandoPreco(false);
+    }
+  };
+
+  const tratarTeclaPreco = (event) => {
+    if (event.key === 'Enter') salvarPrecoInline();
+    if (event.key === 'Escape') cancelarEdicaoPreco();
   };
 
   const alternarSelecao = (id) => {
@@ -934,23 +973,23 @@ Processador M4, 512GB SSD
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ backgroundColor: CINZA }}>
-                  {['', 'Foto', 'Produto', 'Preço', 'Categoria', 'Status', 'Ações'].map((h, i) => (
+                  {['', 'Foto', 'Produto', 'Preço custo', 'Preço venda', 'Categoria', 'Status', 'Ações'].map((h, i) => (
                     <th key={i} style={{
-                      padding: '14px 16px', textAlign: i === 6 ? 'right' : 'left',
+                      padding: '14px 16px', textAlign: i === 7 ? 'right' : 'left',
                       fontSize: '13px', fontWeight: 600, color: '#444', textTransform: 'uppercase'
-                    }}>{i === 0 ? <input type="checkbox" checked={todosFiltradosSelecionados} onChange={e => selecionarFiltrados(e.target.checked)} aria-label="Selecionar todos os produtos filtrados" style={{ width: '17px', height: '17px', cursor: 'pointer' }} /> : i === 2 || i === 3 || i === 4 || i === 5 ? <button type="button" onClick={() => ordenarPor({ 2: 'nome', 3: 'preco', 4: 'categoria', 5: 'status' }[i])} style={{ border: 0, background: 'transparent', color: '#444', padding: 0, font: 'inherit', cursor: 'pointer' }}>{h} <span aria-hidden="true">{indicadorOrdenacao({ 2: 'nome', 3: 'preco', 4: 'categoria', 5: 'status' }[i])}</span></button> : h}</th>
+                    }}>{i === 0 ? <input type="checkbox" checked={todosFiltradosSelecionados} onChange={e => selecionarFiltrados(e.target.checked)} aria-label="Selecionar todos os produtos filtrados" style={{ width: '17px', height: '17px', cursor: 'pointer' }} /> : i === 2 || i === 3 || i === 4 || i === 5 || i === 6 ? <button type="button" onClick={() => ordenarPor({ 2: 'nome', 3: 'preco', 4: 'precoPersonalizado', 5: 'categoria', 6: 'status' }[i])} style={{ border: 0, background: 'transparent', color: '#444', padding: 0, font: 'inherit', cursor: 'pointer' }}>{h} <span aria-hidden="true">{indicadorOrdenacao({ 2: 'nome', 3: 'preco', 4: 'precoPersonalizado', 5: 'categoria', 6: 'status' }[i])}</span></button> : h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {produtosFiltrados.length === 0 ? (
                   <tr>
-                    <td colSpan="7" style={{ padding: '60px 20px', textAlign: 'center', color: '#999' }}>
+                    <td colSpan="8" style={{ padding: '60px 20px', textAlign: 'center', color: '#999' }}>
                       Nenhum produto encontrado.
                     </td>
                   </tr>
                 ) : produtosOrdenados.map(p => {
-                  const preco = p.precoPersonalizado || p.preco;
+                  const preco = p.precoPersonalizado || calcularPrecoVendaPadrao(p.preco) || p.preco;
                   return (
                     <tr key={p._id} style={{ borderTop: '1px solid #f0f0f0', transition: 'background 0.15s' }}
                       onMouseOver={e => e.currentTarget.style.backgroundColor = '#fafafa'}
@@ -966,10 +1005,10 @@ Processador M4, 512GB SSD
                       </td>
                       <td style={{ padding: '12px 16px', fontWeight: 500 }}>{p.nome}</td>
                       <td style={{ padding: '12px 16px' }}>
-                        <div style={{ fontWeight: 700, fontSize: '15px', color: AZUL }}>R$ {Number(preco).toFixed(2)}</div>
-                        {p.precoPersonalizado && (
-                          <div style={{ fontSize: '12px', color: '#999', textDecoration: 'line-through' }}>De R$ {Number(p.preco).toFixed(2)}</div>
-                        )}
+                        {precoEmEdicao?.id === p._id && precoEmEdicao.campo === 'preco' ? <input autoFocus type="number" min="0.01" step="0.01" value={valorPrecoEdicao} onChange={e => setValorPrecoEdicao(e.target.value)} onKeyDown={tratarTeclaPreco} onBlur={salvarPrecoInline} disabled={salvandoPreco} style={{ width: '110px', padding: '7px 8px', border: `1px solid ${AZUL}`, borderRadius: '7px' }} /> : <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span>R$ {Number(p.preco).toFixed(2).replace('.', ',')}</span><button type="button" onClick={() => iniciarEdicaoPreco(p, 'preco')} title="Editar preço de custo" aria-label="Editar preço de custo" style={{ border: 0, background: 'transparent', color: AZUL, cursor: 'pointer', padding: '3px' }}><PencilIcon style={{ width: '14px', height: '14px' }} /></button></div>}
+                      </td>
+                      <td style={{ padding: '12px 16px' }}>
+                        {precoEmEdicao?.id === p._id && precoEmEdicao.campo === 'precoPersonalizado' ? <input autoFocus type="number" min="0.01" step="0.01" value={valorPrecoEdicao} onChange={e => setValorPrecoEdicao(e.target.value)} onKeyDown={tratarTeclaPreco} onBlur={salvarPrecoInline} disabled={salvandoPreco} style={{ width: '110px', padding: '7px 8px', border: `1px solid ${VERDE}`, borderRadius: '7px' }} /> : <div><div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, fontSize: '15px', color: VERDE }}><span>R$ {Number(preco).toFixed(2).replace('.', ',')}</span><button type="button" onClick={() => iniciarEdicaoPreco(p, 'precoPersonalizado')} title="Editar preço de venda" aria-label="Editar preço de venda" style={{ border: 0, background: 'transparent', color: VERDE, cursor: 'pointer', padding: '3px' }}><PencilIcon style={{ width: '14px', height: '14px' }} /></button></div>{p.precoPersonalizado && <div style={{ fontSize: '12px', color: '#999' }}>Calculado/manual</div>}</div>}
                       </td>
                       <td style={{ padding: '12px 16px', color: '#555' }}>{p.categoria || '-'}</td>
                       <td style={{ padding: '12px 16px' }}>

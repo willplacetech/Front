@@ -97,8 +97,8 @@ export default function ImportadorPrecos({ isOpen, onClose, onSucesso }) {
       const dadosProdutos = produtos.map(produto => ({
         nome: produto.nome.trim(),
         categoria: produto.categoria || 'Importado',
-        preco: produto.precoFinal,
-        precoPersonalizado: null,
+        preco: produto.preçoCusto,
+        precoPersonalizado: produto.precoFinal,
         descricao: produto.descricao || '',
         imagem: produto.imagem || '',
         disponivel: produto.disponivel

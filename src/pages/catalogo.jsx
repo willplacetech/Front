@@ -255,7 +255,7 @@ export default function Catalogo() {
                         src={prod.imagem || 'https://placehold.co/300x300/EBEBEB/999?text=Produto'}
                         alt={prod.nome}
                         style={{maxHeight: '180px', maxWidth: '100%', objectFit: 'contain'}}
-                        onError={e => e.currentTarget.src='https://placehold.co/300x300/EBEBEB/999?text=Imagem+indisponível'}
+                        onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = '/LogoEscrthinny.jpg'; }}
                       />
                     </div>
 

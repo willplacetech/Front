@@ -10,6 +10,11 @@ const VERDE = '#00A650';
 const VERMELHO = '#EF4444';
 const CINZA = '#F5F5F5';
 
+const calcularPrecoVendaPadrao = (custo) => {
+  const valor = Number(custo);
+  return Number.isFinite(valor) && valor > 0 ? Number((valor * 1.07 + 500).toFixed(2)) : '';
+};
+
 // ✅ ESTRUTURA PADRÃO DE UM PRODUTO
 const produtoVazio = () => ({
   nome: '',
@@ -33,6 +38,7 @@ export default function ProdutosCrud() {
   const [valorFixoLote, setValorFixoLote] = useState(500);
   const [ajustandoLote, setAjustandoLote] = useState(false);
   const [excluindoLote, setExcluindoLote] = useState(false);
+  const [ordenacao, setOrdenacao] = useState({ campo: 'nome', direcao: 'asc' });
 
   // 🤖 PROCESSAMENTO POR IA — NOVO SISTEMA DE SESSÕES
   const [listaBruta, setListaBruta] = useState('');
@@ -51,6 +57,7 @@ export default function ProdutosCrud() {
     produtosAcumulados: 0,
     lotesFalhos: 0
   });
+  const [tempoDecorridoIa, setTempoDecorridoIa] = useState(0);
   const intervaloProgressoIa = useRef(null);
 
   // ✅ LISTA DE NOVOS PRODUTOS PARA CADASTRAR
@@ -97,7 +104,8 @@ export default function ProdutosCrud() {
         nome: nomeCompleto,
         categoria: p._categoria?.trim() || p.categoria?.trim() || '',
         preco: precoLimpo || '',
-        imagem: p.imagemUrl?.trim() || '',
+        precoPersonalizado: calcularPrecoVendaPadrao(precoLimpo),
+              imagem: /^https?:\/\/[^\s]+\.(?:jpg|jpeg|png|webp|gif)(?:\?[^\s]*)?$/i.test(p.imagemUrl?.trim() || '') ? p.imagemUrl.trim() : '',
         descricao: p.descricao?.trim() || ''
       };
     });
@@ -144,12 +152,14 @@ export default function ProdutosCrud() {
         produtosAcumulados: 0,
         lotesFalhos: 0
       });
+      setTempoDecorridoIa(0);
 
       // ⏱️ Atualiza tempo restante
       intervaloProgressoIa.current = window.setInterval(() => {
         setProgressoIa(atual => {
           if (atual.fase === 'concluido' || atual.fase === 'parcial') return atual;
           const decorrido = (Date.now() - atual.inicio) / 1000;
+          setTempoDecorridoIa(Math.max(0, Math.round(decorrido)));
           const tempoRestante = Math.max(0, Math.round(atual.estimativaTotal - decorrido));
           return { ...atual, tempoRestante };
         });
@@ -273,7 +283,10 @@ export default function ProdutosCrud() {
   // ✅ ATUALIZA OS DADOS DE UMA LINHA
   const alterarLinha = (indice, campo, valor) => {
     const novaLista = [...listaNovos];
-    novaLista[indice][campo] = valor;
+    novaLista[indice] = { ...novaLista[indice], [campo]: valor };
+    if (campo === 'preco' && !novaLista[indice].precoPersonalizado) {
+      novaLista[indice].precoPersonalizado = calcularPrecoVendaPadrao(valor);
+    }
     setListaNovos(novaLista);
   };
 
@@ -406,6 +419,29 @@ export default function ProdutosCrud() {
     : produtos;
 
   const todosFiltradosSelecionados = produtosFiltrados.length > 0 && produtosFiltrados.every(p => selecionados.includes(p._id));
+
+  const ordenarPor = (campo) => {
+    setOrdenacao(atual => ({
+      campo,
+      direcao: atual.campo === campo && atual.direcao === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  const valorOrdenacao = (produto, campo) => {
+    if (campo === 'preco') return Number(produto.precoPersonalizado || produto.preco || 0);
+    if (campo === 'status') return produto.disponivel ? 1 : 0;
+    return String(produto[campo] || '').toLocaleLowerCase('pt-BR');
+  };
+
+  const produtosOrdenados = [...produtosFiltrados].sort((a, b) => {
+    const primeiro = valorOrdenacao(a, ordenacao.campo);
+    const segundo = valorOrdenacao(b, ordenacao.campo);
+    if (primeiro < segundo) return ordenacao.direcao === 'asc' ? -1 : 1;
+    if (primeiro > segundo) return ordenacao.direcao === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const indicadorOrdenacao = (campo) => ordenacao.campo === campo ? (ordenacao.direcao === 'asc' ? '↑' : '↓') : '↕';
 
   // 🎨 Texto da fase de processamento — ATUALIZADO PARA LOTES
   const textoFase = () => {
@@ -619,7 +655,7 @@ Processador M4, 512GB SSD
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', marginTop: '10px', fontSize: '12px', color: '#7C3AED', flexWrap: 'wrap' }}>
                 <span>📦 Lotes: {progressoIa.atual}/{progressoIa.total}</span>
                 <span>🛍️ Produtos: {progressoIa.produtosAcumulados}</span>
-                <span>⏱️ Decorrido: {Math.max(0, Math.round((Date.now() - progressoIa.inicio) / 1000))}s</span>
+                <span>⏱️ Decorrido: {tempoDecorridoIa}s</span>
                 {progressoIa.fase !== 'concluido' && progressoIa.tempoRestante > 0 && (
                   <span>⏳ Restante: ~{progressoIa.tempoRestante}s</span>
                 )}
@@ -902,7 +938,7 @@ Processador M4, 512GB SSD
                     <th key={i} style={{
                       padding: '14px 16px', textAlign: i === 6 ? 'right' : 'left',
                       fontSize: '13px', fontWeight: 600, color: '#444', textTransform: 'uppercase'
-                    }}>{i === 0 ? <input type="checkbox" checked={todosFiltradosSelecionados} onChange={e => selecionarFiltrados(e.target.checked)} aria-label="Selecionar todos os produtos filtrados" style={{ width: '17px', height: '17px', cursor: 'pointer' }} /> : h}</th>
+                    }}>{i === 0 ? <input type="checkbox" checked={todosFiltradosSelecionados} onChange={e => selecionarFiltrados(e.target.checked)} aria-label="Selecionar todos os produtos filtrados" style={{ width: '17px', height: '17px', cursor: 'pointer' }} /> : i === 2 || i === 3 || i === 4 || i === 5 ? <button type="button" onClick={() => ordenarPor({ 2: 'nome', 3: 'preco', 4: 'categoria', 5: 'status' }[i])} style={{ border: 0, background: 'transparent', color: '#444', padding: 0, font: 'inherit', cursor: 'pointer' }}>{h} <span aria-hidden="true">{indicadorOrdenacao({ 2: 'nome', 3: 'preco', 4: 'categoria', 5: 'status' }[i])}</span></button> : h}</th>
                   ))}
                 </tr>
               </thead>
@@ -913,7 +949,7 @@ Processador M4, 512GB SSD
                       Nenhum produto encontrado.
                     </td>
                   </tr>
-                ) : produtosFiltrados.map(p => {
+                ) : produtosOrdenados.map(p => {
                   const preco = p.precoPersonalizado || p.preco;
                   return (
                     <tr key={p._id} style={{ borderTop: '1px solid #f0f0f0', transition: 'background 0.15s' }}
@@ -923,7 +959,7 @@ Processador M4, 512GB SSD
                       <td style={{ padding: '12px 16px' }}><input type="checkbox" checked={selecionados.includes(p._id)} onChange={() => alternarSelecao(p._id)} aria-label={`Selecionar ${p.nome}`} style={{ width: '17px', height: '17px', cursor: 'pointer' }} /></td>
                       <td style={{ padding: '12px 16px' }}>
                         {p.imagem ? (
-                          <img src={p.imagem} alt={p.nome} style={{ width: '48px', height: '48px', objectFit: 'contain', borderRadius: '8px', backgroundColor: '#f8f8f8' }} />
+                          <img src={p.imagem} alt={p.nome} style={{ width: '48px', height: '48px', objectFit: 'contain', borderRadius: '8px', backgroundColor: '#f8f8f8' }} onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = '/LogoEscrthinny.jpg'; }} />
                         ) : (
                           <div style={{ width: '48px', height: '48px', backgroundColor: '#f0f0f0', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>📦</div>
                         )}

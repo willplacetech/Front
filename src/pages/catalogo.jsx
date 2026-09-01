@@ -21,22 +21,55 @@ const precoVendaPadrao = (custo) => {
 
 const IMAGEM_PADRAO = '/LogoEscrthinny.jpg';
 
-const renderImagemProduto = (src, alt, estilo = {}) => (
-  <img
-    src={src || IMAGEM_PADRAO}
-    alt={alt}
-    style={{
-      maxHeight: '180px',
-      maxWidth: '100%',
-      objectFit: 'contain',
-      ...estilo
-    }}
-    onError={e => {
-      e.currentTarget.onerror = null;
-      e.currentTarget.src = IMAGEM_PADRAO;
-    }}
-  />
-);
+const IMAGENS_FALLBACK = {
+  'iPhones Lacrados': 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=900&q=80',
+  'iPhones CPO': 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=900&q=80',
+  'Apple Watch': 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?auto=format&fit=crop&w=900&q=80',
+  'Garmin': 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?auto=format&fit=crop&w=900&q=80',
+  'Fitbit': 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?auto=format&fit=crop&w=900&q=80',
+  'iPads': 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?auto=format&fit=crop&w=900&q=80',
+  'MacBook': 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=900&q=80',
+  'AirPods': 'https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?auto=format&fit=crop&w=900&q=80',
+  default: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=900&q=80'
+};
+
+const resolverUrlImagem = (src, categoria = '') => {
+  const valor = String(src || '').trim();
+  if (!valor) return IMAGENS_FALLBACK[categoria] || IMAGENS_FALLBACK.default;
+
+  const url = valor.startsWith('//') ? `https:${valor}` : valor;
+  if (!/^https?:\/\//i.test(url)) return IMAGENS_FALLBACK[categoria] || IMAGENS_FALLBACK.default;
+
+  if (!/\.(jpeg|jpg|png|webp|gif|avif|svg)(\?.*)?$/i.test(url)) {
+    return IMAGENS_FALLBACK[categoria] || IMAGENS_FALLBACK.default;
+  }
+
+  return url;
+};
+
+const renderImagemProduto = (src, alt, categoria = '', estilo = {}) => {
+  const urlInicial = resolverUrlImagem(src, categoria);
+
+  return (
+    <img
+      src={urlInicial}
+      alt={alt}
+      style={{
+        maxHeight: '180px',
+        maxWidth: '100%',
+        objectFit: 'contain',
+        ...estilo
+      }}
+      onError={e => {
+        const fallback = IMAGENS_FALLBACK[categoria] || IMAGENS_FALLBACK.default;
+        if (e.currentTarget.src !== fallback) {
+          e.currentTarget.onerror = null;
+          e.currentTarget.src = fallback;
+        }
+      }}
+    />
+  );
+};
 
 export default function Catalogo() {
   const [produtos, setProdutos] = useState([]);
@@ -300,7 +333,7 @@ export default function Catalogo() {
                   <div className="card card-produto h-100">
                     {/* IMAGEM */}
                     <div className="imagem-produto-card">
-                      {renderImagemProduto(prod.imagem, prod.nome, { height: '180px', width: '100%' })}
+                      {renderImagemProduto(prod.imagem, prod.nome, prod.categoria, { height: '180px', width: '100%' })}
                     </div>
 
                     {/* CONTEÚDO */}

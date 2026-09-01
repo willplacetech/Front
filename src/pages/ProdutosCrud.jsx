@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { PlusIcon, PencilIcon, TrashIcon, MagnifyingGlassIcon, XMarkIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, PencilIcon, TrashIcon, MagnifyingGlassIcon, XMarkIcon, SparklesIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import api from '../services/api';
 import LayoutAdmin from '../components/LayoutAdmin';
 import ImportadorPrecos from '../components/ImportadorPrecos';
@@ -34,18 +34,22 @@ export default function ProdutosCrud() {
   const [ajustandoLote, setAjustandoLote] = useState(false);
   const [excluindoLote, setExcluindoLote] = useState(false);
 
-  // 🤖 PROCESSAMENTO POR IA
+  // 🤖 PROCESSAMENTO POR IA — NOVO SISTEMA DE SESSÕES
   const [listaBruta, setListaBruta] = useState('');
   const [processandoIa, setProcessandoIa] = useState(false);
   const [mostrarProcessador, setMostrarProcessador] = useState(false);
+  const [sessaoId, setSessaoId] = useState(null);
+  const [temSessaoPendente, setTemSessaoPendente] = useState(false);
   const [progressoIa, setProgressoIa] = useState({
-    fase: 'ociosa', // ociosa | analisando | convertendo | concluido
-    atual: 0,
-    total: 0,
+    fase: 'ociosa', // ociosa | analisando | processando | concluido | parcial
+    atual: 0,        // lotes concluídos
+    total: 0,        // total de lotes
     percentual: 0,
     inicio: 0,
     estimativaTotal: 0,
-    tempoRestante: 0
+    tempoRestante: 0,
+    produtosAcumulados: 0,
+    lotesFalhos: 0
   });
   const intervaloProgressoIa = useRef(null);
 
@@ -68,14 +72,44 @@ export default function ProdutosCrud() {
     };
   }, []);
 
-  // 🤖 FUNÇÃO PRINCIPAL — Processar lista com Gemini
-  const processarListaComIa = async () => {
-    if (!listaBruta.trim()) {
+  // 🤖 FUNÇÃO AUXILIAR: Converte produtos da sessão para formato do formulário
+  const converterParaFormulario = (produtosSessao) => {
+    return produtosSessao.map(p => {
+      let precoLimpo = '';
+      if (p.preco) {
+        precoLimpo = String(p.preco)
+          .replace(/[R$\s]/g, '')
+          .replace(/\./g, '')
+          .replace(',', '.')
+          .replace(/[^0-9.]/g, '');
+      }
+
+      let nomeCompleto = p.nome?.trim() || '';
+      if (p.cor && !nomeCompleto.toLowerCase().includes(p.cor.toLowerCase())) {
+        nomeCompleto += ` - ${p.cor}`;
+      }
+      if (p.capacidade && !nomeCompleto.includes(p.capacidade)) {
+        nomeCompleto += ` ${p.capacidade}`;
+      }
+
+      return {
+        ...produtoVazio(),
+        nome: nomeCompleto,
+        categoria: p._categoria?.trim() || p.categoria?.trim() || '',
+        preco: precoLimpo || '',
+        imagem: p.imagemUrl?.trim() || '',
+        descricao: p.descricao?.trim() || ''
+      };
+    });
+  };
+
+  // 🤖 FUNÇÃO PRINCIPAL — Processa lote por lote com sessão
+  const processarListaComIa = async (continuar = false) => {
+    if (!continuar && !listaBruta.trim()) {
       alert('⚠️ Cole sua lista de produtos antes de processar!');
       return;
     }
 
-    // 🧹 Limpa intervalo anterior se existir
     if (intervaloProgressoIa.current) {
       window.clearInterval(intervaloProgressoIa.current);
     }
@@ -83,143 +117,121 @@ export default function ProdutosCrud() {
     setProcessandoIa(true);
     const inicio = Date.now();
 
-    // 📊 Estimativa baseada em quantidade real de linhas com preço
-    const linhasComPreco = listaBruta.split('\n').filter(l => l.includes('R$')).length;
-    const qtdEstimada = Math.max(10, linhasComPreco || Math.round(listaBruta.length / 80));
-    
-    // Tempo estimado: ~0.15s por produto + 8s base (rede + IA)
-    const estimativaTotal = Math.max(10, Math.min(120, Math.round(8 + qtdEstimada * 0.15)));
-
-    setProgressoIa({
-      fase: 'analisando',
-      atual: 0,
-      total: qtdEstimada,
-      percentual: 3,
-      inicio,
-      estimativaTotal,
-      tempoRestante: estimativaTotal
-    });
-
-    // ⏱️ Atualiza progresso a cada 500ms
-    intervaloProgressoIa.current = window.setInterval(() => {
-      setProgressoIa(atual => {
-        if (atual.fase === 'concluido') return atual;
-        
-        const decorrido = (Date.now() - atual.inicio) / 1000;
-        const tempoRestante = Math.max(0, Math.round(atual.estimativaTotal - decorrido));
-        
-        // Fase ANALISANDO: vai até 85% gradualmente
-        let percentual = atual.percentual;
-        if (atual.fase === 'analisando') {
-          const alvo = Math.min(85, Math.round(3 + (decorrido / atual.estimativaTotal) * 82));
-          percentual = Math.max(atual.percentual, alvo);
-        }
-
-        return { ...atual, tempoRestante, percentual };
-      });
-    }, 500);
-
     try {
-      // ✅ Timeout de 2 minutos na requisição
-      const res = await api.post('/produtos/processar-lista', 
-        { listaBruta },
-        { timeout: 120000 }
-      );
+      let idSessao = sessaoId;
+      let totalLotes = progressoIa.total;
 
-      const { sucesso, dados, totalProdutos } = res.data;
-
-      if (sucesso && dados?.categorias) {
-        // Muda para fase CONVERTENDO
-        const total = totalProdutos || dados.categorias.reduce(
-          (t, c) => t + (c.produtos?.length || 0), 0
-        );
-
-        setProgressoIa(atual => ({
-          ...atual,
-          fase: 'convertendo',
-          total,
-          atual: 0,
-          percentual: 88
-        }));
-
-        // Converte JSON da IA para formato do formulário
-        const produtosConvertidos = [];
-        let processados = 0;
-
-        for (const cat of dados.categorias) {
-          for (const p of (cat.produtos || [])) {
-            // 🧹 Limpeza de preço MAIS ROBUSTA
-            let precoLimpo = '';
-            if (p.preco) {
-              precoLimpo = String(p.preco)
-                .replace(/[R$\s]/g, '')
-                .replace(/\./g, '')
-                .replace(',', '.')
-                .replace(/[^0-9.]/g, '');
-            }
-
-            // 📦 Monta nome completo (inclui cor e capacidade se tiver)
-            let nomeCompleto = p.nome?.trim() || '';
-            if (p.cor && !nomeCompleto.toLowerCase().includes(p.cor.toLowerCase())) {
-              nomeCompleto += ` - ${p.cor}`;
-            }
-            if (p.capacidade && !nomeCompleto.includes(p.capacidade)) {
-              nomeCompleto += ` ${p.capacidade}`;
-            }
-
-            produtosConvertidos.push({
-              ...produtoVazio(),
-              nome: nomeCompleto,
-              categoria: cat.nomeCategoria?.trim() || p.categoria?.trim() || '',
-              preco: precoLimpo || '',
-              imagem: p.imagemUrl?.trim() || '',
-              descricao: p.descricao?.trim() || ''
-            });
-
-            processados++;
-            
-            // Atualiza progresso da conversão
-            setProgressoIa(atual => ({
-              ...atual,
-              atual: processados,
-              percentual: Math.min(99, 88 + Math.round((processados / Math.max(1, total)) * 11))
-            }));
-          }
-        }
-
-        if (produtosConvertidos.length === 0) {
-          alert('⚠️ Nenhum produto foi reconhecido na lista.');
-          return;
-        }
-
-        // ✅ SUCESSO!
-        setProgressoIa(atual => ({
-          ...atual,
-          fase: 'concluido',
-          atual: produtosConvertidos.length,
-          total: produtosConvertidos.length,
-          percentual: 100,
-          tempoRestante: 0
-        }));
-
-        setListaNovos(produtosConvertidos);
-        setMostrarProcessador(false);
-        setListaBruta('');
-        setMostrarForm(true);
-
-        const tempoTotal = Math.round((Date.now() - inicio) / 1000);
-        setTimeout(() => {
-          alert(`✅ ${produtosConvertidos.length} produto(s) extraído(s) em ${tempoTotal}s! Pronto para salvar.`);
-        }, 300);
-
+      // 🆕 Se NÃO for continuar, cria NOVA sessão
+      if (!continuar) {
+        const resSessao = await api.post('/produtos/processar-iniciar', { listaBruta });
+        idSessao = resSessao.data.sessaoId;
+        totalLotes = resSessao.data.totalLotes;
+        setSessaoId(idSessao);
       } else {
-        alert('❌ Não foi possível interpretar a lista.');
+        // 🔄 Se for continuar, primeiro retenta lotes falhos
+        await api.post(`/produtos/processar-retentar/${idSessao}`);
       }
+
+      // Inicializa progresso
+      setProgressoIa({
+        fase: 'processando',
+        atual: 0,
+        total: totalLotes,
+        percentual: 0,
+        inicio,
+        estimativaTotal: Math.max(10, totalLotes * 8),
+        tempoRestante: Math.max(10, totalLotes * 8),
+        produtosAcumulados: 0,
+        lotesFalhos: 0
+      });
+
+      // ⏱️ Atualiza tempo restante
+      intervaloProgressoIa.current = window.setInterval(() => {
+        setProgressoIa(atual => {
+          if (atual.fase === 'concluido' || atual.fase === 'parcial') return atual;
+          const decorrido = (Date.now() - atual.inicio) / 1000;
+          const tempoRestante = Math.max(0, Math.round(atual.estimativaTotal - decorrido));
+          return { ...atual, tempoRestante };
+        });
+      }, 1000);
+
+      // 🔄 Processa UM LOTE POR VEZ
+      let concluiu = false;
+      let produtosFinais = [];
+
+      while (!concluiu) {
+        const res = await api.post(`/produtos/processar-proximo/${idSessao}`);
+        const { sucesso, concluido, produtos, sessao } = res.data;
+
+        if (!sucesso && !concluido) {
+          throw new Error(res.data.erro || 'Erro no processamento');
+        }
+
+        // Atualiza progresso REAL baseado em lotes concluídos
+        const percentual = Math.round((sessao.lotesConcluidos / sessao.totalLotes) * 100);
+        
+        setProgressoIa(atual => ({
+          ...atual,
+          fase: concluido ? (sessao.lotesFalhos > 0 ? 'parcial' : 'concluido') : 'processando',
+          atual: sessao.lotesConcluidos,
+          total: sessao.totalLotes,
+          percentual,
+          produtosAcumulados: sessao.totalProdutos,
+          lotesFalhos: sessao.lotesFalhos
+        }));
+
+        if (produtos) produtosFinais = produtos;
+        concluiu = concluido;
+
+        await new Promise(r => setTimeout(r, 200));
+      }
+
+      // ✅ FIM DO PROCESSAMENTO
+      if (produtosFinais.length === 0) {
+        alert('⚠️ Nenhum produto foi reconhecido na lista.');
+        return;
+      }
+
+      const produtosConvertidos = converterParaFormulario(produtosFinais);
+
+      setProgressoIa(atual => ({
+        ...atual,
+        fase: 'concluido',
+        atual: atual.total,
+        percentual: 100,
+        tempoRestante: 0
+      }));
+
+      setListaNovos(produtosConvertidos);
+      setMostrarProcessador(false);
+      setListaBruta('');
+      setMostrarForm(true);
+      setSessaoId(null);
+      setTemSessaoPendente(false);
+
+      const tempoTotal = Math.round((Date.now() - inicio) / 1000);
+      const temFalhos = progressoIa.lotesFalhos > 0;
+      
+      setTimeout(() => {
+        alert(
+          `✅ ${produtosConvertidos.length} produtos extraídos em ${tempoTotal}s!` +
+          (temFalhos ? `\n\n⚠️ Alguns lotes falharam. Clique em "Continuar" para tentar novamente.` : '')
+        );
+      }, 300);
 
     } catch (erro) {
       console.error(erro);
       const msg = erro.response?.data?.erro || erro.message || 'Erro desconhecido';
-      alert(`❌ Erro ao processar lista:\n${msg}\n\n${msg.includes('Timeout') ? '💡 Tente novamente ou divida a lista em partes menores.' : ''}`);
+      
+      // Marca que tem sessão pendente para poder continuar
+      if (sessaoId) {
+        setTemSessaoPendente(true);
+      }
+
+      alert(
+        `❌ Erro ao processar:\n${msg}\n\n` +
+        (sessaoId ? '💡 Você pode CONTINUAR de onde parou clicando no botão "Continuar Processamento".' : '')
+      );
     } finally {
       if (intervaloProgressoIa.current) {
         window.clearInterval(intervaloProgressoIa.current);
@@ -227,6 +239,24 @@ export default function ProdutosCrud() {
       }
       setProcessandoIa(false);
     }
+  };
+
+  // 🆕 FUNÇÃO: Continuar processamento de onde parou
+  const continuarProcessamento = () => {
+    if (sessaoId) {
+      processarListaComIa(true);
+    }
+  };
+
+  // 🆕 FUNÇÃO: Cancelar sessão pendente
+  const cancelarSessao = () => {
+    setSessaoId(null);
+    setTemSessaoPendente(false);
+    setProgressoIa({
+      fase: 'ociosa', atual: 0, total: 0, percentual: 0,
+      inicio: 0, estimativaTotal: 0, tempoRestante: 0,
+      produtosAcumulados: 0, lotesFalhos: 0
+    });
   };
 
   // ✅ ADICIONA UMA NOVA LINHA NA LISTA
@@ -250,7 +280,6 @@ export default function ProdutosCrud() {
   // ✅ SALVA TODOS OS PRODUTOS DE UMA VEZ
   const salvarTodos = async (e) => {
     e.preventDefault();
-    // 🛡️ VALIDAÇÃO
     const invalidos = listaNovos.filter(p => !p.nome.trim() || !p.preco);
     if (invalidos.length > 0) {
       alert(`⚠️ Preencha Nome e Preço em todos os produtos! (${invalidos.length} sem dados)`);
@@ -258,7 +287,6 @@ export default function ProdutosCrud() {
     }
     setSalvando(true);
     try {
-      // 🔄 Faz todas as requisições em paralelo
       const promessas = listaNovos.map(produto => {
         const dados = {
           ...produto,
@@ -268,7 +296,6 @@ export default function ProdutosCrud() {
         return api.post('/produtos', dados);
       });
       await Promise.all(promessas);
-      // ✅ SUCESSO
       alert(`✅ ${listaNovos.length} produto(s) cadastrado(s) com sucesso!`);
       setListaNovos([produtoVazio()]);
       setMostrarForm(false);
@@ -380,13 +407,17 @@ export default function ProdutosCrud() {
 
   const todosFiltradosSelecionados = produtosFiltrados.length > 0 && produtosFiltrados.every(p => selecionados.includes(p._id));
 
-  // 🎨 Texto da fase de processamento
+  // 🎨 Texto da fase de processamento — ATUALIZADO PARA LOTES
   const textoFase = () => {
     switch (progressoIa.fase) {
-      case 'analisando': return '🔍 Analisando lista com Gemini...';
-      case 'convertendo': return `📦 Convertendo produto ${progressoIa.atual} de ${progressoIa.total}`;
-      case 'concluido': return '✅ Concluído!';
-      default: return '';
+      case 'processando':
+        return `📦 Processando lote ${progressoIa.atual + 1} de ${progressoIa.total}... (${progressoIa.produtosAcumulados} produtos)`;
+      case 'concluido':
+        return '✅ Concluído!';
+      case 'parcial':
+        return `⚠️ Parcial: ${progressoIa.atual}/${progressoIa.total} lotes OK (${progressoIa.lotesFalhos} falharam)`;
+      default:
+        return '🔍 Preparando processamento...';
     }
   };
 
@@ -419,7 +450,6 @@ export default function ProdutosCrud() {
               setMostrarProcessador(!mostrarProcessador);
               setMostrarForm(false);
               setEditando(null);
-              setListaBruta('');
             }}
             style={{
               display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px',
@@ -479,11 +509,55 @@ export default function ProdutosCrud() {
             ✨ Cole sua lista — a IA reconhece e preenche tudo!
           </h3>
           <p style={{ fontSize: '13px', color: '#7C3AED', margin: '0 0 16px 0' }}>
-            Cole a lista de produtos com preços, categorias e descrições. A IA extrai nome, preço, categoria, imagem e descrição automaticamente.
+            Processa em lotes pequenos e salva cada um automaticamente. Se travar, é só continuar de onde parou! 🛡️
           </p>
+
+          {/* 🆕 AVISO DE SESSÃO PENDENTE */}
+          {temSessaoPendente && sessaoId && !processandoIa && (
+            <div style={{
+              backgroundColor: '#FEF3C7', border: '1px solid #FCD34D',
+              borderRadius: '12px', padding: '14px 16px', marginBottom: '14px',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px'
+            }}>
+              <div>
+                <strong style={{ color: '#92400E', fontSize: '14px' }}>
+                  ⚠️ Há um processamento inacabado!
+                </strong>
+                <div style={{ fontSize: '12px', color: '#B45309', marginTop: '2px' }}>
+                  Progresso: {progressoIa.atual}/{progressoIa.total} lotes | {progressoIa.produtosAcumulados} produtos salvos
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={continuarProcessamento}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '6px',
+                    padding: '8px 16px', backgroundColor: '#F59E0B', color: 'white',
+                    border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', fontSize: '13px'
+                  }}
+                >
+                  <ArrowPathIcon style={{ width: '14px', height: '14px' }} />
+                  Continuar Processamento
+                </button>
+                <button
+                  onClick={cancelarSessao}
+                  style={{
+                    padding: '8px 12px', backgroundColor: 'transparent', color: '#92400E',
+                    border: '1px solid #FCD34D', borderRadius: '8px', cursor: 'pointer', fontSize: '13px'
+                  }}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          )}
+
           <textarea
             value={listaBruta}
-            onChange={(e) => setListaBruta(e.target.value)}
+            onChange={(e) => {
+              setListaBruta(e.target.value);
+              if (temSessaoPendente) cancelarSessao();
+            }}
             disabled={processandoIa}
             placeholder="Cole sua lista aqui...
 
@@ -514,23 +588,24 @@ Processador M4, 512GB SSD
                 <span>{textoFase()}</span>
                 <span>{progressoIa.percentual}%</span>
               </div>
-              
+
               {/* Barra de progresso */}
               <div style={{ height: '12px', overflow: 'hidden', borderRadius: '999px', backgroundColor: '#EDE9FE', position: 'relative' }}>
-                <div 
-                  style={{ 
-                    width: `${progressoIa.percentual}%`, 
-                    height: '100%', 
-                    borderRadius: '999px', 
-                    background: progressoIa.fase === 'concluido' 
-                      ? 'linear-gradient(90deg, #10B981, #059669)' 
-                      : 'linear-gradient(90deg, #8B5CF6, #06B6D4)', 
+                <div
+                  style={{
+                    width: `${progressoIa.percentual}%`,
+                    height: '100%',
+                    borderRadius: '999px',
+                    background: progressoIa.fase === 'concluido'
+                      ? 'linear-gradient(90deg, #10B981, #059669)'
+                      : progressoIa.fase === 'parcial'
+                        ? 'linear-gradient(90deg, #F59E0B, #D97706)'
+                        : 'linear-gradient(90deg, #8B5CF6, #06B6D4)',
                     transition: 'width 0.4s ease',
                     position: 'relative'
                   }}
                 >
-                  {/* Efeito de brilho */}
-                  {progressoIa.fase !== 'concluido' && (
+                  {progressoIa.fase !== 'concluido' && progressoIa.fase !== 'parcial' && (
                     <div style={{
                       position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
                       background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)',
@@ -540,21 +615,23 @@ Processador M4, 512GB SSD
                 </div>
               </div>
 
-              {/* Informações de tempo */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', marginTop: '10px', fontSize: '12px', color: '#7C3AED' }}>
+              {/* Informações detalhadas */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', marginTop: '10px', fontSize: '12px', color: '#7C3AED', flexWrap: 'wrap' }}>
+                <span>📦 Lotes: {progressoIa.atual}/{progressoIa.total}</span>
+                <span>🛍️ Produtos: {progressoIa.produtosAcumulados}</span>
                 <span>⏱️ Decorrido: {Math.max(0, Math.round((Date.now() - progressoIa.inicio) / 1000))}s</span>
                 {progressoIa.fase !== 'concluido' && progressoIa.tempoRestante > 0 && (
                   <span>⏳ Restante: ~{progressoIa.tempoRestante}s</span>
                 )}
-                {progressoIa.total > 0 && (
-                  <span>📦 ~{progressoIa.total} produtos estimados</span>
+                {progressoIa.lotesFalhos > 0 && (
+                  <span style={{ color: '#DC2626' }}>⚠️ Falhas: {progressoIa.lotesFalhos}</span>
                 )}
               </div>
             </div>
           )}
 
           <button
-            onClick={processarListaComIa}
+            onClick={() => processarListaComIa(false)}
             disabled={processandoIa}
             style={{
               padding: '12px 30px', backgroundColor: processandoIa ? '#C4B5FD' : '#8B5CF6',
@@ -566,7 +643,7 @@ Processador M4, 512GB SSD
             onMouseOut={e => !processandoIa && (e.target.style.backgroundColor = '#8B5CF6')}
           >
             {processandoIa ? (
-              <>⏳ Processando... não feche a página</>
+              <>⏳ Processando em lotes... não feche a página</>
             ) : (
               <>✨ Extrair Produtos com IA</>
             )}

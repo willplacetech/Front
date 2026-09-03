@@ -504,7 +504,7 @@ export default function ProdutosCrud() {
         <div style={{ position: 'relative', flex: 1, maxWidth: '420px' }}>
           <MagnifyingGlassIcon style={{
             position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)',
-            width: '18px', height: '18px', color: '#888'
+            width: '18px', height: '18px', color: '#a7a39f'
           }} />
           <input
             placeholder="Filtrar produtos..."
@@ -512,11 +512,11 @@ export default function ProdutosCrud() {
             onChange={(e) => setFiltro(e.target.value)}
             style={{
               width: '100%', padding: '12px 16px 12px 44px', borderRadius: '12px',
-              border: '1px solid #ddd', fontSize: '15px', outline: 'none',
-              transition: 'border 0.2s'
+              border: '1px solid rgba(255,255,255,0.08)', fontSize: '15px', outline: 'none',
+              transition: 'border 0.2s', background: 'rgba(255,255,255,0.02)', color: '#f7f7f3'
             }}
-            onFocus={e => e.target.style.borderColor = AZUL}
-            onBlur={e => e.target.style.borderColor = '#ddd'}
+            onFocus={e => e.target.style.borderColor = '#f5a400'}
+            onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.08)'}
           />
         </div>
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
@@ -528,11 +528,9 @@ export default function ProdutosCrud() {
             }}
             style={{
               display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px',
-              backgroundColor: '#8B5CF6', color: 'white', border: 'none', borderRadius: '12px',
-              fontSize: '15px', fontWeight: 500, cursor: 'pointer', transition: 'background 0.2s'
+              background: 'linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)', color: 'white', border: 'none', borderRadius: '12px',
+              fontSize: '15px', fontWeight: 700, cursor: 'pointer', transition: 'background 0.2s', boxShadow: '0 12px 22px rgba(124,58,237,0.18)'
             }}
-            onMouseOver={e => e.target.style.backgroundColor = '#7C3AED'}
-            onMouseOut={e => e.target.style.backgroundColor = '#8B5CF6'}
           >
             <SparklesIcon style={{ width: '18px', height: '18px' }} />
             {mostrarProcessador ? 'Fechar' : '📋 Colar Lista (IA)'}
@@ -546,11 +544,9 @@ export default function ProdutosCrud() {
             }}
             style={{
               display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px',
-              backgroundColor: AZUL, color: 'white', border: 'none', borderRadius: '12px',
-              fontSize: '15px', fontWeight: 500, cursor: 'pointer', transition: 'background 0.2s'
+              background: 'linear-gradient(135deg, #f5a400 0%, #e89d00 100%)', color: '#111111', border: 'none', borderRadius: '12px',
+              fontSize: '15px', fontWeight: 800, cursor: 'pointer', transition: 'background 0.2s', boxShadow: '0 12px 22px rgba(245,164,0,0.18)'
             }}
-            onMouseOver={e => e.target.style.backgroundColor = '#2968D3'}
-            onMouseOut={e => e.target.style.backgroundColor = AZUL}
           >
             <PlusIcon style={{ width: '18px', height: '18px' }} />
             {mostrarForm ? 'Fechar' : 'Cadastro Manual'}
@@ -563,11 +559,9 @@ export default function ProdutosCrud() {
             }}
             style={{
               display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px',
-              backgroundColor: '#059669', color: 'white', border: 'none', borderRadius: '12px',
-              fontSize: '15px', fontWeight: 500, cursor: 'pointer', transition: 'background 0.2s'
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white', border: 'none', borderRadius: '12px',
+              fontSize: '15px', fontWeight: 700, cursor: 'pointer', transition: 'background 0.2s', boxShadow: '0 12px 22px rgba(16,185,129,0.18)'
             }}
-            onMouseOver={e => e.target.style.backgroundColor = '#047857'}
-            onMouseOut={e => e.target.style.backgroundColor = '#059669'}
           >
             📊 Importar Preços
           </button>
@@ -577,13 +571,13 @@ export default function ProdutosCrud() {
       {/* 🤖 PROCESSADOR DE LISTA COM IA */}
       {mostrarProcessador && (
         <div style={{
-          backgroundColor: '#FAF5FF', padding: '24px', borderRadius: '16px',
-          border: '1px solid #EDE9FE', marginBottom: '24px'
+          background: 'linear-gradient(180deg, #141414 0%, #101010 100%)', padding: '24px', borderRadius: '18px',
+          border: '1px solid rgba(255,255,255,0.06)', marginBottom: '24px', boxShadow: '0 18px 40px rgba(0,0,0,0.18)'
         }}>
-          <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 8px 0', color: '#5B21B6' }}>
+          <h3 style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 8px 0', color: '#f7f7f3' }}>
             ✨ Cole sua lista — a IA reconhece e preenche tudo!
           </h3>
-          <p style={{ fontSize: '13px', color: '#7C3AED', margin: '0 0 16px 0' }}>
+          <p style={{ fontSize: '13px', color: '#c8c5c1', margin: '0 0 16px 0' }}>
             Processa em lotes pequenos e salva cada um automaticamente. Se travar, é só continuar de onde parou! 🛡️
           </p>
 
@@ -727,17 +721,17 @@ Processador M4, 512GB SSD
       )}
 
       {selecionados.length > 0 && (
-        <div style={{ display: 'flex', alignItems: 'end', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap', backgroundColor: '#F0FDF4', border: '1px solid #A7F3D0', borderRadius: '14px', padding: '16px 20px', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'end', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap', background: 'linear-gradient(180deg, rgba(16,185,129,0.08), rgba(16,185,129,0.03))', border: '1px solid rgba(16,185,129,0.25)', borderRadius: '14px', padding: '16px 20px', marginBottom: '20px' }}>
           <div>
-            <strong style={{ display: 'block', color: '#065F46', fontSize: '15px' }}>{selecionados.length} produto(s) selecionado(s)</strong>
-            <span style={{ fontSize: '12px', color: '#047857' }}>Preço de venda = preço base + percentual + valor fixo</span>
+            <strong style={{ display: 'block', color: '#ccf6df', fontSize: '15px' }}>{selecionados.length} produto(s) selecionado(s)</strong>
+            <span style={{ fontSize: '12px', color: '#a7f3d0' }}>Preço de venda = preço base + percentual + valor fixo</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'end', gap: '10px', flexWrap: 'wrap' }}>
-            <label style={{ fontSize: '12px', color: '#065F46' }}>Percentual (%)<input type="number" min="0" step="0.1" value={percentualLote} onChange={e => setPercentualLote(e.target.value)} style={{ display: 'block', width: '105px', marginTop: '4px', padding: '9px 10px', border: '1px solid #A7F3D0', borderRadius: '8px', backgroundColor: 'white' }} /></label>
-            <label style={{ fontSize: '12px', color: '#065F46' }}>Fixo (R$)<input type="number" min="0" step="0.01" value={valorFixoLote} onChange={e => setValorFixoLote(e.target.value)} style={{ display: 'block', width: '105px', marginTop: '4px', padding: '9px 10px', border: '1px solid #A7F3D0', borderRadius: '8px', backgroundColor: 'white' }} /></label>
-            <button type="button" onClick={aplicarAjusteLote} disabled={ajustandoLote} style={{ padding: '10px 16px', backgroundColor: VERDE, color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: ajustandoLote ? 'wait' : 'pointer' }}>{ajustandoLote ? 'Atualizando...' : 'Atualizar preços'}</button>
-            <button type="button" onClick={excluirSelecionados} disabled={excluindoLote || ajustandoLote} style={{ padding: '10px 16px', backgroundColor: VERMELHO, color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: excluindoLote ? 'wait' : 'pointer' }}>{excluindoLote ? 'Excluindo...' : 'Excluir selecionados'}</button>
-            <button type="button" onClick={() => setSelecionados([])} style={{ padding: '10px 12px', backgroundColor: 'transparent', color: '#047857', border: '1px solid #A7F3D0', borderRadius: '8px', cursor: 'pointer' }}>Limpar</button>
+            <label style={{ fontSize: '12px', color: '#ccf6df' }}>Percentual (%)<input type="number" min="0" step="0.1" value={percentualLote} onChange={e => setPercentualLote(e.target.value)} style={{ display: 'block', width: '105px', marginTop: '4px', padding: '9px 10px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', backgroundColor: 'rgba(255,255,255,0.02)', color: '#f7f7f3' }} /></label>
+            <label style={{ fontSize: '12px', color: '#ccf6df' }}>Fixo (R$)<input type="number" min="0" step="0.01" value={valorFixoLote} onChange={e => setValorFixoLote(e.target.value)} style={{ display: 'block', width: '105px', marginTop: '4px', padding: '9px 10px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '8px', backgroundColor: 'rgba(255,255,255,0.02)', color: '#f7f7f3' }} /></label>
+            <button type="button" onClick={aplicarAjusteLote} disabled={ajustandoLote} style={{ padding: '10px 16px', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 700, cursor: ajustandoLote ? 'wait' : 'pointer' }}>{ajustandoLote ? 'Atualizando...' : 'Atualizar preços'}</button>
+            <button type="button" onClick={excluirSelecionados} disabled={excluindoLote || ajustandoLote} style={{ padding: '10px 16px', background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 700, cursor: excluindoLote ? 'wait' : 'pointer' }}>{excluindoLote ? 'Excluindo...' : 'Excluir selecionados'}</button>
+            <button type="button" onClick={() => setSelecionados([])} style={{ padding: '10px 12px', background: 'transparent', color: '#a7f3d0', border: '1px solid rgba(167,243,208,0.4)', borderRadius: '8px', cursor: 'pointer' }}>Limpar</button>
           </div>
         </div>
       )}
@@ -745,20 +739,20 @@ Processador M4, 512GB SSD
       {/* 📝 FORMULÁRIO DE VÁRIOS PRODUTOS */}
       {!importadorAberto && mostrarForm && (
         <form onSubmit={salvarTodos} style={{
-          backgroundColor: 'white', padding: '24px', borderRadius: '16px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.08)', marginBottom: '24px'
+          background: 'linear-gradient(180deg, #141414 0%, #101010 100%)', padding: '24px', borderRadius: '18px',
+          boxShadow: '0 18px 40px rgba(0,0,0,0.18)', marginBottom: '24px', border: '1px solid rgba(255,255,255,0.06)'
         }}>
-          <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 16px 0', paddingBottom: '12px', borderBottom: '1px solid #eee' }}>
+          <h3 style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 16px 0', paddingBottom: '12px', borderBottom: '1px solid rgba(255,255,255,0.08)', color: '#f7f7f3' }}>
             📦 Produtos prontos para cadastrar — {listaNovos.length} produto(s) na lista
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {listaNovos.map((produto, indice) => (
               <div key={indice} style={{
-                border: '1px solid #E5E7EB', borderRadius: '12px', padding: '16px',
-                backgroundColor: '#FAFAFA'
+                border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '16px',
+                background: 'rgba(255,255,255,0.02)'
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                  <span style={{ fontWeight: 600, fontSize: '14px', color: '#444' }}>Produto #{indice + 1}</span>
+                  <span style={{ fontWeight: 700, fontSize: '14px', color: '#f7f7f3' }}>Produto #{indice + 1}</span>
                   {listaNovos.length > 1 && (
                     <button
                       type="button"
@@ -771,13 +765,13 @@ Processador M4, 512GB SSD
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
                   <div style={{ gridColumn: '1 / -1' }}>
-                    <label style={{ display: 'block', fontSize: '12px', color: '#666', marginBottom: '4px' }}>Nome *</label>
+                    <label style={{ display: 'block', fontSize: '12px', color: '#c8c5c1', marginBottom: '4px' }}>Nome *</label>
                     <input
                       required
                       placeholder="Nome do produto"
                       value={produto.nome}
                       onChange={e => alterarLinha(indice, 'nome', e.target.value)}
-                      style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '14px' }}
+                      style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.08)', fontSize: '14px', background: 'rgba(255,255,255,0.02)', color: '#f7f7f3' }}
                     />
                   </div>
                   <div>
@@ -874,10 +868,10 @@ Processador M4, 512GB SSD
       {/* ✏️ FORMULÁRIO DE EDIÇÃO INDIVIDUAL */}
       {editando && (
         <form onSubmit={salvarEdicao} style={{
-          backgroundColor: 'white', padding: '24px', borderRadius: '16px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.08)', marginBottom: '24px'
+          background: 'linear-gradient(180deg, #141414 0%, #101010 100%)', padding: '24px', borderRadius: '18px',
+          boxShadow: '0 18px 40px rgba(0,0,0,0.18)', marginBottom: '24px', border: '1px solid rgba(255,255,255,0.06)'
         }}>
-          <h3 style={{ fontSize: '18px', fontWeight: 700, margin: '0 0 16px 0' }}>✏️ Editar Produto</h3>
+          <h3 style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 16px 0', color: '#f7f7f3' }}>✏️ Editar Produto</h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <div style={{ gridColumn: '1 / -1' }}>
               <label style={{ display: 'block', fontSize: '13px', color: '#666', marginBottom: '4px' }}>Nome *</label>
@@ -966,36 +960,36 @@ Processador M4, 512GB SSD
         </div>
       ) : (
         <div style={{
-          backgroundColor: 'white', borderRadius: '16px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.08)', overflow: 'hidden'
+          background: 'linear-gradient(180deg, #141414 0%, #101010 100%)', borderRadius: '18px',
+          boxShadow: '0 18px 40px rgba(0,0,0,0.18)', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.06)'
         }}>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr style={{ backgroundColor: CINZA }}>
+                <tr style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}>
                   {['', 'Foto', 'Produto', 'Preço custo', 'Preço venda', 'Categoria', 'Ações'].map((h, i) => (
                     <th key={i} style={{
                       padding: '14px 16px', textAlign: i === 6 ? 'right' : 'left',
-                      fontSize: '13px', fontWeight: 600, color: '#444', textTransform: 'uppercase'
-                    }}>{i === 0 ? <input type="checkbox" checked={todosFiltradosSelecionados} onChange={e => selecionarFiltrados(e.target.checked)} aria-label="Selecionar todos os produtos filtrados" style={{ width: '17px', height: '17px', cursor: 'pointer' }} /> : i === 2 || i === 3 || i === 4 || i === 5 ? <button type="button" onClick={() => ordenarPor({ 2: 'nome', 3: 'preco', 4: 'precoPersonalizado', 5: 'categoria' }[i])} style={{ border: 0, background: 'transparent', color: '#444', padding: 0, font: 'inherit', cursor: 'pointer' }}>{h} <span aria-hidden="true">{indicadorOrdenacao({ 2: 'nome', 3: 'preco', 4: 'precoPersonalizado', 5: 'categoria' }[i])}</span></button> : h}</th>
+                      fontSize: '13px', fontWeight: 700, color: '#d7d5d0', textTransform: 'uppercase', letterSpacing: '0.06em'
+                    }}>{i === 0 ? <input type="checkbox" checked={todosFiltradosSelecionados} onChange={e => selecionarFiltrados(e.target.checked)} aria-label="Selecionar todos os produtos filtrados" style={{ width: '17px', height: '17px', cursor: 'pointer', accentColor: '#f5a400' }} /> : i === 2 || i === 3 || i === 4 || i === 5 ? <button type="button" onClick={() => ordenarPor({ 2: 'nome', 3: 'preco', 4: 'precoPersonalizado', 5: 'categoria' }[i])} style={{ border: 0, background: 'transparent', color: '#d7d5d0', padding: 0, font: 'inherit', cursor: 'pointer' }}>{h} <span aria-hidden="true">{indicadorOrdenacao({ 2: 'nome', 3: 'preco', 4: 'precoPersonalizado', 5: 'categoria' }[i])}</span></button> : h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {produtosFiltrados.length === 0 ? (
                   <tr>
-                    <td colSpan="7" style={{ padding: '60px 20px', textAlign: 'center', color: '#999' }}>
+                    <td colSpan="7" style={{ padding: '60px 20px', textAlign: 'center', color: '#a7a39f' }}>
                       Nenhum produto encontrado.
                     </td>
                   </tr>
                 ) : produtosOrdenados.map(p => {
                   const preco = p.precoPersonalizado || calcularPrecoVendaPadrao(p.preco) || p.preco;
                   return (
-                    <tr key={p._id} style={{ borderTop: '1px solid #f0f0f0', transition: 'background 0.15s' }}
-                      onMouseOver={e => e.currentTarget.style.backgroundColor = '#fafafa'}
+                    <tr key={p._id} style={{ borderTop: '1px solid rgba(255,255,255,0.06)', transition: 'background 0.15s' }}
+                      onMouseOver={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.02)'}
                       onMouseOut={e => e.currentTarget.style.backgroundColor = 'transparent'}
                     >
-                      <td style={{ padding: '12px 16px' }}><input type="checkbox" checked={selecionados.includes(p._id)} onChange={() => alternarSelecao(p._id)} aria-label={`Selecionar ${p.nome}`} style={{ width: '17px', height: '17px', cursor: 'pointer' }} /></td>
+                      <td style={{ padding: '12px 16px' }}><input type="checkbox" checked={selecionados.includes(p._id)} onChange={() => alternarSelecao(p._id)} aria-label={`Selecionar ${p.nome}`} style={{ width: '17px', height: '17px', cursor: 'pointer', accentColor: '#f5a400' }} /></td>
                       <td style={{ padding: '12px 16px', verticalAlign: 'middle' }}>
                         <div style={{ width: '48px', height: '48px', borderRadius: '9px', overflow: 'hidden', backgroundColor: '#f7f7f7', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #f0f0f0' }}>
                           {p.imagem ? (
@@ -1005,27 +999,27 @@ Processador M4, 512GB SSD
                           )}
                         </div>
                       </td>
-                      <td style={{ padding: '12px 16px', fontWeight: 500 }}>{p.nome}</td>
+                      <td style={{ padding: '12px 16px', fontWeight: 700, color: '#f7f7f3' }}>{p.nome}</td>
                       <td style={{ padding: '12px 16px' }}>
-                        {precoEmEdicao?.id === p._id && precoEmEdicao.campo === 'preco' ? <input autoFocus type="number" min="0.01" step="0.01" value={valorPrecoEdicao} onChange={e => setValorPrecoEdicao(e.target.value)} onKeyDown={tratarTeclaPreco} onBlur={salvarPrecoInline} disabled={salvandoPreco} style={{ width: '110px', padding: '7px 8px', border: `1px solid ${AZUL}`, borderRadius: '7px' }} /> : <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span>R$ {Number(p.preco).toFixed(2).replace('.', ',')}</span><button type="button" onClick={() => iniciarEdicaoPreco(p, 'preco')} title="Editar preço de custo" aria-label="Editar preço de custo" style={{ border: 0, background: 'transparent', color: AZUL, cursor: 'pointer', padding: '3px' }}><PencilIcon style={{ width: '14px', height: '14px' }} /></button></div>}
+                        {precoEmEdicao?.id === p._id && precoEmEdicao.campo === 'preco' ? <input autoFocus type="number" min="0.01" step="0.01" value={valorPrecoEdicao} onChange={e => setValorPrecoEdicao(e.target.value)} onKeyDown={tratarTeclaPreco} onBlur={salvarPrecoInline} disabled={salvandoPreco} style={{ width: '110px', padding: '7px 8px', border: `1px solid #f5a400`, borderRadius: '7px', background: 'rgba(255,255,255,0.02)', color: '#f7f7f3' }} /> : <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><span style={{ color: '#d7d5d0' }}>R$ {Number(p.preco).toFixed(2).replace('.', ',')}</span><button type="button" onClick={() => iniciarEdicaoPreco(p, 'preco')} title="Editar preço de custo" aria-label="Editar preço de custo" style={{ border: 0, background: 'transparent', color: '#f5a400', cursor: 'pointer', padding: '3px' }}><PencilIcon style={{ width: '14px', height: '14px' }} /></button></div>}
                       </td>
                       <td style={{ padding: '12px 16px' }}>
-                        {precoEmEdicao?.id === p._id && precoEmEdicao.campo === 'precoPersonalizado' ? <input autoFocus type="number" min="0.01" step="0.01" value={valorPrecoEdicao} onChange={e => setValorPrecoEdicao(e.target.value)} onKeyDown={tratarTeclaPreco} onBlur={salvarPrecoInline} disabled={salvandoPreco} style={{ width: '110px', padding: '7px 8px', border: `1px solid ${VERDE}`, borderRadius: '7px' }} /> : <div><div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 700, fontSize: '15px', color: VERDE }}><span>R$ {Number(preco).toFixed(2).replace('.', ',')}</span><button type="button" onClick={() => iniciarEdicaoPreco(p, 'precoPersonalizado')} title="Editar preço de venda" aria-label="Editar preço de venda" style={{ border: 0, background: 'transparent', color: VERDE, cursor: 'pointer', padding: '3px' }}><PencilIcon style={{ width: '14px', height: '14px' }} /></button></div>{p.precoPersonalizado && <div style={{ fontSize: '12px', color: '#999' }}>Calculado/manual</div>}</div>}
+                        {precoEmEdicao?.id === p._id && precoEmEdicao.campo === 'precoPersonalizado' ? <input autoFocus type="number" min="0.01" step="0.01" value={valorPrecoEdicao} onChange={e => setValorPrecoEdicao(e.target.value)} onKeyDown={tratarTeclaPreco} onBlur={salvarPrecoInline} disabled={salvandoPreco} style={{ width: '110px', padding: '7px 8px', border: `1px solid #10b981`, borderRadius: '7px', background: 'rgba(255,255,255,0.02)', color: '#f7f7f3' }} /> : <div><div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 800, fontSize: '15px', color: '#f5a400' }}><span>R$ {Number(preco).toFixed(2).replace('.', ',')}</span><button type="button" onClick={() => iniciarEdicaoPreco(p, 'precoPersonalizado')} title="Editar preço de venda" aria-label="Editar preço de venda" style={{ border: 0, background: 'transparent', color: '#f5a400', cursor: 'pointer', padding: '3px' }}><PencilIcon style={{ width: '14px', height: '14px' }} /></button></div>{p.precoPersonalizado && <div style={{ fontSize: '12px', color: '#a7a39f' }}>Calculado/manual</div>}</div>}
                       </td>
-                      <td style={{ padding: '12px 16px', color: '#555' }}>{p.categoria || '-'}</td>
+                      <td style={{ padding: '12px 16px', color: '#c8c5c1' }}>{p.categoria || '-'}</td>
                       <td style={{ padding: '12px 16px', textAlign: 'right', verticalAlign: 'middle' }}>
                         <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px' }}>
                           <button onClick={() => editar(p)} style={{
                             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                            width: '34px', height: '34px', border: 'none', background: `${AZUL}10`,
-                            color: AZUL, borderRadius: '8px', cursor: 'pointer'
+                            width: '34px', height: '34px', border: 'none', background: 'rgba(245,164,0,0.12)',
+                            color: '#f5a400', borderRadius: '8px', cursor: 'pointer', border: '1px solid rgba(245,164,0,0.18)'
                           }} title="Editar">
                             <PencilIcon style={{ width: '14px', height: '14px' }} />
                           </button>
                           <button onClick={() => deletar(p._id)} style={{
                             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                            width: '34px', height: '34px', border: 'none', background: `${VERMELHO}10`,
-                            color: VERMELHO, borderRadius: '8px', cursor: 'pointer'
+                            width: '34px', height: '34px', border: 'none', background: 'rgba(239,68,68,0.12)',
+                            color: '#f87171', borderRadius: '8px', cursor: 'pointer', border: '1px solid rgba(239,68,68,0.18)'
                           }} title="Excluir">
                             <TrashIcon style={{ width: '14px', height: '14px' }} />
                           </button>

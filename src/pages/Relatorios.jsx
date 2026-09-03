@@ -55,13 +55,11 @@ export default function Relatorios() {
         <button
           onClick={exportar}
           style={{
-            backgroundColor: AZUL, color: 'white', border: 'none',
+            background: 'linear-gradient(135deg, #f5a400 0%, #e89d00 100%)', color: '#111111', border: 'none',
             borderRadius: '12px', padding: '10px 20px',
-            fontSize: '14px', fontWeight: 600, cursor: 'pointer',
-            transition: 'background 0.2s ease'
+            fontSize: '14px', fontWeight: 800, cursor: 'pointer',
+            transition: 'background 0.2s ease', boxShadow: '0 12px 22px rgba(245,164,0,0.18)'
           }}
-          onMouseOver={e => e.target.style.backgroundColor = '#2968D3'}
-          onMouseOut={e => e.target.style.backgroundColor = AZUL}
         >
           ⬇️ Exportar CSV
         </button>
@@ -77,16 +75,16 @@ export default function Relatorios() {
           <div
             key={i}
             style={{
-              backgroundColor: 'white', padding: '24px',
-              borderRadius: '16px', border: '1px solid #eee',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+              background: 'linear-gradient(180deg, #141414 0%, #101010 100%)', padding: '24px',
+              borderRadius: '18px', border: '1px solid rgba(255,255,255,0.06)',
+              boxShadow: '0 18px 40px rgba(0,0,0,0.18)',
               borderLeft: `4px solid ${s.cor}`
             }}
           >
-            <p style={{fontSize: '14px', color: '#666', margin: 0, fontWeight: 500}}>
+            <p style={{fontSize: '14px', color: '#c8c5c1', margin: 0, fontWeight: 600}}>
               {s.label}
             </p>
-            <p style={{fontSize: '32px', fontWeight: 700, color: PRETO, margin: '8px 0 0 0'}}>
+            <p style={{fontSize: '32px', fontWeight: 800, color: '#f7f7f3', margin: '8px 0 0 0'}}>
               {s.valor}
             </p>
           </div>
@@ -95,11 +93,11 @@ export default function Relatorios() {
 
       {/* TABELA DE PRODUTOS */}
       <div style={{
-        backgroundColor: 'white', borderRadius: '16px',
-        border: '1px solid #eee', boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+        background: 'linear-gradient(180deg, #141414 0%, #101010 100%)', borderRadius: '18px',
+        border: '1px solid rgba(255,255,255,0.06)', boxShadow: '0 18px 40px rgba(0,0,0,0.18)',
         padding: '24px'
       }}>
-        <h3 style={{fontSize: '18px', fontWeight: 700, color: '#333', margin: '0 0 20px 0', paddingBottom: '12px', borderBottom: '1px solid #eee'}}>
+        <h3 style={{fontSize: '18px', fontWeight: 800, color: '#f7f7f3', margin: '0 0 20px 0', paddingBottom: '12px', borderBottom: '1px solid rgba(255,255,255,0.06)'}}>
           Produtos Cadastrados
         </h3>
 
@@ -109,21 +107,21 @@ export default function Relatorios() {
           <div style={{overflowX: 'auto'}}>
             <table style={{width: '100%', borderCollapse: 'collapse'}}>
               <thead>
-                <tr style={{backgroundColor: CINZA}}>
-                  <th style={{padding: '12px 16px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#444', borderBottom: '1px solid #ddd'}}>Produto</th>
-                  <th style={{padding: '12px 16px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#444', borderBottom: '1px solid #ddd'}}>Preço</th>
-                  <th style={{padding: '12px 16px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#444', borderBottom: '1px solid #ddd'}}>Categoria</th>
-                  <th style={{padding: '12px 16px', textAlign: 'left', fontSize: '14px', fontWeight: 600, color: '#444', borderBottom: '1px solid #ddd'}}>Status</th>
+                <tr style={{backgroundColor: 'rgba(255,255,255,0.03)'}}>
+                  <th style={{padding: '12px 16px', textAlign: 'left', fontSize: '14px', fontWeight: 700, color: '#d7d5d0', borderBottom: '1px solid rgba(255,255,255,0.06)'}}>Produto</th>
+                  <th style={{padding: '12px 16px', textAlign: 'left', fontSize: '14px', fontWeight: 700, color: '#d7d5d0', borderBottom: '1px solid rgba(255,255,255,0.06)'}}>Preço</th>
+                  <th style={{padding: '12px 16px', textAlign: 'left', fontSize: '14px', fontWeight: 700, color: '#d7d5d0', borderBottom: '1px solid rgba(255,255,255,0.06)'}}>Categoria</th>
+                  <th style={{padding: '12px 16px', textAlign: 'left', fontSize: '14px', fontWeight: 700, color: '#d7d5d0', borderBottom: '1px solid rgba(255,255,255,0.06)'}}>Status</th>
                 </tr>
               </thead>
               <tbody>
                 {produtos.map(p => (
-                  <tr key={p._id} style={{borderBottom: '1px solid #f0f0f0'}}>
-                    <td style={{padding: '14px 16px', fontSize: '14px', fontWeight: 500}}>{p.nome}</td>
-                    <td style={{padding: '14px 16px', fontSize: '14px', fontWeight: 700, color: AZUL}}>
+                  <tr key={p._id} style={{borderBottom: '1px solid rgba(255,255,255,0.06)'}}>
+                    <td style={{padding: '14px 16px', fontSize: '14px', fontWeight: 600, color: '#f7f7f3'}}>{p.nome}</td>
+                    <td style={{padding: '14px 16px', fontSize: '14px', fontWeight: 800, color: '#f5a400'}}>
                       R$ {(p.precoExibicao || p.preco).toFixed(2).replace('.', ',')}
                     </td>
-                    <td style={{padding: '14px 16px', fontSize: '14px', color: '#555'}}>{p.categoria || '-'}</td>
+                    <td style={{padding: '14px 16px', fontSize: '14px', color: '#c8c5c1'}}>{p.categoria || '-'}</td>
                     <td style={{padding: '14px 16px'}}>
                       <span style={{
                         padding: '4px 12px', borderRadius: '12px', fontSize: '12px', fontWeight: 600,

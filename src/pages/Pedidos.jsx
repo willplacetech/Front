@@ -46,24 +46,24 @@ export default function Pedidos() {
 
       {/* 📋 TABELA — ESTRUTURA EXATA DA PÁGINA DE PRODUTOS */}
       {loading ? (
-        <div style={{padding: '60px', textAlign: 'center'}}>
-          <div style={{width: '40px', height: '40px', border: '3px solid #eee', borderTopColor: AZUL, borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto'}} />
-          <p style={{marginTop: '12px', color: '#666'}}>Carregando pedidos...</p>
+        <div style={{padding: '60px', textAlign: 'center', background: 'linear-gradient(180deg, #141414 0%, #101010 100%)', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.06)', color: '#f7f7f3'}}>
+          <div style={{width: '40px', height: '40px', border: '3px solid rgba(255,255,255,0.12)', borderTopColor: '#f5a400', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto'}} />
+          <p style={{marginTop: '12px', color: '#c8c5c1'}}>Carregando pedidos...</p>
         </div>
       ) : (
         <div style={{
-          backgroundColor: 'white', borderRadius: '16px',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.08)', overflow: 'hidden'
+          background: 'linear-gradient(180deg, #141414 0%, #101010 100%)', borderRadius: '18px',
+          boxShadow: '0 18px 40px rgba(0,0,0,0.22)', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.06)'
         }}>
           <div style={{overflowX: 'auto'}}>
             <table style={{width: '100%', borderCollapse: 'collapse'}}>
               <thead>
-                <tr style={{backgroundColor: CINZA}}>
+                <tr style={{background: 'rgba(255,255,255,0.03)'}}>
                   {/* 👇 CABEÇALHO IGUAL AO DE PRODUTOS */}
                   {['Cliente', 'Itens', 'Total', 'Data', 'Status', 'Ações'].map((h,i) => (
                     <th key={i} style={{
                       padding: '14px 16px', textAlign: i===5 ? 'right' : 'left',
-                      fontSize: '13px', fontWeight: 600, color: '#444', textTransform: 'uppercase'
+                      fontSize: '13px', fontWeight: 700, color: '#d7d5d0', textTransform: 'uppercase', letterSpacing: '0.06em'
                     }}>{h}</th>
                   ))}
                 </tr>
@@ -71,7 +71,7 @@ export default function Pedidos() {
               <tbody>
                 {pedidos.length === 0 ? (
                   <tr>
-                    <td colSpan="6" style={{padding: '60px 20px', textAlign: 'center', color: '#999'}}>
+                    <td colSpan="6" style={{padding: '60px 20px', textAlign: 'center', color: '#a7a39f'}}>
                       Nenhum pedido recebido ainda.
                     </td>
                   </tr>
@@ -84,18 +84,18 @@ export default function Pedidos() {
                   const corStatus = getCorStatus(p.status);
 
                   return (
-                    <tr key={p._id} style={{borderTop: '1px solid #f0f0f0', transition: 'background 0.15s'}}
-                      onMouseOver={e => e.currentTarget.style.backgroundColor = '#fafafa'}
+                    <tr key={p._id} style={{borderTop: '1px solid rgba(255,255,255,0.06)', transition: 'background 0.15s'}}
+                      onMouseOver={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.02)'}
                       onMouseOut={e => e.currentTarget.style.backgroundColor = 'transparent'}
                     >
                       {/* 🧑 CLIENTE — IGUAL AO ESTILO "Produto" da outra página */}
                       <td style={{padding: '12px 16px'}}>
-                        <div style={{fontWeight: 500, color: '#222'}}>{nome}</div>
-                        {telefone && <div style={{fontSize: '12px', color: '#888', marginTop: '2px'}}>{telefone}</div>}
+                        <div style={{fontWeight: 700, color: '#f7f7f3'}}>{nome}</div>
+                        {telefone && <div style={{fontSize: '12px', color: '#a7a39f', marginTop: '2px'}}>{telefone}</div>}
                       </td>
 
                       {/* 📦 ITENS */}
-                      <td style={{padding: '12px 16px', fontSize: '13px', color: '#555', maxWidth: '280px'}}>
+                      <td style={{padding: '12px 16px', fontSize: '13px', color: '#d1cfca', maxWidth: '280px'}}>
                         {p.itens?.length > 0 
                           ? p.itens.map(i => `${i.quantidade}x ${i.nome}`).join(', ')
                           : '-'}
@@ -103,13 +103,13 @@ export default function Pedidos() {
 
                       {/* 💰 TOTAL — IGUAL AO PREÇO DA PÁGINA DE PRODUTOS */}
                       <td style={{padding: '12px 16px'}}>
-                        <div style={{fontWeight: 700, fontSize: '15px', color: AZUL}}>
+                        <div style={{fontWeight: 800, fontSize: '15px', color: '#f5a400'}}>
                           R$ {Number(p.total).toFixed(2).replace('.', ',')}
                         </div>
                       </td>
 
                       {/* 📅 DATA */}
-                      <td style={{padding: '12px 16px', fontSize: '13px', color: '#666'}}>
+                      <td style={{padding: '12px 16px', fontSize: '13px', color: '#c8c5c1'}}>
                         {data ? new Date(data).toLocaleDateString('pt-BR') : '-'}
                       </td>
 

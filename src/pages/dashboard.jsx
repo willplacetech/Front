@@ -70,17 +70,17 @@ export default function Dashboard() {
         {cards.map((card, i) => {
           const Icone = card.icon;
           return (
-            <div key={i} className="card-admin" style={{ padding: '24px' }}>
+            <div key={i} className="card-admin" style={{ padding: '24px', background: 'linear-gradient(180deg, #141414 0%, #101010 100%)', border: '1px solid rgba(255,255,255,0.06)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: card.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Icone style={{ width: '22px', height: '22px', color: card.cor }} />
+                <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(245,164,0,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(245,164,0,0.2)' }}>
+                  <Icone style={{ width: '22px', height: '22px', color: '#f5a400' }} />
                 </div>
-                <span style={{ fontSize: '12px', color: '#9CA3AF', background: '#F9FAFB', padding: '4px 8px', borderRadius: '6px' }}>
+                <span style={{ fontSize: '12px', color: '#d7d5d0', background: 'rgba(255,255,255,0.04)', padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.04)' }}>
                   {card.desc}
                 </span>
               </div>
-              <div style={{ fontSize: '32px', fontWeight: 800, color: '#0F172A', lineHeight: 1 }}>{card.valor}</div>
-              <div style={{ fontSize: '13px', color: '#6B7280', marginTop: '6px', fontWeight: 500 }}>{card.label}</div>
+              <div style={{ fontSize: '32px', fontWeight: 800, color: '#f7f7f3', lineHeight: 1 }}>{card.valor}</div>
+              <div style={{ fontSize: '13px', color: '#b7b4b0', marginTop: '6px', fontWeight: 500 }}>{card.label}</div>
             </div>
           );
         })}
@@ -90,8 +90,8 @@ export default function Dashboard() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.6fr', gap: '20px' }}>
 
         {/* ATALHOS RÁPIDOS */}
-        <div className="card-admin" style={{ padding: '24px' }}>
-          <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', margin: '0 0 16px 0' }}>⚡ Acesso Rápido</h2>
+        <div className="card-admin" style={{ padding: '24px', background: 'linear-gradient(180deg, #141414 0%, #101010 100%)', border: '1px solid rgba(255,255,255,0.06)' }}>
+          <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#f7f7f3', margin: '0 0 16px 0' }}>⚡ Acesso Rápido</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {atalhos.map(item => {
               const Icone = item.icon;
@@ -99,20 +99,20 @@ export default function Dashboard() {
                 <Link key={item.to} to={item.to} style={{
                   display: 'flex', alignItems: 'center', gap: '14px',
                   padding: '12px 14px', borderRadius: '12px', textDecoration: 'none',
-                  color: '#0F172A', transition: 'all 0.15s',
-                  border: '1px solid transparent'
+                  color: '#f7f7f3', transition: 'all 0.15s',
+                  border: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.02)'
                 }}
-                  onMouseOver={e => { e.currentTarget.style.background = '#F8FAFC'; e.currentTarget.style.borderColor = '#E5E7EB'; }}
-                  onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent'; }}
+                  onMouseOver={e => { e.currentTarget.style.background = 'rgba(245,164,0,0.06)'; e.currentTarget.style.borderColor = 'rgba(245,164,0,0.25)'; }}
+                  onMouseOut={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'; }}
                 >
-                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: '#F0F2F5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <Icone style={{ width: '18px', height: '18px', color: AZUL }} />
+                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(245,164,0,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid rgba(245,164,0,0.2)' }}>
+                    <Icone style={{ width: '18px', height: '18px', color: '#f5a400' }} />
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: '14px', fontWeight: 600 }}>{item.texto}</div>
-                    <div style={{ fontSize: '12px', color: '#9CA3AF' }}>{item.desc}</div>
+                    <div style={{ fontSize: '12px', color: '#a7a39f' }}>{item.desc}</div>
                   </div>
-                  <span style={{ color: '#D1D5DB', fontSize: '18px' }}>›</span>
+                  <span style={{ color: '#f5a400', fontSize: '18px' }}>›</span>
                 </Link>
               );
             })}
@@ -120,11 +120,11 @@ export default function Dashboard() {
         </div>
 
         {/* ÚLTIMOS PEDIDOS */}
-        <div className="card-admin" style={{ padding: '24px' }}>
+        <div className="card-admin" style={{ padding: '24px', background: 'linear-gradient(180deg, #141414 0%, #101010 100%)', border: '1px solid rgba(255,255,255,0.06)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-            <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#0F172A', margin: 0 }}>📋 Últimos Pedidos</h2>
+            <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#f7f7f3', margin: 0 }}>📋 Últimos Pedidos</h2>
             <Link to="/loja/pedidos" style={{
-              fontSize: '13px', color: AZUL, fontWeight: 500, textDecoration: 'none',
+              fontSize: '13px', color: '#f5a400', fontWeight: 700, textDecoration: 'none',
               display: 'flex', alignItems: 'center', gap: '4px'
             }}>
               <EyeIcon style={{ width: '14px', height: '14px' }} /> Ver todos
@@ -142,8 +142,8 @@ export default function Dashboard() {
               <div style={{
                 display: 'grid', gridTemplateColumns: '1fr 80px 90px 100px',
                 padding: '8px 12px', borderRadius: '8px',
-                fontSize: '11px', fontWeight: 600, color: '#9CA3AF',
-                textTransform: 'uppercase', letterSpacing: '0.05em'
+                fontSize: '11px', fontWeight: 700, color: '#c8c5c1',
+                textTransform: 'uppercase', letterSpacing: '0.05em', background: 'rgba(255,255,255,0.02)'
               }}>
                 <span>Cliente</span>
                 <span>Data</span>
@@ -163,17 +163,17 @@ export default function Dashboard() {
                     onMouseOut={e => e.currentTarget.style.background = 'transparent'}
                   >
                     <div>
-                      <div style={{ fontSize: '14px', fontWeight: 600, color: '#0F172A' }}>
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: '#f7f7f3' }}>
                         {p.dadosCliente?.nome || 'Cliente'}
                       </div>
-                      <div style={{ fontSize: '12px', color: '#9CA3AF' }}>
+                      <div style={{ fontSize: '12px', color: '#a7a39f' }}>
                         {p.itens?.length || 0} {p.itens?.length === 1 ? 'item' : 'itens'}
                       </div>
                     </div>
-                    <div style={{ fontSize: '13px', color: '#6B7280' }}>
+                    <div style={{ fontSize: '13px', color: '#c8c5c1' }}>
                       {formatarData(p)}
                     </div>
-                    <div style={{ fontSize: '14px', fontWeight: 700, color: AZUL, textAlign: 'right' }}>
+                    <div style={{ fontSize: '14px', fontWeight: 800, color: '#f5a400', textAlign: 'right' }}>
                       R$ {Number(p.total).toFixed(2).replace('.', ',')}
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'center' }}>

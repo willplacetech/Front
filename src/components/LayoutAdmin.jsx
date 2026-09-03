@@ -24,8 +24,8 @@ export default function LayoutAdmin({ children, loading = false, titulo = '', su
   const isAtivo = (p) => caminhoAtual === p;
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#F0F2F5', fontFamily: "'Inter', sans-serif" }}>
-      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <div style={{ minHeight: '100vh', background: 'radial-gradient(circle at top, rgba(245,164,0,0.12), transparent 35%), linear-gradient(180deg, #0c0c0c 0%, #121212 100%)', fontFamily: "'Inter', sans-serif" }}>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
       <style>{`
         * { font-family: 'Inter', -apple-system, sans-serif; box-sizing: border-box; }
         svg { max-width: none !important; max-height: none !important; }
@@ -34,78 +34,88 @@ export default function LayoutAdmin({ children, loading = false, titulo = '', su
         .sidebar {
           width: 260px;
           min-height: 100vh;
-          background: linear-gradient(180deg, #0F172A 0%, #1E293B 100%);
+          background: linear-gradient(180deg, #111111 0%, #181818 100%);
           position: fixed;
           top: 0;
           left: 0;
           z-index: 100;
           display: flex;
           flex-direction: column;
-          border-right: 1px solid rgba(255,255,255,0.05);
+          border-right: 1px solid rgba(255,255,255,0.08);
+          box-shadow: 16px 0 40px rgba(0,0,0,0.28);
         }
         .sidebar-logo {
           padding: 24px 20px 20px;
           border-bottom: 1px solid rgba(255,255,255,0.08);
+          background: rgba(255,255,255,0.01);
         }
-        .sidebar-nav { flex: 1; padding: 16px 12px; display: flex; flex-direction: column; gap: 4px; }
+        .sidebar-nav { flex: 1; padding: 18px 12px; display: flex; flex-direction: column; gap: 6px; }
         .sidebar-footer { padding: 16px 12px; border-top: 1px solid rgba(255,255,255,0.08); }
 
         .nav-item {
           display: flex;
           align-items: center;
           gap: 12px;
-          padding: 11px 14px;
-          border-radius: 10px;
+          padding: 12px 14px;
+          border-radius: 12px;
           text-decoration: none;
-          color: rgba(255,255,255,0.6);
-          transition: all 0.15s ease;
+          color: rgba(255,255,255,0.72);
+          transition: all 0.2s ease;
           cursor: pointer;
-          border: none;
+          border: 1px solid transparent;
           background: transparent;
           width: 100%;
           text-align: left;
         }
-        .nav-item:hover { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.9); }
-        .nav-item.ativo {
-          background: linear-gradient(135deg, #F9D828 0%, #F0C800 100%);
-          color: #0F172A;
-          font-weight: 600;
-          box-shadow: 0 4px 12px rgba(249,216,40,0.3);
+        .nav-item:hover {
+          background: rgba(255,255,255,0.03);
+          color: rgba(255,255,255,0.95);
+          border-color: rgba(255,255,255,0.05);
         }
-        .nav-item.ativo .nav-desc { color: rgba(0,0,0,0.5); }
+        .nav-item.ativo {
+          background: linear-gradient(135deg, #f5a400 0%, #e89d00 100%);
+          color: #111111;
+          font-weight: 700;
+          box-shadow: 0 12px 24px rgba(245,164,0,0.18);
+        }
+        .nav-item.ativo .nav-desc { color: rgba(17,17,17,0.6); }
         .nav-icon-wrap { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .nav-label { font-size: 14px; font-weight: 500; line-height: 1.2; }
-        .nav-desc { font-size: 11px; opacity: 0.5; line-height: 1; margin-top: 2px; }
+        .nav-label { font-size: 14px; font-weight: 600; line-height: 1.2; }
+        .nav-desc { font-size: 11px; opacity: 0.6; line-height: 1; margin-top: 2px; }
 
         /* CONTEÚDO */
-        .main-content { margin-left: 260px; min-height: 100vh; }
+        .main-content { margin-left: 260px; min-height: 100vh; background: rgba(255,255,255,0.01); }
 
         /* TOPBAR */
         .topbar {
-          background: white;
-          border-bottom: 1px solid #E5E7EB;
+          background: rgba(15,15,15,0.9);
+          border-bottom: 1px solid rgba(255,255,255,0.07);
           padding: 0 32px;
-          height: 64px;
+          height: 72px;
           display: flex;
           align-items: center;
           justify-content: space-between;
           position: sticky;
           top: 0;
           z-index: 50;
-          backdrop-filter: blur(8px);
+          backdrop-filter: blur(10px);
+          box-shadow: 0 12px 30px rgba(0,0,0,0.18);
         }
-        .topbar-title { font-size: 18px; font-weight: 700; color: #0F172A; }
-        .topbar-sub { font-size: 13px; color: #6B7280; margin-top: 1px; }
+        .topbar-title { font-size: 18px; font-weight: 800; color: #f7f7f3; letter-spacing: -0.03em; }
+        .topbar-sub { font-size: 13px; color: rgba(255,255,255,0.65); margin-top: 1px; }
 
         /* CARDS */
         .card-admin {
-          background: white;
-          border-radius: 16px;
-          border: none;
-          box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04);
-          transition: box-shadow 0.2s;
+          background: rgba(255,255,255,0.98);
+          border-radius: 18px;
+          border: 1px solid rgba(255,255,255,0.08);
+          box-shadow: 0 18px 40px rgba(0,0,0,0.14);
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
-        .card-admin:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.04); }
+        .card-admin:hover {
+          transform: translateY(-1px);
+          box-shadow: 0 18px 40px rgba(245,164,0,0.06), 0 2px 8px rgba(0,0,0,0.12);
+        }
 
         /* MOBILE */
         @media (max-width: 768px) {
@@ -122,13 +132,13 @@ export default function LayoutAdmin({ children, loading = false, titulo = '', su
         .mobile-sidebar-overlay {
           position: absolute;
           inset: 0;
-          background: rgba(0,0,0,0.6);
-          backdrop-filter: blur(2px);
+          background: rgba(0,0,0,0.7);
+          backdrop-filter: blur(3px);
         }
         .mobile-sidebar-panel {
           position: relative;
           width: 280px;
-          background: linear-gradient(180deg, #0F172A 0%, #1E293B 100%);
+          background: linear-gradient(180deg, #111111 0%, #181818 100%);
           display: flex;
           flex-direction: column;
           z-index: 1;
@@ -153,14 +163,15 @@ export default function LayoutAdmin({ children, loading = false, titulo = '', su
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div style={{
                 width: '36px', height: '36px',
-                background: 'linear-gradient(135deg, #F9D828, #F0C800)',
-                borderRadius: '10px',
+                background: 'linear-gradient(135deg, #f5a400, #e89d00)',
+                borderRadius: '12px',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontWeight: 900, fontSize: '16px', color: '#0F172A'
+                fontWeight: 900, fontSize: '16px', color: '#111111',
+                boxShadow: '0 12px 24px rgba(245,164,0,0.22)'
               }}>P</div>
               <div>
-                <div style={{ fontSize: '15px', fontWeight: 700, color: 'white', lineHeight: 1.2 }}>Placetech</div>
-                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', lineHeight: 1 }}>Painel Admin</div>
+                <div style={{ fontSize: '15px', fontWeight: 800, color: '#f7f7f3', lineHeight: 1.2 }}>Placetech</div>
+                <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', lineHeight: 1 }}>Painel Admin</div>
               </div>
             </div>
           </Link>
@@ -244,9 +255,9 @@ export default function LayoutAdmin({ children, loading = false, titulo = '', su
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <a href="/" target="_blank" style={{
               display: 'flex', alignItems: 'center', gap: '6px',
-              padding: '8px 16px', background: '#F9D828', color: '#0F172A',
-              borderRadius: '8px', fontWeight: 600, fontSize: '13px', textDecoration: 'none',
-              transition: 'all 0.15s'
+              padding: '9px 16px', background: 'linear-gradient(135deg, #f5a400 0%, #e89d00 100%)', color: '#111111',
+              borderRadius: '10px', fontWeight: 800, fontSize: '13px', textDecoration: 'none',
+              transition: 'all 0.15s', boxShadow: '0 12px 22px rgba(245,164,0,0.17)'
             }}>
               <ArrowTopRightOnSquareIcon style={{ width: '15px', height: '15px' }} />
               Ver Loja

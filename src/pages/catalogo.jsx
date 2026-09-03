@@ -112,295 +112,833 @@ export default function Catalogo() {
   };
 
   return (
-    <div style={{backgroundColor: FUNDO, minHeight: '100vh'}}>
-      {/* ✅ Bootstrap MANTIDO */}
+    <div style={{ background: '#080808', minHeight: '100vh', color: '#f7f7f3' }}>
       <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');
-        * { font-family: 'Roboto', -apple-system, sans-serif; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
-        /* ✅ CORRIGE ÍCONES SVG que estavam minúsculos */
+        :root {
+          --bg: #080808;
+          --bg-soft: #0f0f0f;
+          --panel: #101010;
+          --panel-strong: #171717;
+          --line: rgba(255,255,255,0.08);
+          --muted: #a4a39d;
+          --text: #f7f7f3;
+          --gold: #f5a400;
+          --gold-soft: #ffca56;
+          --shadow: rgba(0,0,0,0.38);
+        }
+
+        * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        html { scroll-behavior: smooth; }
+        body { margin: 0; background: var(--bg); }
+        a { color: inherit; text-decoration: none; }
+        button, input { font: inherit; }
         svg { max-width: none !important; max-height: none !important; }
 
-        /* HEADER */
-        .header-placetech { background-color: ${AMARELO}; }
-
-        /* CARD PRODUTO */
-        .card-produto { 
-          border: none; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-          transition: transform 0.2s ease, box-shadow 0.2s ease; overflow: hidden;
-          min-height: 100%;
+        .header-placetech {
+          position: sticky;
+          top: 0;
+          z-index: 20;
+          background: rgba(8,8,8,0.82);
+          backdrop-filter: blur(18px);
+          border-bottom: 1px solid var(--line);
         }
-        .card-produto:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.12); }
-        .imagem-produto-card {
-          display: flex; align-items: center; justify-content: center;
-          background: linear-gradient(180deg, #ffffff 0%, #f6f6f6 100%);
-          border-bottom: 1px solid #f0f0f0;
-          min-height: 220px;
-          height: 220px;
-          padding: 16px;
+
+        .wrap, .catalog-wrap, .foot {
+          width: min(1200px, calc(100% - 40px));
+          margin: 0 auto;
+        }
+
+        .header-inner {
+          height: 82px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 20px;
+        }
+
+        .brand {
+          display: inline-flex;
+          align-items: center;
+          gap: 12px;
+          font-weight: 900;
+          letter-spacing: -0.7px;
+          font-size: 20px;
+        }
+
+        .mark {
+          width: 34px;
+          height: 34px;
+          border: 8px solid var(--gold);
+          border-radius: 50% 50% 50% 12px;
+          transform: rotate(-45deg);
+          position: relative;
+          display: inline-block;
+        }
+
+        .mark:after {
+          content: '';
+          position: absolute;
+          inset: 5px;
+          border-radius: 50%;
+          background: var(--bg);
+        }
+
+        .brand em { font-style: normal; color: var(--gold); }
+
+        .navlinks {
+          display: flex;
+          align-items: center;
+          gap: 18px;
+          color: #d9d8d4;
+          font-size: 14px;
+        }
+
+        .navlinks a {
+          opacity: 0.86;
+          transition: opacity 0.2s ease;
+        }
+
+        .navlinks a:hover { opacity: 1; }
+
+        .navcta, .primary, .secondary {
+          border-radius: 999px;
+          font-weight: 800;
+          transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+        }
+
+        .navcta, .primary {
+          background: linear-gradient(180deg, var(--gold) 0%, #e89d00 100%);
+          color: #111;
+          box-shadow: 0 10px 25px rgba(245,164,0,0.25);
+          border: 0;
+          cursor: pointer;
+        }
+
+        .navcta {
+          padding: 12px 18px;
+          white-space: nowrap;
+        }
+
+        .primary {
+          padding: 14px 22px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 200px;
+        }
+
+        .navcta:hover, .primary:hover, .secondary:hover {
+          transform: translateY(-2px);
+          filter: brightness(1.02);
+        }
+
+        .hero {
+          position: relative;
+          min-height: 640px;
+          display: flex;
+          align-items: center;
+          background: linear-gradient(90deg, rgba(6,6,6,0.97) 0%, rgba(6,6,6,0.92) 35%, rgba(6,6,6,0.20) 68%), url('https://catalogo-placetech.diego-placetech.chatgpt.site/assets/hero-smartphones.png') center/cover no-repeat;
+          border-bottom: 1px solid var(--line);
           overflow: hidden;
         }
-        .imagem-produto-card img {
+
+        .hero:before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(circle at top right, rgba(245,164,0,0.18), transparent 28%);
+          pointer-events: none;
+        }
+
+        .hero-inner {
+          position: relative;
+          z-index: 1;
+          max-width: 640px;
+          padding: 90px 0;
+        }
+
+        .hero-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          padding: 9px 14px;
+          border: 1px solid rgba(245,164,0,0.25);
+          border-radius: 999px;
+          background: rgba(245,164,0,0.08);
+          color: var(--gold-soft);
+          text-transform: uppercase;
+          font-size: 11px;
+          letter-spacing: 2px;
+          font-weight: 800;
+        }
+
+        .hero-badge:before {
+          content: '';
+          width: 20px;
+          height: 2px;
+          background: var(--gold);
+          border-radius: 999px;
+        }
+
+        .hero h1 {
+          font-size: clamp(46px, 6vw, 82px);
+          line-height: 0.94;
+          letter-spacing: -4px;
+          margin: 24px 0 22px;
+          color: var(--text);
+        }
+
+        .hero p {
+          font-size: 18px;
+          line-height: 1.6;
+          color: #d1d0cb;
+          max-width: 560px;
+          margin: 0;
+        }
+
+        .actions {
+          display: flex;
+          gap: 14px;
+          margin-top: 32px;
+          flex-wrap: wrap;
+        }
+
+        .secondary {
+          background: rgba(255,255,255,0.02);
+          border: 1px solid rgba(255,255,255,0.18);
+          color: var(--text);
+          padding: 13px 22px;
+          cursor: pointer;
+        }
+
+        .trust {
+          display: flex;
+          gap: 24px;
+          margin-top: 42px;
+          flex-wrap: wrap;
+          color: #bdb9b0;
+          font-size: 13px;
+        }
+
+        .trust span {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .trust i {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: var(--gold);
+          box-shadow: 0 0 16px rgba(245,164,0,0.8);
+          display: inline-block;
+        }
+
+        .hero-stats {
+          display: flex;
+          gap: 14px;
+          flex-wrap: wrap;
+          margin-top: 30px;
+        }
+
+        .hero-stat {
+          min-width: 150px;
+          padding: 14px 16px;
+          border-radius: 16px;
+          background: rgba(255,255,255,0.02);
+          border: 1px solid rgba(255,255,255,0.08);
+          backdrop-filter: blur(8px);
+        }
+
+        .hero-stat strong {
+          display: block;
+          color: var(--gold-soft);
+          font-size: 22px;
+          line-height: 1.1;
+          letter-spacing: -1px;
+        }
+
+        .hero-stat span {
+          display: block;
+          margin-top: 4px;
+          color: #d0cdc6;
+          font-size: 12px;
+          letter-spacing: 0.6px;
+          text-transform: uppercase;
+        }
+
+        section { padding: 92px 0; }
+
+        .section-head {
+          display: flex;
+          align-items: end;
+          justify-content: space-between;
+          gap: 20px;
+          margin-bottom: 30px;
+        }
+
+        .section-head h2 {
+          margin: 12px 0 0;
+          font-size: clamp(32px, 5vw, 56px);
+          line-height: 1.05;
+          letter-spacing: -2.5px;
+          color: var(--text);
+        }
+
+        .section-head p {
+          max-width: 500px;
+          margin: 0;
+          color: var(--muted);
+          line-height: 1.6;
+        }
+
+        .controls {
+          display: flex;
+          gap: 12px;
+          flex-wrap: wrap;
+          margin-bottom: 26px;
+        }
+
+        .search {
+          flex: 1;
+          min-width: 240px;
+          padding: 16px 20px;
+          border-radius: 16px;
+          border: 1px solid var(--line);
+          background: rgba(255,255,255,0.02);
+          color: var(--text);
+          outline: none;
+          transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .search::placeholder { color: #8a8a84; }
+        .search:focus {
+          border-color: rgba(245,164,0,0.8);
+          box-shadow: 0 0 0 4px rgba(245,164,0,0.12);
+        }
+
+        .filters {
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+
+        .filter {
+          padding: 12px 18px;
+          border-radius: 999px;
+          background: rgba(255,255,255,0.02);
+          border: 1px solid var(--line);
+          color: #d9d8d4;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+
+        .filter.active {
+          background: linear-gradient(180deg, var(--gold) 0%, #e89d00 100%);
+          border-color: var(--gold);
+          color: #111;
+          font-weight: 800;
+          box-shadow: 0 10px 24px rgba(245,164,0,0.22);
+        }
+
+        .grid {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 20px;
+        }
+
+        .card {
+          position: relative;
+          overflow: hidden;
+          border-radius: 26px;
+          border: 1px solid var(--line);
+          background: linear-gradient(180deg, rgba(23,23,23,0.94), rgba(13,13,13,0.94));
+          padding: 24px;
+          min-height: 390px;
+          display: flex;
+          flex-direction: column;
+          box-shadow: 0 20px 50px rgba(0,0,0,0.24);
+          transition: transform 0.24s ease, border-color 0.24s ease, box-shadow 0.24s ease;
+        }
+
+        .card:hover {
+          transform: translateY(-5px);
+          border-color: rgba(245,164,0,0.5);
+          box-shadow: 0 20px 70px rgba(0,0,0,0.35);
+        }
+
+        .card:before {
+          content: '';
+          position: absolute;
+          width: 180px;
+          height: 180px;
+          right: -60px;
+          top: -60px;
+          border-radius: 50%;
+          background: radial-gradient(circle, rgba(245,164,0,0.14), transparent 68%);
+        }
+
+        .badge {
+          position: relative;
+          z-index: 1;
+          display: inline-flex;
+          align-self: flex-start;
+          padding: 7px 10px;
+          border-radius: 9px;
+          border: 1px solid rgba(245,164,0,0.22);
+          background: rgba(245,164,0,0.08);
+          color: var(--gold-soft);
+          font-size: 10px;
+          font-weight: 800;
+          letter-spacing: 1.2px;
+          text-transform: uppercase;
+        }
+
+        .img-wrap {
+          position: relative;
+          z-index: 1;
+          width: 100%;
+          height: 190px;
+          margin-top: 18px;
+          border-radius: 18px;
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.05);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          overflow: hidden;
+        }
+
+        .img-wrap img {
           width: 100%;
           height: 100%;
           object-fit: contain;
           display: block;
+          padding: 12px;
         }
 
-        /* BOTÃO PADRÃO */
-        .btn-placetech { 
-          background-color: ${AZUL}; color: white; border-radius: 8px;
-          font-weight: 500; padding: 10px; width: 100%; border: none;
+        .card h3 {
+          position: relative;
+          z-index: 1;
+          margin: 18px 0 8px;
+          font-size: 26px;
+          letter-spacing: -1px;
+          line-height: 1.12;
+          color: var(--text);
         }
-        .btn-placetech:hover { background-color: #2968D3; color: white; }
 
-        /* CATEGORIAS */
-        .cat-btn { 
-          border-radius: 20px; padding: 6px 16px; border: 1px solid #ddd;
-          background: white; font-size: 14px; transition: all 0.2s;
+        .price-box {
+          position: relative;
+          z-index: 1;
+          display: flex;
+          align-items: end;
+          justify-content: space-between;
+          gap: 10px;
+          margin-top: 12px;
         }
-        .cat-btn.ativo { background-color: ${PRETO}; color: white; border-color: ${PRETO}; }
-        .cat-btn:hover:not(.ativo) { border-color: ${AZUL}; color: ${AZUL}; }
 
-        /* PREÇO */
-        .preco-principal { font-size: 28px; font-weight: 700; line-height: 1; }
-        .preco-de { font-size: 14px; color: #999; text-decoration: line-through; }
-        .parcelamento { font-size: 13px; color: ${VERDE}; }
-        .frete-texto { font-size: 13px; color: ${VERDE}; font-weight: 500; }
+        .price-box strong {
+          display: block;
+          font-size: 18px;
+          letter-spacing: -0.8px;
+          color: var(--text);
+        }
+
+        .price-box .valor {
+          font-size: 28px;
+          letter-spacing: -1.5px;
+          font-weight: 800;
+          color: var(--gold-soft);
+        }
+
+        .price-box .parcelas {
+          color: #b9b7b2;
+          font-size: 12px;
+        }
+
+        .family {
+          position: relative;
+          z-index: 1;
+          color: var(--muted);
+          font-size: 13px;
+        }
+
+        .specs {
+          position: relative;
+          z-index: 1;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin: 18px 0 20px;
+        }
+
+        .specs span {
+          padding: 7px 9px;
+          border-radius: 8px;
+          background: rgba(255,255,255,0.02);
+          border: 1px solid rgba(255,255,255,0.08);
+          color: #d8d5cf;
+          font-size: 11px;
+        }
+
+        .card-foot {
+          position: relative;
+          z-index: 1;
+          margin-top: auto;
+          padding-top: 18px;
+          border-top: 1px solid rgba(255,255,255,0.08);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+        }
+
+        .availability {
+          display: block;
+          font-size: 12px;
+          color: #b0adab;
+          line-height: 1.4;
+        }
+
+        .availability b {
+          display: block;
+          font-size: 13px;
+          color: var(--text);
+        }
+
+        .ask {
+          padding: 10px 14px;
+          border-radius: 10px;
+          border: 1px solid rgba(245,164,0,0.3);
+          background: rgba(245,164,0,0.06);
+          color: var(--gold-soft);
+          font-weight: 800;
+          cursor: pointer;
+        }
+
+        .empty {
+          text-align: center;
+          padding: 70px 20px;
+          border: 1px dashed rgba(255,255,255,0.12);
+          border-radius: 22px;
+          color: var(--muted);
+          margin-top: 18px;
+          display: none;
+        }
+
+        .why {
+          background: #0d0d0d;
+          border-top: 1px solid var(--line);
+          border-bottom: 1px solid var(--line);
+        }
+
+        .benefits {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 16px;
+        }
+
+        .benefit {
+          padding: 26px 22px;
+          border-left: 2px solid var(--gold);
+          background: rgba(255,255,255,0.02);
+        }
+
+        .benefit b {
+          display: block;
+          margin-bottom: 8px;
+          font-size: 18px;
+          color: var(--text);
+        }
+
+        .benefit span {
+          color: var(--muted);
+          line-height: 1.6;
+          font-size: 14px;
+        }
+
+        .cta-panel {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 30px;
+          padding: 52px 56px;
+          border-radius: 34px;
+          background: linear-gradient(115deg, #f0a000 0%, #ffc44a 100%);
+          color: #111;
+          box-shadow: 0 18px 48px rgba(240,160,0,0.18);
+        }
+
+        .cta-panel h2 {
+          margin: 0 0 12px;
+          font-size: clamp(30px, 5vw, 52px);
+          letter-spacing: -2px;
+          line-height: 1;
+        }
+
+        .cta-panel p {
+          max-width: 620px;
+          margin: 0;
+          color: rgba(17,17,17,0.76);
+          line-height: 1.6;
+        }
+
+        .cta-panel .secondary {
+          background: rgba(17,17,17,0.04);
+          border: 1px solid rgba(17,17,17,0.7);
+          color: #111;
+          padding: 14px 24px;
+          white-space: nowrap;
+        }
+
+        footer {
+          padding: 44px 0 48px;
+          background: #0b0b0b;
+          border-top: 1px solid var(--line);
+        }
+
+        .foot {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 24px;
+        }
+
+        .foot small {
+          display: block;
+          margin-top: 10px;
+          color: #9d9b96;
+        }
+
+        .contact {
+          text-align: right;
+          color: #b3b0aa;
+          font-size: 13px;
+          line-height: 1.8;
+        }
+
+        @media (max-width: 900px) {
+          .navlinks a:not(.navcta) { display: none; }
+          .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+          .benefits { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+          .section-head, .cta-panel, .foot { flex-direction: column; align-items: flex-start; }
+          .contact { text-align: left; }
+        }
+
+        @media (max-width: 620px) {
+          .wrap, .catalog-wrap, .foot { width: min(100% - 28px, 1200px); }
+          .header-inner { height: 72px; }
+          .brand { font-size: 18px; }
+          .mark { width: 28px; height: 28px; border-width: 7px; }
+          .navcta { padding: 10px 16px; font-size: 12px; }
+          .hero { min-height: 620px; background: linear-gradient(180deg, rgba(5,5,5,.38), rgba(5,5,5,.96) 56%), url('https://catalogo-placetech.diego-placetech.chatgpt.site/assets/hero-smartphones.png') 70% top/auto 58% no-repeat; }
+          .hero-inner { padding-top: 250px; }
+          .actions { flex-direction: column; align-items: stretch; }
+          .primary, .secondary { width: 100%; }
+          .grid { grid-template-columns: 1fr; }
+          .benefits { grid-template-columns: 1fr; }
+          .filters { overflow: auto; }
+          .filter { flex: 0 0 auto; }
+          .section-head { margin-bottom: 18px; }
+        }
       `}</style>
 
-      {/* ========================================== */}
-      {/* 🔝 HEADER — BEM ALINHADO */}
-      {/* ========================================== */}
-      <header className="header-placetech sticky-top shadow-sm">
-        <div className="container py-3">
-          <div className="row align-items-center g-3">
-            
-            {/* LOGO */}
-            <div className="col-auto">
-              <a href="/LogoEscrthinny.jpg" className="text-decoration-none">
-                <img src="/LogoEscrthinny.jpg" alt="Placetech" style={{height: '50px'}} />
-              </a>
-            </div>
+      <header className="header-placetech">
+        <div className="wrap header-inner">
+          <a className="brand" href="#">
+            <span className="mark" />
+            <span><em>place</em>tech</span>
+          </a>
 
-            {/* BUSCA — CENTRALIZADA E BEM POSICIONADA */}
-            <div className="col-md col-12">
-              <form onSubmit={executarBusca} className="position-relative">
-                <MagnifyingGlassIcon style={{
-                  position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)',
-                  width: '18px', height: '18px', color: '#888', zIndex: 10
-                }} />
-                <input
-                  type="text"
-                  value={busca}
-                  onChange={e => atualizarBusca(e.target.value)}
-                  placeholder="Buscar produtos..."
-                  className="form-control rounded-pill border-0 shadow-sm"
-                  style={{height: '44px', paddingLeft: '44px', fontSize: '15px'}}
-                />
-              </form>
-            </div>
-
-            {/* AÇÕES */}
-            <div className="col-auto d-none d-md-flex align-items-center gap-3">
-              <span className="d-flex align-items-center gap-1 small">
-                <MapPinIcon style={{width: '16px', height: '16px'}} />
-                <span className="fw-medium">Lindoia - SP</span>
-              </span>
-              
-              <button 
-                onClick={() => setCarrinhoAberto(true)}
-                className="btn position-relative p-1"
-              >
-                <ShoppingCartIcon style={{width: '24px', height: '24px'}} />
-                {totalItens > 0 && (
-                  <span className="badge bg-dark rounded-pill position-absolute top-0 start-100 translate-middle" style={{fontSize: '10px', padding: '2px 6px'}}>
-                    {totalItens}
-                  </span>
-                )}
-              </button>
-            </div>
-
-            {/* MENU MOBILE */}
-            <div className="col-auto d-md-none">
-              <button onClick={() => setMenuAberto(!menuAberto)} className="btn p-0">
-                {menuAberto ? <XMarkIcon style={{width: '24px', height: '24px'}} /> : <Bars3Icon style={{width: '24px', height: '24px'}} />}
-              </button>
-            </div>
+          <div className="navlinks">
+            <a href="#catalogo">Catálogo</a>
+            <a href="#vantagens">Por que a Placetech</a>
+            <button className="navcta" onClick={() => setCarrinhoAberto(true)}>
+              {totalItens > 0 ? `Meu carrinho (${totalItens})` : 'Meu carrinho'}
+            </button>
           </div>
-
-          {menuAberto && (
-            <div className="d-md-none pt-3 border-top mt-2">
-              <div className="d-flex flex-column gap-2">
-                <span className="d-flex align-items-center gap-2 small">
-                  <MapPinIcon style={{width: '16px', height: '16px'}} /> Lindoia - SP
-                </span>
-                <a href="/loja" className="text-dark text-decoration-none small fw-medium">Área Administrativa</a>
-                <button 
-                  onClick={() => { setCarrinhoAberto(true); setMenuAberto(false); }}
-                  className="btn btn-dark btn-sm"
-                >
-                  🛒 Meu Carrinho ({totalItens})
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       </header>
 
-      {/* ========================================== */}
-      {/* 📂 CATEGORIAS */}
-      {/* ========================================== */}
-      <section className="bg-white border-bottom py-2">
-        <div className="container">
-          <div className="d-flex gap-2 flex-wrap">
-            <button 
-              onClick={limparFiltros}
-              className={`cat-btn ${categoria === 'todas' ? 'ativo' : ''}`}
-            >
-              Todos os Produtos
-            </button>
-            {categorias.slice(0, 8).map(cat => (
-              <button
-                key={cat}
-                onClick={() => { setCategoria(cat); setBuscaAtiva(''); }}
-                className={`cat-btn ${categoria === cat ? 'ativo' : ''}`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
+      <main>
+        <section className="hero">
+          <div className="wrap">
+            <div className="hero-inner">
+              <span className="hero-badge">Seleção premium</span>
+              <h1>Tecnologia à altura das suas escolhas.</h1>
+              <p>iPhones e Xiaomi selecionados para quem exige desempenho, procedência e atendimento de verdade.</p>
 
-      {/* ========================================== */}
-      {/* 📢 BANNER */}
-      {/* ========================================== */}
-      <section className="bg-dark text-white py-4 my-4">
-        <div className="container">
-          <div className="row align-items-center">
-            <div className="col-md-8">
-              <h2 className="h5 fw-bold mb-1">As melhores ofertas da região!</h2>
-              <p className="opacity-75 mb-0 small">Produtos com qualidade e variedade em Lindoia e região</p>
-            </div>
-            <div className="col-md-4 text-md-end mt-2">
-              <span className="badge px-3 py-2" style={{backgroundColor: AMARELO, color: PRETO, fontSize: '14px', fontWeight: 600}}>
-                🔥 Destaques do mês
-              </span>
+              <div className="actions">
+                <a className="primary" href="#catalogo">Explorar aparelhos</a>
+                <button className="secondary" onClick={() => setCarrinhoAberto(true)}>Ver carrinho</button>
+              </div>
+
+              <div className="trust">
+                <span><i></i>Atendimento especializado</span>
+                <span><i></i>Envio nacional</span>
+                <span><i></i>Garantia e suporte</span>
+              </div>
+
+              <div className="hero-stats">
+                <div className="hero-stat">
+                  <strong>+1.500</strong>
+                  <span>aparelhos vendidos</span>
+                </div>
+                <div className="hero-stat">
+                  <strong>4.9/5</strong>
+                  <span>avaliação média</span>
+                </div>
+                <div className="hero-stat">
+                  <strong>24h</strong>
+                  <span>atendimento rápido</span>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* ========================================== */}
-      {/* 📦 PRODUTOS */}
-      {/* ========================================== */}
-      <main className="container pb-5">
-        <div className="d-flex justify-content-between align-items-center mb-4">
-          <h5 className="fw-bold mb-0">
-            {buscaAtiva ? `Resultados para: "${buscaAtiva}"` : 
-             categoria !== 'todas' ? categoria : 'Produtos em Destaque'}
-            <span className="text-muted fw-normal ms-2">({filtrados.length} itens)</span>
-          </h5>
-          {(buscaAtiva || categoria !== 'todas') && (
-            <button onClick={limparFiltros} className="btn btn-sm btn-outline-secondary">Limpar filtros</button>
-          )}
-        </div>
+        <section id="catalogo">
+          <div className="catalog-wrap">
+            <div className="section-head">
+              <div>
+                <span className="hero-badge">Catálogo 2026</span>
+                <h2>Encontre o seu próximo smartphone.</h2>
+              </div>
+              <p>Modelos organizados a partir das linhas atuais comercializadas no Brasil e no Paraguai. Consulte disponibilidade, memória, cor e valor atualizado.</p>
+            </div>
 
-        {loading ? (
-          <div className="text-center py-5">
-            <div className="spinner-border" style={{color: AZUL}} />
-            <p className="mt-3 text-muted">Carregando produtos...</p>
-          </div>
-        ) : filtrados.length === 0 ? (
-          <div className="text-center py-5 bg-white rounded-3 shadow-sm">
-            <p className="fs-2 mb-2">🔍</p>
-            <h5 className="fw-bold">Nenhum produto encontrado</h5>
-            <p className="text-muted">Tente buscar por outro termo ou categoria</p>
-            <button onClick={limparFiltros} className="btn btn-placetech mt-2">Ver todos os produtos</button>
-          </div>
-        ) : (
-          <div className="row g-4">
-            {filtrados.map(prod => {
-              const precoExib = prod.precoPersonalizado || precoVendaPadrao(prod.preco);
-              const temDesconto = prod.precoPersonalizado && prod.precoPersonalizado < prod.preco;
-              const parcela = (precoExib / 10).toFixed(2);
+            <div className="controls">
+              <input
+                className="search"
+                value={busca}
+                onChange={(e) => atualizarBusca(e.target.value)}
+                aria-label="Buscar aparelho"
+                placeholder="Buscar por modelo, linha ou memória..."
+              />
 
-              return (
-                <div className="col-12 col-sm-6 col-md-4 col-lg-3" key={prod._id}>
-                  <div className="card card-produto h-100">
-                    {/* IMAGEM */}
-                    <div className="imagem-produto-card">
+              <div className="filters">
+                <button
+                  type="button"
+                  className={`filter ${categoria === 'todas' ? 'active' : ''}`}
+                  onClick={limparFiltros}
+                >
+                  Todos
+                </button>
+                {categorias.slice(0, 4).map((cat) => (
+                  <button
+                    key={cat}
+                    type="button"
+                    className={`filter ${categoria === cat ? 'active' : ''}`}
+                    onClick={() => { setCategoria(cat); setBuscaAtiva(''); }}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="grid">
+              {filtrados.length > 0 ? filtrados.map((prod) => {
+                const precoExib = prod.precoPersonalizado || precoVendaPadrao(prod.preco);
+                const temDesconto = prod.precoPersonalizado && prod.precoPersonalizado < prod.preco;
+                const badge = prod.categoria || 'Destaque';
+                const specs = [
+                  prod.memoria || 'Memória',
+                  prod.condicao || 'Disponível',
+                  prod.cor || 'Cores'
+                ].filter(Boolean);
+
+                return (
+                  <article className="card" key={prod._id || prod.nome}>
+                    <span className="badge">{badge}</span>
+                    <div className="img-wrap">
                       {renderImagemProduto(prod.imagem, prod.nome, prod.categoria, { height: '180px', width: '100%' })}
                     </div>
+                    <h3>{prod.nome}</h3>
+                    <span className="family">{prod.descricao || 'Produto selecionado com garantia e suporte'}</span>
+                    <div className="specs">
+                      {specs.slice(0, 3).map((item, idx) => (
+                        <span key={`${prod._id || prod.nome}-${idx}`}>{item}</span>
+                      ))}
+                    </div>
+                    <div className="price-box">
+                      <div>
+                        <strong>Preço</strong>
+                        <div className="valor">R$ {Number(precoExib).toFixed(2).replace('.', ',')}</div>
+                      </div>
+                      <div className="parcelas">até 10x</div>
+                    </div>
 
-                    {/* CONTEÚDO */}
-                    <div className="p-3">
-                      {/* PREÇO */}
-                      {temDesconto && <p className="preco-de mb-1">De R$ {Number(prod.preco).toFixed(2)}</p>}
-                      <p className="preco-principal mb-1">
-                        R$ {Number(precoExib).toFixed(2).replace('.', ',')}
-                      </p>
-                      <p className="parcelamento mb-1">em até 10x de R$ {parcela.replace('.', ',')}</p>
-
-                      {/* NOME */}
-                      <h3 className="h6 fw-normal text-dark mb-3" style={{fontSize: '14px', lineHeight: '1.3', height: '36px', overflow: 'hidden'}}>
-                        {prod.nome}
-                      </h3>
-
-                      {/* BOTÃO */}
-                      <button
-                        onClick={() => adicionar(prod)}
-                        className="btn btn-placetech"
-                      >
-                        Adicionar ao Carrinho
+                    <div className="card-foot">
+                      <span className="availability">
+                        <b>{temDesconto ? 'Oferta especial' : 'Disponibilidade em estoque'}</b>
+                        Atendimento especializado
+                      </span>
+                      <button type="button" className="ask" onClick={() => adicionar(prod)}>
+                        Adicionar →
                       </button>
                     </div>
-                  </div>
-                </div>
-              );
-            })}
+                  </article>
+                );
+              }) : null}
+            </div>
+
+            <div className="empty" style={{ display: filtrados.length === 0 ? 'block' : 'none' }}>
+              Nenhum aparelho encontrado. Tente outro termo.
+            </div>
           </div>
-        )}
+        </section>
+
+        <section className="why" id="vantagens">
+          <div className="catalog-wrap">
+            <div className="section-head">
+              <div>
+                <span className="hero-badge">Compra segura</span>
+                <h2>Mais que um aparelho.</h2>
+              </div>
+              <p>Uma experiência de compra com orientação técnica do primeiro contato ao pós-venda.</p>
+            </div>
+
+            <div className="benefits">
+              <div className="benefit"><b>Procedência</b><span>Produtos selecionados e informações transparentes.</span></div>
+              <div className="benefit"><b>Garantia</b><span>Segurança e suporte especializado após a compra.</span></div>
+              <div className="benefit"><b>Atendimento humano</b><span>Recomendação conforme seu uso e investimento.</span></div>
+              <div className="benefit"><b>Entrega nacional</b><span>Logística para atender clientes em todo o Brasil.</span></div>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <div className="catalog-wrap">
+            <div className="cta-panel">
+              <div>
+                <h2>Qual modelo combina com você?</h2>
+                <p>Fale com nossa equipe e receba uma recomendação personalizada, com condição atualizada e disponibilidade em tempo real.</p>
+              </div>
+              <button className="secondary" onClick={() => setCarrinhoAberto(true)}>Consultar especialista →</button>
+            </div>
+          </div>
+        </section>
       </main>
 
-           {/* ========================================== */}
-      {/* 🦶 RODAPÉ CORRIGIDO */}
-      {/* ========================================== */}
-      <footer style={{backgroundColor: '#1A1A1A', color: 'white', padding: '32px 0', marginTop: 'auto'}}>
-        <div className="container">
-          <div className="row g-4">
-            <div className="col-md-4 text-center text-md-start">
-              <h5 style={{fontWeight: 700, marginBottom: '8px', color: AMARELO, fontSize: '22px'}}>Placetech</h5>
-              <p style={{fontSize: '14px', color: '#AAA', margin: 0}}>
-                Loja oficial da Placetech Lindoia<br />
-                Qualidade e confiança em cada produto
-              </p>
-            </div>
-            <div className="col-md-4 text-center">
-              <h6 style={{fontWeight: 600, marginBottom: '12px', fontSize: '16px'}}>Contato</h6>
-              <p style={{fontSize: '14px', color: '#AAA', margin: '4px 0'}}>
-                📍 Lindoia - São Paulo
-              </p>
-              <p style={{fontSize: '14px', color: '#AAA', margin: '4px 0'}}>
-                📧 atendimento@placetech.com.br
-              </p>
-            </div>
-            <div className="col-md-4 text-center text-md-end">
-              <h6 style={{fontWeight: 600, marginBottom: '12px', fontSize: '16px'}}>Segurança</h6>
-              <p style={{fontSize: '14px', color: '#AAA', margin: '4px 0'}}>✅ Seus dados protegidos</p>
-              <p style={{fontSize: '14px', color: '#AAA', margin: '4px 0'}}>🔒 Pagamento seguro</p>
-            </div>
+      <footer>
+        <div className="foot">
+          <div>
+            <a className="brand" href="#">
+              <span className="mark" />
+              <span><em>place</em>tech</span>
+            </a>
+            <small>Soluções em Tecnologia · Lindóia — SP</small>
           </div>
-          <div style={{borderTop: '1px solid #333', marginTop: '20px', paddingTop: '16px', textAlign: 'center', fontSize: '13px', color: '#777'}}>
-            © {new Date().getFullYear()} Placetech Lindoia — Todos os direitos reservados
-          </div>
+
+          <div className="contact">(19) 3898-3284 · @placetechh<br />contato@placetech.com.br · www.placetech.com.br</div>
         </div>
       </footer>
 
-      {/* 🛒 CARRINHO */}
       <Carrinho aberto={carrinhoAberto} fechar={() => setCarrinhoAberto(false)} />
     </div>
   );

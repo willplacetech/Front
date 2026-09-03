@@ -86,151 +86,226 @@ export default function Carrinho({ aberto, fechar }) {
 
   return (
     <>
-      {/* ✅ FUNDO ESCURO — Z-INDEX MUITO ALTO */}
-      <div 
-        onClick={fechar} 
+      <div
+        onClick={fechar}
         style={{
-          position: 'fixed', 
-          inset: 0, 
-          backgroundColor: 'rgba(0,0,0,0.5)', 
-          zIndex: 9998  // ✅ AUMENTEI
-        }} 
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0,0,0,0.58)',
+          backdropFilter: 'blur(6px)',
+          zIndex: 9998
+        }}
       />
 
-      {/* ✅ PAINEL DO CARRINHO — Z-INDEX MAIOR QUE TUDO */}
       <div style={{
-        position: 'fixed', 
-        top: 0, 
-        right: 0, 
-        height: '100vh', 
-        width: '420px',
-        backgroundColor: 'white', 
-        zIndex: 9999,  // ✅ O MAIOR DE TODOS!
-        boxShadow: '-4px 0 20px rgba(0,0,0,0.15)',
-        display: 'flex', 
-        flexDirection: 'column'
+        position: 'fixed',
+        top: 0,
+        right: 0,
+        height: '100vh',
+        width: '440px',
+        maxWidth: '100vw',
+        background: 'linear-gradient(180deg, #121212 0%, #0b0b0b 100%)',
+        zIndex: 9999,
+        boxShadow: '-18px 0 60px rgba(0,0,0,0.5)',
+        display: 'flex',
+        flexDirection: 'column',
+        borderLeft: '1px solid rgba(255,255,255,0.08)'
       }}>
-        {/* Cabeçalho */}
         <div style={{
-          padding: '16px 20px', 
-          backgroundColor: AMARELO,
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center'
+          padding: '18px 22px',
+          background: 'linear-gradient(180deg, #f5a400 0%, #e89d00 100%)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          boxShadow: '0 12px 28px rgba(245,164,0,0.18)'
         }}>
-          <h4 style={{margin: 0, fontSize: '18px', fontWeight: 700, color: PRETO}}>
-            🛒 Meu Carrinho
-          </h4>
-          <button onClick={fechar} style={{border: 'none', background: 'transparent', cursor: 'pointer'}}>
-            <XMarkIcon style={{width: '22px', height: '22px', color: PRETO}} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{
+              width: 38,
+              height: 38,
+              borderRadius: 12,
+              background: 'rgba(17,17,17,0.12)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <ShoppingCartIcon style={{ width: 20, height: 20, color: '#111' }} />
+            </div>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 800, color: '#111', letterSpacing: '1.2px', textTransform: 'uppercase', opacity: 0.8 }}>Carrinho</div>
+              <h4 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: '#111', letterSpacing: '-0.8px' }}>Meu pedido</h4>
+            </div>
+          </div>
+
+          <button
+            onClick={fechar}
+            style={{
+              border: 'none',
+              background: 'rgba(17,17,17,0.08)',
+              cursor: 'pointer',
+              width: 38,
+              height: 38,
+              borderRadius: 12,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <XMarkIcon style={{ width: 20, height: 20, color: '#111' }} />
           </button>
         </div>
 
-        {/* Conteúdo com rolagem */}
-        <div style={{flex: 1, overflowY: 'auto', padding: '20px'}}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '22px' }}>
           {itens.length === 0 ? (
-            <div style={{textAlign: 'center', padding: '40px 20px', color: '#666'}}>
-              <ShoppingCartIcon style={{width: '48px', height: '48px', margin: '0 auto 16px', color: '#ccc'}} />
-              <p>Seu carrinho está vazio</p>
+            <div style={{
+              textAlign: 'center',
+              padding: '60px 20px 30px',
+              color: '#cfcfc8',
+              border: '1px dashed rgba(255,255,255,0.12)',
+              borderRadius: 22,
+              background: 'rgba(255,255,255,0.02)'
+            }}>
+              <ShoppingCartIcon style={{ width: 52, height: 52, margin: '0 auto 18px', color: '#8d8a83' }} />
+              <div style={{ fontSize: 18, fontWeight: 700, color: '#f7f7f3' }}>Seu carrinho está vazio</div>
+              <div style={{ marginTop: 8, color: '#a3a29d' }}>Adicione alguns itens para continuar.</div>
             </div>
           ) : (
             <>
-              {/* Lista de itens */}
-              {itens.map(item => (
-                <div key={item._id} style={{
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '12px', 
-                  padding: '12px 0',
-                  borderBottom: '1px solid #eee'
-                }}>
-                  <div style={{flex: 1}}>
-                    <h5 style={{margin: 0, fontSize: '15px', fontWeight: 500}}>{item.nome}</h5>
-                    <p style={{margin: '4px 0 0 0', fontSize: '14px', color: AZUL, fontWeight: 700}}>
-                      R$ {Number(item.precoPersonalizado || item.preco).toFixed(2).replace('.', ',')}
-                    </p>
-                  </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {itens.map(item => (
+                  <div key={item._id} style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    padding: '14px 0',
+                    borderBottom: '1px solid rgba(255,255,255,0.08)'
+                  }}>
+                    <div style={{
+                      width: 68,
+                      height: 68,
+                      borderRadius: 14,
+                      background: 'rgba(255,255,255,0.03)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      overflow: 'hidden',
+                      border: '1px solid rgba(255,255,255,0.06)'
+                    }}>
+                      {item.imagem ? (
+                        <img
+                          src={item.imagem}
+                          alt={item.nome}
+                          style={{ width: '100%', height: '100%', objectFit: 'contain', padding: 8 }}
+                          onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                        />
+                      ) : (
+                        <ShoppingCartIcon style={{ width: 26, height: 26, color: '#f5a400' }} />
+                      )}
+                    </div>
 
-                  {/* Quantidade com botões */}
-                  <div style={{display: 'flex', alignItems: 'center', border: '1px solid #ddd', borderRadius: '6px'}}>
-                    <button
-                      onClick={() => alterarQuantidade(item._id, item.quantidade - 1)}
-                      style={{border: 'none', background: '#f5f5f5', padding: '4px 10px', cursor: 'pointer', fontSize: '16px'}}
-                    >−</button>
-                    <span style={{padding: '4px 12px', fontWeight: 600}}>{item.quantidade}</span>
-                    <button
-                      onClick={() => alterarQuantidade(item._id, item.quantidade + 1)}
-                      style={{border: 'none', background: '#f5f5f5', padding: '4px 10px', cursor: 'pointer', fontSize: '16px'}}
-                    >+</button>
-                  </div>
-                </div>
-              ))}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: '#f7f7f3', lineHeight: 1.3 }}>{item.nome}</div>
+                      <div style={{ marginTop: 6, fontSize: 14, color: '#ffca56', fontWeight: 800 }}>
+                        R$ {Number(item.precoPersonalizado || item.preco).toFixed(2).replace('.', ',')}
+                      </div>
+                    </div>
 
-              {/* Total */}
-              <div style={{
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center',
-                padding: '16px 0', 
-                borderBottom: '2px solid #eee', 
-                margin: '8px 0'
-              }}>
-                <span style={{fontSize: '16px', fontWeight: 500}}>Total do Pedido</span>
-                <span style={{fontSize: '20px', fontWeight: 700, color: AZUL}}>
-                  R$ {total.toFixed(2).replace('.', ',')}
-                </span>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      borderRadius: 12,
+                      border: '1px solid rgba(255,255,255,0.08)',
+                      background: 'rgba(255,255,255,0.02)'
+                    }}>
+                      <button
+                        onClick={() => alterarQuantidade(item._id, item.quantidade - 1)}
+                        style={{
+                          border: 'none',
+                          background: 'transparent',
+                          color: '#f7f7f3',
+                          width: 32,
+                          height: 32,
+                          cursor: 'pointer',
+                          fontSize: 20,
+                          fontWeight: 700
+                        }}
+                      >−</button>
+                      <span style={{ minWidth: 26, textAlign: 'center', fontWeight: 700, color: '#f7f7f3' }}>{item.quantidade}</span>
+                      <button
+                        onClick={() => alterarQuantidade(item._id, item.quantidade + 1)}
+                        style={{
+                          border: 'none',
+                          background: 'transparent',
+                          color: '#f7f7f3',
+                          width: 32,
+                          height: 32,
+                          cursor: 'pointer',
+                          fontSize: 20,
+                          fontWeight: 700
+                        }}
+                      >+</button>
+                    </div>
+                  </div>
+                ))}
               </div>
 
-              {/* Formulário de Dados */}
-              <div style={{marginTop: '16px'}}>
+              <div style={{
+                marginTop: 22,
+                padding: '18px 0',
+                borderTop: '1px solid rgba(255,255,255,0.08)',
+                borderBottom: '1px solid rgba(255,255,255,0.08)'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: 15, color: '#c8c5c1' }}>Subtotal</span>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: '#f7f7f3' }}>R$ {total.toFixed(2).replace('.', ',')}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
+                  <span style={{ fontSize: 15, color: '#c8c5c1' }}>Entrega</span>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: '#7de29c' }}>A combinar</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 18 }}>
+                  <span style={{ fontSize: 18, fontWeight: 800, color: '#f7f7f3' }}>Total</span>
+                  <span style={{ fontSize: 30, fontWeight: 900, letterSpacing: '-1.2px', color: '#ffca56' }}>R$ {total.toFixed(2).replace('.', ',')}</span>
+                </div>
+              </div>
+
+              <div style={{ marginTop: 22 }}>
                 <h5 style={{
-                  fontSize: '17px', 
-                  fontWeight: 700, 
-                  marginBottom: '16px',
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '8px'
+                  margin: '0 0 16px',
+                  color: '#f7f7f3',
+                  fontSize: 18,
+                  fontWeight: 800,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10
                 }}>
-                  <DocumentTextIcon style={{width: '20px', height: '20px', color: AZUL}} />
-                  Seus Dados
+                  <DocumentTextIcon style={{ width: 20, height: 20, color: '#ffca56' }} />
+                  Dados do cliente
                 </h5>
 
-                <div style={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
-                  <div style={{position: 'relative'}}>
-                    <UserIcon style={{
-                      position: 'absolute', 
-                      left: '12px', 
-                      top: '50%', 
-                      transform: 'translateY(-50%)',
-                      width: '18px', 
-                      height: '18px', 
-                      color: '#999'
-                    }} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div style={{ position: 'relative' }}>
+                    <UserIcon style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', width: 18, height: 18, color: '#999' }} />
                     <input
                       type="text"
                       placeholder="Seu nome completo"
                       value={nome}
                       onChange={e => setNome(e.target.value)}
                       style={{
-                        width: '100%', 
-                        padding: '12px 12px 12px 40px',
-                        border: '1px solid #ddd', 
-                        borderRadius: '8px', 
-                        fontSize: '14px'
+                        width: '100%',
+                        padding: '13px 14px 13px 42px',
+                        borderRadius: 12,
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        background: 'rgba(255,255,255,0.02)',
+                        color: '#f7f7f3',
+                        fontSize: 14,
+                        outline: 'none'
                       }}
                     />
                   </div>
 
-                  <div style={{position: 'relative'}}>
-                    <PhoneIcon style={{
-                      position: 'absolute', 
-                      left: '12px', 
-                      top: '50%', 
-                      transform: 'translateY(-50%)',
-                      width: '18px', 
-                      height: '18px', 
-                      color: '#999'
-                    }} />
+                  <div style={{ position: 'relative' }}>
+                    <PhoneIcon style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', width: 18, height: 18, color: '#999' }} />
                     <input
                       type="text"
                       placeholder="Telefone com DDD"
@@ -238,67 +313,63 @@ export default function Carrinho({ aberto, fechar }) {
                       onChange={e => setTelefone(formatarTelefone(e.target.value))}
                       maxLength={15}
                       style={{
-                        width: '100%', 
-                        padding: '12px 12px 12px 40px',
-                        border: '1px solid #ddd', 
-                        borderRadius: '8px', 
-                        fontSize: '14px'
+                        width: '100%',
+                        padding: '13px 14px 13px 42px',
+                        borderRadius: 12,
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        background: 'rgba(255,255,255,0.02)',
+                        color: '#f7f7f3',
+                        fontSize: 14,
+                        outline: 'none'
                       }}
                     />
                   </div>
 
-                  <div style={{position: 'relative'}}>
-                    <MapPinIcon style={{
-                      position: 'absolute', 
-                      left: '12px', 
-                      top: '14px',
-                      width: '18px', 
-                      height: '18px', 
-                      color: '#999'
-                    }} />
+                  <div style={{ position: 'relative' }}>
+                    <MapPinIcon style={{ position: 'absolute', left: 14, top: 14, width: 18, height: 18, color: '#999' }} />
                     <textarea
                       placeholder="Endereço completo"
                       value={endereco}
                       onChange={e => setEndereco(e.target.value)}
-                      rows={2}
+                      rows={3}
                       style={{
-                        width: '100%', 
-                        padding: '12px 12px 12px 40px',
-                        border: '1px solid #ddd', 
-                        borderRadius: '8px', 
-                        fontSize: '14px', 
-                        resize: 'vertical'
+                        width: '100%',
+                        padding: '13px 14px 13px 42px',
+                        borderRadius: 12,
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        background: 'rgba(255,255,255,0.02)',
+                        color: '#f7f7f3',
+                        fontSize: 14,
+                        resize: 'vertical',
+                        outline: 'none'
                       }}
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Botão Enviar */}
               <button
                 onClick={enviarPedido}
                 disabled={salvando}
                 style={{
-                  width: '100%', 
-                  marginTop: '20px', 
-                  padding: '14px',
-                  backgroundColor: salvando ? '#888' : VERDE, 
-                  color: 'white', 
+                  width: '100%',
+                  marginTop: 22,
+                  padding: '16px 18px',
+                  background: salvando ? '#555' : 'linear-gradient(180deg, #f5a400 0%, #e89d00 100%)',
+                  color: '#111',
                   border: 'none',
-                  borderRadius: '8px', 
-                  fontSize: '16px', 
-                  fontWeight: 600, 
+                  borderRadius: 16,
+                  fontSize: 16,
+                  fontWeight: 900,
                   cursor: salvando ? 'not-allowed' : 'pointer',
-                  transition: 'background 0.2s'
+                  boxShadow: '0 18px 40px rgba(245,164,0,0.22)'
                 }}
-                onMouseOver={e => !salvando && (e.target.style.backgroundColor = '#008C45')}
-                onMouseOut={e => !salvando && (e.target.style.backgroundColor = VERDE)}
               >
-                {salvando ? '⏳ Salvando...' : '📲 Enviar via WhatsApp'}
+                {salvando ? '⏳ Salvando pedido...' : '📲 Enviar via WhatsApp'}
               </button>
 
-              <p style={{textAlign: 'center', fontSize: '13px', color: '#888', marginTop: '10px'}}>
-                Você será redirecionado para o WhatsApp
+              <p style={{ textAlign: 'center', fontSize: 12, color: '#96938d', margin: '12px 0 0' }}>
+                Você será redirecionado para o WhatsApp com o pedido completo.
               </p>
             </>
           )}

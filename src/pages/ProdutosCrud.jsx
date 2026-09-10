@@ -31,6 +31,7 @@ export default function ProdutosCrud() {
   const [loading, setLoading] = useState(true);
   const [mostrarForm, setMostrarForm] = useState(false);
   const [filtro, setFiltro] = useState('');
+  const [categoriaAtiva, setCategoriaAtiva] = useState('');
   const [salvando, setSalvando] = useState(false);
   const [importadorAberto, setImportadorAberto] = useState(false);
   const [selecionados, setSelecionados] = useState([]);
@@ -452,10 +453,18 @@ export default function ProdutosCrud() {
     }
   };
 
-  // Filtrar
-  const produtosFiltrados = filtro
-    ? produtos.filter(p => Object.values(p).join(' ').toLowerCase().includes(filtro.toLowerCase()))
-    : produtos;
+  const categorias = [...new Set(
+    produtos
+      .map(produto => produto.categoria?.trim())
+      .filter(Boolean)
+  )].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+  // Filtrar por categoria e, opcionalmente, pelo texto digitado.
+  const produtosFiltrados = produtos.filter(produto => {
+    const correspondeCategoria = !categoriaAtiva || produto.categoria?.trim() === categoriaAtiva;
+    const correspondeTexto = !filtro || Object.values(produto).join(' ').toLowerCase().includes(filtro.toLowerCase());
+    return correspondeCategoria && correspondeTexto;
+  });
 
   const todosFiltradosSelecionados = produtosFiltrados.length > 0 && produtosFiltrados.every(p => selecionados.includes(p._id));
 
@@ -567,6 +576,40 @@ export default function ProdutosCrud() {
           </button>
         </div>
       </div>
+
+      {/* ⚡ ACESSO RÁPIDO ÀS CATEGORIAS */}
+      {categorias.length > 0 && (
+        <div style={{ marginBottom: '24px' }}>
+          <div style={{ color: '#a7a39f', fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '10px' }}>
+            Categorias
+          </div>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {['', ...categorias].map(categoria => {
+              const ativa = categoriaAtiva === categoria;
+              const quantidade = categoria
+                ? produtos.filter(produto => produto.categoria?.trim() === categoria).length
+                : produtos.length;
+              return (
+                <button
+                  key={categoria || 'todas'}
+                  type="button"
+                  onClick={() => setCategoriaAtiva(categoria)}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '9px 13px',
+                    borderRadius: '10px', border: ativa ? '1px solid #f5a400' : '1px solid rgba(255,255,255,0.1)',
+                    background: ativa ? 'rgba(245,164,0,0.16)' : 'rgba(255,255,255,0.04)',
+                    color: ativa ? '#ffc247' : '#d7d5d0', fontSize: '13px', fontWeight: ativa ? 700 : 600,
+                    cursor: 'pointer', transition: 'all 0.2s ease'
+                  }}
+                >
+                  {categoria || 'Todas'}
+                  <span style={{ color: ativa ? '#f5a400' : '#8b8883', fontSize: '11px' }}>{quantidade}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* 🤖 PROCESSADOR DE LISTA COM IA */}
       {mostrarProcessador && (

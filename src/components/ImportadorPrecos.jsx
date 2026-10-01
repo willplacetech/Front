@@ -86,7 +86,7 @@ export default function ImportadorPrecos({ isOpen, onClose, onSucesso }) {
       return;
     }
 
-    if (!window.confirm(`Salvar ${produtos.length} produtos? Esta ação não pode ser desfeita.`)) {
+    if (!window.confirm(atualizarExistentes ? `Atualizar somente os preços dos produtos existentes? Itens não cadastrados serão ignorados.` : `Salvar ${produtos.length} produtos? Esta ação não pode ser desfeita.`)) {
       return;
     }
 
@@ -105,7 +105,7 @@ export default function ImportadorPrecos({ isOpen, onClose, onSucesso }) {
       }));
 
       // Envia em um único request (o backend processa em lotes)
-      const response = await api.post('/produtos/importar-lote', {
+      const response = await api.post(atualizarExistentes ? '/produtos/atualizar-precos-lote' : '/produtos/importar-lote', {
         produtos: dadosProdutos,
         atualizarExistentes
       });
@@ -119,7 +119,7 @@ export default function ImportadorPrecos({ isOpen, onClose, onSucesso }) {
         setErros(resultados.erros);
         alert(`⚠️ ${resultados.sucesso.length}/${resultados.total} salvos.\n\nErros:\n${resultados.erros.slice(0, 3).map(e => `${e.nome}: ${e.erro}`).join('\n')}`);
       } else {
-        alert(`✅ ${resultados.sucesso.length} produtos importados com sucesso!`);
+        alert(`${resultados.sucesso.length} produto(s) salvo(s). ${resultados.ignorados?.length || 0} item(ns) não cadastrado(s) ignorado(s).`);
       }
 
       setProgresso({ atual: produtos.length, total: produtos.length });
@@ -195,7 +195,7 @@ export default function ImportadorPrecos({ isOpen, onClose, onSucesso }) {
                   <div className="mb-3 flex items-center justify-between gap-3"><div><p className="text-sm font-semibold text-slate-800">Regra de preço de venda</p><p className="text-xs text-slate-500">Aplicada sobre o preço de custo de cada produto.</p></div><span className="text-xs font-semibold text-emerald-700">custo + margem + fixo</span></div>
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2"><label className="text-xs font-semibold text-slate-600">Margem percentual<input type="number" min="0" step="0.1" value={percentual} onChange={(e) => setPercentual(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100" /></label><label className="text-xs font-semibold text-slate-600">Valor fixo (R$)<input type="number" min="0" step="0.01" value={valorFixo} onChange={(e) => setValorFixo(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 bg-white p-2.5 text-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100" /></label></div>
                   <p className="mt-3 text-xs text-slate-500">Exemplo: custo R$ 1.000, margem {percentual}% + R$ {Number(valorFixo || 0).toFixed(2)} = R$ {calcularPreco(1000).toFixed(2).replace('.', ',')}</p>
-                  <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-lg border border-emerald-200 bg-white p-3 text-sm text-slate-700"><input type="checkbox" checked={atualizarExistentes} onChange={(e) => setAtualizarExistentes(e.target.checked)} className="mt-0.5 h-4 w-4 accent-emerald-600" /><span><strong className="block text-slate-900">Atualizar produtos existentes</strong><span className="text-xs text-slate-500">Se o nome já estiver cadastrado, altera o preço em vez de criar duplicata.</span></span></label>
+                  <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-lg border border-emerald-200 bg-white p-3 text-sm text-slate-700"><input type="checkbox" checked={atualizarExistentes} onChange={(e) => setAtualizarExistentes(e.target.checked)} className="mt-0.5 h-4 w-4 accent-emerald-600" /><span><strong className="block text-slate-900">Atualizar somente pre?os de produtos existentes</strong><span className="text-xs text-slate-500">Atualiza custo e preço de venda pelo nome completo. Preserva os demais dados e ignora itens não cadastrados.</span></span></label>
                 </div>
                 <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <span className="text-xs text-slate-500">Os dados poderão ser editados antes do cadastro.</span>

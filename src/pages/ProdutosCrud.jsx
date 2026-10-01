@@ -70,6 +70,7 @@ export default function ProdutosCrud() {
 
   // ✅ LISTA DE NOVOS PRODUTOS PARA CADASTRAR
   const [listaNovos, setListaNovos] = useState([produtoVazio()]);
+  const [somentePrecos, setSomentePrecos] = useState(true);
 
   const carregar = () => {
     api.get('/produtos').then(r => { setProdutos(r.data); })
@@ -316,6 +317,18 @@ export default function ProdutosCrud() {
     }
     setSalvando(true);
     try {
+      if (somentePrecos) {
+        const { data } = await api.post('/produtos/atualizar-precos-lote', { produtos: listaNovos });
+        const { sucesso, ignorados, erros } = data.resultados;
+        alert(`${sucesso.length} preço(s) atualizado(s). ${ignorados.length} item(ns) não cadastrado(s) ignorado(s). ${erros.length} erro(s).` + (erros.length ? '\n' + erros.map(item => `${item.nome}: ${item.erro}`).join('\n') : ''));
+        setListaNovos(listaNovos.filter((_, indice) => !sucesso.some(item => item.indice === indice)));
+        if (sucesso.length === listaNovos.length) {
+          setListaNovos([produtoVazio()]);
+          setMostrarForm(false);
+        }
+        carregar();
+        return;
+      }
       const promessas = listaNovos.map(produto => {
         const dados = {
           ...produto,
@@ -825,6 +838,10 @@ Processador M4, 512GB SSD
           <h3 style={{ fontSize: '18px', fontWeight: 800, margin: '0 0 16px 0', paddingBottom: '12px', borderBottom: '1px solid rgba(255,255,255,0.08)', color: '#f7f7f3' }}>
             📦 Produtos prontos para cadastrar — {listaNovos.length} produto(s) na lista
           </h3>
+          <label style={{ display: 'block', marginBottom: '16px', color: '#f7f7f3' }}>
+            <input type="checkbox" checked={somentePrecos} disabled={salvando} onChange={e => setSomentePrecos(e.target.checked)} /> Atualizar somente preços de produtos existentes
+            <small style={{ display: 'block', marginTop: '6px' }}>Busca pelo nome completo, ignorando maiúsculas e minúsculas. Preserva os demais dados e ignora itens não cadastrados. Desmarque para cadastrar novos produtos.</small>
+          </label>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {listaNovos.map((produto, indice) => (
               <div key={indice} style={{
@@ -940,7 +957,7 @@ Processador M4, 512GB SSD
             onMouseOver={e => !salvando && (e.target.style.backgroundColor = '#008C45')}
             onMouseOut={e => !salvando && (e.target.style.backgroundColor = VERDE)}
           >
-            {salvando ? '⏳ Cadastrando...' : `💾 Salvar Todos os ${listaNovos.length} Produtos`}
+            {salvando ? 'Salvando...' : somentePrecos ? 'Atualizar somente preços' : `Salvar Todos os ${listaNovos.length} Produtos`}
           </button>
         </form>
       )}

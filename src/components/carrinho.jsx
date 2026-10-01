@@ -3,12 +3,6 @@ import { useCarrinho } from '../context/carrinho';
 import api from '../services/api';
 import { XMarkIcon, ShoppingCartIcon, DocumentTextIcon, UserIcon, PhoneIcon, MapPinIcon } from '@heroicons/react/24/outline';
 
-// CORES OFICIAIS
-const AMARELO = '#F9D828';
-const AZUL = '#3483FA';
-const VERDE = '#00A650';
-const PRETO = '#000000';
-
 export default function Carrinho({ aberto, fechar }) {
   const { itens, alterarQuantidade, limpar } = useCarrinho();
   const [nome, setNome] = useState('');
@@ -43,7 +37,9 @@ export default function Carrinho({ aberto, fechar }) {
       // 2️⃣ PREPARA DADOS
       const dadosPedido = {
         itens: itens.map(i => ({
-          produtoId: i._id,
+          produtoId: i.produtoId || i._id,
+          variantId: i.variantId,
+          sku: i.sku,
           nome: i.nome,
           preco: i.precoPersonalizado || i.preco,
           quantidade: i.quantidade,
@@ -62,15 +58,15 @@ export default function Carrinho({ aberto, fechar }) {
       const totalConfirmado = resposta.data.pedido.total;
 
       // 4️⃣ ABRE WHATSAPP
-      const lista = itens.map(i => 
-        `✅ ${i.nome} — ${i.quantidade}x`
+      const lista = resposta.data.pedido.itens.map(i =>
+        `✅ ${i.nome} — ${i.quantidade}x${i.sku ? ` · SKU: ${i.sku}` : ''}`
       ).join('\n');
 
       const mensagem = `🛒 NOVO PEDIDO PLACETECH\n\n${lista}\n\n💰 Total: R$ ${totalConfirmado.toFixed(2).replace('.', ',')}\n\n📋 DADOS DO CLIENTE:\n👤 Nome: ${nome}\n📱 Telefone: ${telefone}\n📍 Endereço: ${endereco || 'Não informado'}`;
 
       // ⚠️ TROQUE PELO SEU NÚMERO REAL DO WHATSAPP
       const link = `https://wa.me/551938983284?text=${encodeURIComponent(mensagem)}`;
-      window.location.href = link;
+      window.location.assign(link);
 
       // 5️⃣ LIMPA E FECHA
       limpar();
@@ -78,7 +74,7 @@ export default function Carrinho({ aberto, fechar }) {
 
     } catch (erro) {
       console.error("❌ Erro ao salvar pedido:", erro.response?.data || erro.message);
-      alert("Não foi possível salvar o pedido! Tente novamente.");
+      alert(erro.response?.data?.error || "Não foi possível salvar o pedido! Tente novamente.");
     } finally {
       setSalvando(false);
     }
@@ -205,6 +201,7 @@ export default function Carrinho({ aberto, fechar }) {
 
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 15, fontWeight: 700, color: '#f7f7f3', lineHeight: 1.3 }}>{item.nome}</div>
+                      {item.sku && <div style={{ marginTop: 4, fontSize: 11, color: '#a3a29d' }}>SKU: {item.sku}</div>}
                       <div style={{ marginTop: 6, fontSize: 14, color: '#ffca56', fontWeight: 800 }}>
                         R$ {Number(item.precoPersonalizado || item.preco).toFixed(2).replace('.', ',')}
                       </div>
@@ -233,6 +230,7 @@ export default function Carrinho({ aberto, fechar }) {
                       <span style={{ minWidth: 26, textAlign: 'center', fontWeight: 700, color: '#f7f7f3' }}>{item.quantidade}</span>
                       <button
                         onClick={() => alterarQuantidade(item._id, item.quantidade + 1)}
+                        disabled={item.estoque !== null && item.estoque !== undefined && item.quantidade >= item.estoque}
                         style={{
                           border: 'none',
                           background: 'transparent',

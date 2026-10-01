@@ -1,25 +1,10 @@
 import { useEffect, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import api from '../services/api';
 import { useCarrinho } from '../context/carrinho';
 import Carrinho from '../components/carrinho';
-import {
-  ShoppingCartIcon, MagnifyingGlassIcon,
-  MapPinIcon, Bars3Icon, XMarkIcon
-} from '@heroicons/react/24/outline';
-
-// CORES OFICIAIS PLACETECH
-const AMARELO = '#F9D828';
-const PRETO = '#000000';
-const AZUL = '#3483FA';
-const VERDE = '#00A650';
-const FUNDO = '#EBEBEB';
-
-const precoVendaPadrao = (custo) => {
-  const valor = Number(custo);
-  return Number.isFinite(valor) && valor > 0 ? Number((valor * 1.07 + 500).toFixed(2)) : valor;
-};
-
-const IMAGEM_PADRAO = '/LogoEscrthinny.jpg';
+import FiltrosCatalogo from '../components/FiltrosCatalogo';
+import { moeda } from '../utils/variantes';
 
 const IMAGENS_FALLBACK = {
   'iPhones Lacrados': 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?auto=format&fit=crop&w=900&q=80',
@@ -74,41 +59,47 @@ const renderImagemProduto = (src, alt, categoria = '', estilo = {}) => {
 export default function Catalogo() {
   const [produtos, setProdutos] = useState([]);
   const [carrinhoAberto, setCarrinhoAberto] = useState(false);
-  const [busca, setBusca] = useState('');
-  const [buscaAtiva, setBuscaAtiva] = useState('');
-  const [categoria, setCategoria] = useState('todas');
+  const [params, setParams] = useSearchParams();
+  const [opcoes, setOpcoes] = useState({});
+  const [erro, setErro] = useState('');
   const [loading, setLoading] = useState(true);
-  const [menuAberto, setMenuAberto] = useState(false);
-  const { itens, adicionar } = useCarrinho();
+  const { itens } = useCarrinho();
+  const query = params.toString();
+  const busca = params.get('busca') || '';
+  const filtros = Object.fromEntries(params);
 
   useEffect(() => {
-    api.get('/produtos/disponiveis')
-      .then(r => setProdutos(r.data))
-      .finally(() => setLoading(false));
-  }, []);
+    const controle = new AbortController();
+    const configuracao = { params: Object.fromEntries(new URLSearchParams(query)), signal: controle.signal };
+    Promise.all([api.get('/produtos', configuracao), api.get('/filtros', configuracao)])
+      .then(([catalogo, filtrosDisponiveis]) => {
+        setProdutos(catalogo.data);
+        setOpcoes(filtrosDisponiveis.data);
+        setErro('');
+      })
+      .catch(error => { if (!controle.signal.aborted) setErro(error.response?.data?.error || 'Não foi possível carregar o catálogo. Tente novamente.'); })
+      .finally(() => { if (!controle.signal.aborted) setLoading(false); });
+    return () => controle.abort();
+  }, [query]);
 
-  const categorias = ['todas', ...new Set(produtos.map(p => p.categoria).filter(Boolean))];
   const totalItens = itens.reduce((s, i) => s + i.quantidade, 0);
+  const filtrados = produtos;
+  const limparFiltros = () => { if (!query) return; setLoading(true); setParams({}, { replace: true }); };
 
-  const filtrados = produtos.filter(p => {
-    const termo = buscaAtiva.toLowerCase().trim();
-    const matchBusca = termo === '' ||
-      p.nome.toLowerCase().includes(termo) ||
-      (p.descricao && p.descricao.toLowerCase().includes(termo));
-    const matchCat = categoria === 'todas' || p.categoria === categoria;
-    return matchBusca && matchCat;
-  });
-
-  const executarBusca = (e) => {
-    e.preventDefault();
-    setBuscaAtiva(busca);
+  const atualizarFiltro = (campo, valor) => {
+    const ordem = ['marca', 'categoria', 'modelo', 'cor', 'capacidade'];
+    const novos = new URLSearchParams(params);
+    ordem.slice(ordem.indexOf(campo) + 1).forEach(descendente => novos.delete(descendente));
+    if (valor) novos.set(campo, valor); else novos.delete(campo);
+    setLoading(true);
+    setParams(novos, { replace: true });
   };
 
-  const limparFiltros = () => { setBusca(''); setBuscaAtiva(''); setCategoria('todas'); };
-
   const atualizarBusca = (valor) => {
-    setBusca(valor);
-    setBuscaAtiva(valor);
+    const novos = new URLSearchParams(params);
+    if (valor) novos.set('busca', valor); else novos.delete('busca');
+    setLoading(true);
+    setParams(novos, { replace: true });
   };
 
   return (
@@ -820,45 +811,30 @@ export default function Catalogo() {
                 placeholder="Buscar por modelo, linha ou memória..."
               />
 
-              <div className="filters">
-                <button
-                  type="button"
-                  className={`filter ${categoria === 'todas' ? 'active' : ''}`}
-                  onClick={limparFiltros}
-                >
-                  Todos
-                </button>
-                {categorias.slice(0, 4).map((cat) => (
-                  <button
-                    key={cat}
-                    type="button"
-                    className={`filter ${categoria === cat ? 'active' : ''}`}
-                    onClick={() => { setCategoria(cat); setBuscaAtiva(''); }}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
+              <FiltrosCatalogo filtros={filtros} opcoes={opcoes} onChange={atualizarFiltro} onLimpar={limparFiltros} />
             </div>
 
+            {(loading || erro) && <p className="variant-status" role="status">{erro || 'Carregando modelos...'}</p>}
             <div className="grid">
-              {filtrados.length > 0 ? filtrados.map((prod) => {
-                const precoExib = prod.precoPersonalizado || precoVendaPadrao(prod.preco);
-                const temDesconto = prod.precoPersonalizado && prod.precoPersonalizado < prod.preco;
+              {!loading && !erro && filtrados.length > 0 ? filtrados.map((prod) => {
+                const precoExib = prod.precoAPartir;
                 const badge = prod.categoria || 'Destaque';
                 const specs = [
-                  prod.memoria || 'Memória',
-                  prod.condicao || 'Disponível',
-                  prod.cor || 'Cores'
+                  prod.marca,
+                  `${prod.cores.length} cor(es)`,
+                  prod.capacidades.join(' · ')
                 ].filter(Boolean);
+                const detalhe = `/produto/${prod._id}${query ? `?${query}` : ''}`;
 
                 return (
                   <article className="card" key={prod._id || prod.nome}>
                     <span className="badge">{badge}</span>
+                    <Link to={detalhe} className="variant-card-link" aria-label={`Ver variantes de ${prod.nome}`}>
                     <div className="img-wrap">
                       {renderImagemProduto(prod.imagem, prod.nome, prod.categoria, { height: '180px', width: '100%' })}
                     </div>
                     <h3>{prod.nome}</h3>
+                    </Link>
                     <span className="family">{prod.descricao || 'Produto selecionado com garantia e suporte'}</span>
                     <div className="specs">
                       {specs.slice(0, 3).map((item, idx) => (
@@ -867,27 +843,25 @@ export default function Catalogo() {
                     </div>
                     <div className="price-box">
                       <div>
-                        <strong>Preço</strong>
-                        <div className="valor">R$ {Number(precoExib).toFixed(2).replace('.', ',')}</div>
+                        <strong>A partir de</strong>
+                        <div className="valor">{moeda(precoExib)}</div>
                       </div>
                       <div className="parcelas">até 10x</div>
                     </div>
 
                     <div className="card-foot">
                       <span className="availability">
-                        <b>{temDesconto ? 'Oferta especial' : 'Disponibilidade em estoque'}</b>
+                        <b>{prod.sobEncomenda ? 'Sob encomenda' : 'Disponível em estoque'}</b>
                         Atendimento especializado
                       </span>
-                      <button type="button" className="ask" onClick={() => adicionar(prod)}>
-                        Adicionar →
-                      </button>
+                      <Link className="ask" to={detalhe}>Escolher →</Link>
                     </div>
                   </article>
                 );
               }) : null}
             </div>
 
-            <div className="empty" style={{ display: filtrados.length === 0 ? 'block' : 'none' }}>
+            <div className="empty" style={{ display: !loading && !erro && filtrados.length === 0 ? 'block' : 'none' }}>
               Nenhum aparelho encontrado. Tente outro termo.
             </div>
           </div>

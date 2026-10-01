@@ -3,6 +3,7 @@ import { PlusIcon, PencilIcon, TrashIcon, MagnifyingGlassIcon, XMarkIcon, Sparkl
 import api from '../services/api';
 import LayoutAdmin from '../components/LayoutAdmin';
 import ImportadorPrecos from '../components/ImportadorPrecos';
+import EditorVariantes from '../components/EditorVariantes';
 
 // CORES OFICIAIS
 const AZUL = '#3483FA';
@@ -73,7 +74,7 @@ export default function ProdutosCrud() {
   const [somentePrecos, setSomentePrecos] = useState(true);
 
   const carregar = () => {
-    api.get('/produtos').then(r => { setProdutos(r.data); })
+    api.get('/produtos/administracao').then(r => { setProdutos(r.data); })
       .finally(() => setLoading(false));
   };
 
@@ -384,6 +385,7 @@ export default function ProdutosCrud() {
   };
 
   const iniciarEdicaoPreco = (produto, campo) => {
+    if (produto.variants?.length) { editar(produto); return; }
     setPrecoEmEdicao({ id: produto._id, campo });
     setValorPrecoEdicao(campo === 'preco' ? produto.preco : (produto.precoPersonalizado || calcularPrecoVendaPadrao(produto.preco)));
   };
@@ -444,6 +446,9 @@ export default function ProdutosCrud() {
     setAjustandoLote(true);
     try {
       await Promise.all(escolhidos.map(produto => {
+        if (produto.variants?.length) return api.put(`/produtos/${produto._id}`, {
+          variants: produto.variants.map(v => ({ ...v, preco: Number((Number(v.precoCusto || v.preco) * (1 + percentual / 100) + valorFixo).toFixed(2)) }))
+        });
         const precoBase = Number(produto.preco);
         const precoVenda = Number((precoBase * (1 + percentual / 100) + valorFixo).toFixed(2));
         return api.put(`/produtos/${produto._id}`, { precoPersonalizado: precoVenda });
@@ -963,7 +968,8 @@ Processador M4, 512GB SSD
       )}
 
       {/* ✏️ FORMULÁRIO DE EDIÇÃO INDIVIDUAL */}
-      {editando && (
+      {editando?.variants?.length > 0 && <EditorVariantes key={editando._id} produto={editando} onClose={() => setEditando(null)} onSalvo={() => { setEditando(null); carregar(); }} />}
+      {editando && !editando.variants?.length && (
         <form onSubmit={salvarEdicao} style={{
           background: 'linear-gradient(180deg, #141414 0%, #101010 100%)', padding: '24px', borderRadius: '18px',
           boxShadow: '0 18px 40px rgba(0,0,0,0.18)', marginBottom: '24px', border: '1px solid rgba(255,255,255,0.06)'
@@ -1108,14 +1114,14 @@ Processador M4, 512GB SSD
                         <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px' }}>
                           <button onClick={() => editar(p)} style={{
                             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                            width: '34px', height: '34px', border: 'none', background: 'rgba(245,164,0,0.12)',
+                            width: '34px', height: '34px', background: 'rgba(245,164,0,0.12)',
                             color: '#f5a400', borderRadius: '8px', cursor: 'pointer', border: '1px solid rgba(245,164,0,0.18)'
                           }} title="Editar">
                             <PencilIcon style={{ width: '14px', height: '14px' }} />
                           </button>
                           <button onClick={() => deletar(p._id)} style={{
                             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                            width: '34px', height: '34px', border: 'none', background: 'rgba(239,68,68,0.12)',
+                            width: '34px', height: '34px', background: 'rgba(239,68,68,0.12)',
                             color: '#f87171', borderRadius: '8px', cursor: 'pointer', border: '1px solid rgba(239,68,68,0.18)'
                           }} title="Excluir">
                             <TrashIcon style={{ width: '14px', height: '14px' }} />

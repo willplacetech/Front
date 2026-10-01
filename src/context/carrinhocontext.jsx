@@ -1,37 +1,18 @@
 import { useState } from 'react';
 import { CarrinhoContext } from './carrinho';
+import { adicionarAoCarrinho, alterarQuantidadeCarrinho } from '../utils/variantes';
 
 export function CarrinhoProvider({ children }) {
   const [itens, setItens] = useState([]);
 
   // ✅ ADICIONAR ITEM
   const adicionar = (produto) => {
-    setItens(prev => {
-      const existe = prev.find(i => i._id === produto._id);
-      if (existe) {
-        return prev.map(i => 
-          i._id === produto._id 
-            ? { ...i, quantidade: i.quantidade + 1 } 
-            : i
-        );
-      } else {
-        return [...prev, { ...produto, quantidade: 1 }];
-      }
-    });
+    setItens(prev => adicionarAoCarrinho(prev, produto));
   };
 
   // ✅ ALTERAR QUANTIDADE
   const alterarQuantidade = (id, novaQuantidade) => {
-    setItens(prev => {
-      if (novaQuantidade < 1) {
-        return prev.filter(i => i._id !== id);
-      }
-      return prev.map(i => 
-        i._id === id 
-          ? { ...i, quantidade: novaQuantidade } 
-          : i
-      );
-    });
+    setItens(prev => alterarQuantidadeCarrinho(prev, id, novaQuantidade));
   };
 
   // ✅ REMOVER ITEM

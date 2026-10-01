@@ -3,12 +3,14 @@ import { CarrinhoProvider } from './context/carrinhocontext';
 import { AuthProvider } from './context/authcontext';
 import Catalogo from './pages/catalogo';
 import LojaDashboard from './pages/LojaDashboard';
+import ProdutoDetalhe from './pages/ProdutoDetalhe';
 
 function App() {
   return (
     <AuthProvider>
       <CarrinhoProvider>
         <Routes>
+          <Route path="/produto/:id" element={<ProdutoDetalhe />} />
           <Route path="/*" element={<Catalogo />} />
           <Route path="/loja/*" element={<LojaDashboard />} />
         </Routes>

@@ -46,6 +46,10 @@ export default function ProdutosCrud() {
 
   // 🤖 PROCESSAMENTO POR IA — NOVO SISTEMA DE SESSÕES
   const [listaBruta, setListaBruta] = useState('');
+  const [provedorIa, setProvedorIa] = useState('groq');
+  const [nomeInstanciaIa, setNomeInstanciaIa] = useState('Meu ChatGPT');
+  const [modeloIa, setModeloIa] = useState('gpt-4.1-mini');
+  const [apiKeyIa, setApiKeyIa] = useState('');
   const [processandoIa, setProcessandoIa] = useState(false);
   const [mostrarProcessador, setMostrarProcessador] = useState(false);
   const [sessaoId, setSessaoId] = useState(null);
@@ -117,6 +121,10 @@ export default function ProdutosCrud() {
 
   // 🤖 FUNÇÃO PRINCIPAL — Processa lote por lote com sessão
   const processarListaComIa = async (continuar = false) => {
+    if (provedorIa === 'openai' && (!apiKeyIa.trim() || !modeloIa.trim())) {
+      alert('Informe o modelo e a API key da instância ChatGPT.');
+      return;
+    }
     if (!continuar && !listaBruta.trim()) {
       alert('⚠️ Cole sua lista de produtos antes de processar!');
       return;
@@ -128,14 +136,17 @@ export default function ProdutosCrud() {
 
     setProcessandoIa(true);
     const inicio = Date.now();
+    let idSessao = sessaoId;
 
     try {
-      let idSessao = sessaoId;
       let totalLotes = progressoIa.total;
 
       // 🆕 Se NÃO for continuar, cria NOVA sessão
       if (!continuar) {
-        const resSessao = await api.post('/produtos/processar-iniciar', { listaBruta });
+        const resSessao = await api.post('/produtos/processar-iniciar', {
+          listaBruta, provedorIa,
+          ...(provedorIa === 'openai' ? { nomeInstanciaIa, modeloIa: modeloIa.trim(), apiKey: apiKeyIa.trim() } : {})
+        });
         idSessao = resSessao.data.sessaoId;
         totalLotes = resSessao.data.totalLotes;
         setSessaoId(idSessao);
@@ -174,7 +185,9 @@ export default function ProdutosCrud() {
       let produtosFinais = [];
 
       while (!concluiu) {
-        const res = await api.post(`/produtos/processar-proximo/${idSessao}`);
+        const res = await api.post(`/produtos/processar-proximo/${idSessao}`, {
+          ...(provedorIa === 'openai' ? { apiKey: apiKeyIa.trim() } : {})
+        });
         const { sucesso, concluido, produtos, sessao } = res.data;
 
         if (!sucesso && !concluido) {
@@ -234,17 +247,16 @@ export default function ProdutosCrud() {
       }, 300);
 
     } catch (erro) {
-      console.error(erro);
       const msg = erro.response?.data?.erro || erro.message || 'Erro desconhecido';
       
       // Marca que tem sessão pendente para poder continuar
-      if (sessaoId) {
+      if (idSessao) {
         setTemSessaoPendente(true);
       }
 
       alert(
         `❌ Erro ao processar:\n${msg}\n\n` +
-        (sessaoId ? '💡 Você pode CONTINUAR de onde parou clicando no botão "Continuar Processamento".' : '')
+        (idSessao ? '💡 Você pode CONTINUAR de onde parou clicando no botão "Continuar Processamento".' : '')
       );
     } finally {
       if (intervaloProgressoIa.current) {
@@ -623,6 +635,31 @@ export default function ProdutosCrud() {
           <p style={{ fontSize: '13px', color: '#c8c5c1', margin: '0 0 16px 0' }}>
             Processa em lotes pequenos e salva cada um automaticamente. Se travar, é só continuar de onde parou! 🛡️
           </p>
+
+          <fieldset disabled={processandoIa} style={{ border: '1px solid #383838', borderRadius: '12px', padding: '16px', marginBottom: '16px', color: '#f7f7f3' }}>
+            <legend>Instância de IA</legend>
+            <label className="block text-sm mb-3">
+              Provedor
+              <select className="block w-full mt-1 rounded-lg bg-neutral-900 border border-neutral-700 p-2" value={provedorIa} disabled={Boolean(sessaoId)} onChange={e => setProvedorIa(e.target.value)}>
+                <option value="groq">Groq (configurado no servidor)</option>
+                <option value="openai">ChatGPT (OpenAI API)</option>
+              </select>
+            </label>
+            {provedorIa === 'openai' && <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <label className="text-sm">Nome da instância
+                  <input className="block w-full mt-1 rounded-lg bg-neutral-900 border border-neutral-700 p-2" value={nomeInstanciaIa} maxLength={100} disabled={Boolean(sessaoId)} onChange={e => setNomeInstanciaIa(e.target.value)} />
+                </label>
+                <label className="text-sm">Modelo
+                  <input className="block w-full mt-1 rounded-lg bg-neutral-900 border border-neutral-700 p-2" value={modeloIa} placeholder="gpt-4.1-mini" disabled={Boolean(sessaoId)} onChange={e => setModeloIa(e.target.value)} />
+                </label>
+              </div>
+              <label className="block text-sm mt-3">API key da OpenAI
+                <input type="password" autoComplete="off" spellCheck={false} className="block w-full mt-1 rounded-lg bg-neutral-900 border border-neutral-700 p-2" value={apiKeyIa} placeholder="sk-..." onChange={e => setApiKeyIa(e.target.value)} />
+              </label>
+              <p className="text-xs text-neutral-400 mt-2">A chave fica somente na memória desta página e é enviada ao servidor para processar sua lista. Informe novamente ao recarregar.</p>
+            </>}
+          </fieldset>
 
           {/* 🆕 AVISO DE SESSÃO PENDENTE */}
           {temSessaoPendente && sessaoId && !processandoIa && (

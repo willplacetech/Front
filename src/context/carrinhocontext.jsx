@@ -4,6 +4,7 @@ import { adicionarAoCarrinho, alterarQuantidadeCarrinho } from '../utils/variant
 
 export function CarrinhoProvider({ children }) {
   const [itens, setItens] = useState([]);
+  const [troca, setTroca] = useState(null);
 
   // ✅ ADICIONAR ITEM
   const adicionar = (produto) => {
@@ -22,6 +23,7 @@ export function CarrinhoProvider({ children }) {
 
   const limpar = () => {
     setItens([]);
+    setTroca(null);
   };
 
   return (
@@ -30,7 +32,9 @@ export function CarrinhoProvider({ children }) {
       adicionar, 
       alterarQuantidade, 
       remover, 
-      limpar 
+      limpar,
+      troca: itens.length ? troca : null,
+      associarTroca: setTroca
     }}>
       {children}
     </CarrinhoContext.Provider>

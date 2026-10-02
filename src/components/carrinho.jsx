@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useCarrinho } from '../context/carrinho';
 import api from '../services/api';
+import { creditoDaTroca, tokenDaTroca, valorFinal } from '../utils/comparar';
+import { moeda } from '../utils/variantes';
 import { XMarkIcon, ShoppingCartIcon, DocumentTextIcon, UserIcon, PhoneIcon, MapPinIcon } from '@heroicons/react/24/outline';
 
 export default function Carrinho({ aberto, fechar }) {
-  const { itens, alterarQuantidade, limpar } = useCarrinho();
+  const { itens, alterarQuantidade, limpar, troca, associarTroca } = useCarrinho();
   const [nome, setNome] = useState('');
   const [telefone, setTelefone] = useState('');
   const [endereco, setEndereco] = useState('');
@@ -22,6 +24,8 @@ export default function Carrinho({ aberto, fechar }) {
 
   // Calcula total
   const total = itens.reduce((s, i) => s + (i.precoPersonalizado || i.preco) * i.quantidade, 0);
+  const credito = creditoDaTroca(troca);
+  const totalComTroca = valorFinal(total, credito);
 
   // ✅ FUNÇÃO ÚNICA E CORRETA — NÃO DUPLICA MAIS!
   const enviarPedido = async () => {
@@ -36,6 +40,7 @@ export default function Carrinho({ aberto, fechar }) {
     try {
       // 2️⃣ PREPARA DADOS
       const dadosPedido = {
+        ...(troca ? { tradeInId: troca._id } : {}),
         itens: itens.map(i => ({
           produtoId: i.produtoId || i._id,
           variantId: i.variantId,
@@ -45,7 +50,7 @@ export default function Carrinho({ aberto, fechar }) {
           quantidade: i.quantidade,
           imagem: i.imagem || ''
         })),
-        total: total,
+        total: totalComTroca,
         dadosCliente: {
           nome: nome.trim() || 'Nome não informado',
           telefone: telefone.trim() || 'Telefone não informado',
@@ -54,7 +59,9 @@ export default function Carrinho({ aberto, fechar }) {
         status: 'pendente'
       };
 
-      const resposta = await api.post('/pedidos', dadosPedido);
+      const resposta = await api.post('/pedidos', dadosPedido, {
+        headers: troca ? { 'X-Troca-Token': tokenDaTroca(troca._id) } : {}
+      });
       const totalConfirmado = resposta.data.pedido.total;
 
       // 4️⃣ ABRE WHATSAPP
@@ -62,7 +69,8 @@ export default function Carrinho({ aberto, fechar }) {
         `✅ ${i.nome} — ${i.quantidade}x${i.sku ? ` · SKU: ${i.sku}` : ''}`
       ).join('\n');
 
-      const mensagem = `🛒 NOVO PEDIDO PLACETECH\n\n${lista}\n\n💰 Total: R$ ${totalConfirmado.toFixed(2).replace('.', ',')}\n\n📋 DADOS DO CLIENTE:\n👤 Nome: ${nome}\n📱 Telefone: ${telefone}\n📍 Endereço: ${endereco || 'Não informado'}`;
+      const resumoTroca = resposta.data.pedido.tradeInId ? `\nTroca: ${resposta.data.pedido.tradeInId}\nCrédito de troca: ${moeda(resposta.data.pedido.valorTroca)}` : '';
+      const mensagem = `🛒 NOVO PEDIDO PLACETECH\n\n${lista}${resumoTroca}\n\n💰 Total: R$ ${totalConfirmado.toFixed(2).replace('.', ',')}\n\n📋 DADOS DO CLIENTE:\n👤 Nome: ${nome}\n📱 Telefone: ${telefone}\n📍 Endereço: ${endereco || 'Não informado'}`;
 
       // ⚠️ TROQUE PELO SEU NÚMERO REAL DO WHATSAPP
       const link = `https://wa.me/551938983284?text=${encodeURIComponent(mensagem)}`;
@@ -93,7 +101,7 @@ export default function Carrinho({ aberto, fechar }) {
         }}
       />
 
-      <div style={{
+      <div role="dialog" aria-modal="true" aria-label="Seu carrinho" style={{
         position: 'fixed',
         top: 0,
         right: 0,
@@ -261,9 +269,14 @@ export default function Carrinho({ aberto, fechar }) {
                   <span style={{ fontSize: 15, color: '#c8c5c1' }}>Entrega</span>
                   <span style={{ fontSize: 16, fontWeight: 700, color: '#7de29c' }}>A combinar</span>
                 </div>
+                {troca && <div style={{ marginTop: 16, color: '#ffca56' }}>
+                  <p>Troca associada: {troca.modeloAparelho} · {troca.capacidade} · {troca.cor}</p>
+                  <p>Crédito de troca: {credito === null ? 'Em avaliação' : moeda(Math.min(total, credito))}</p>
+                  <button type="button" className="variant-clear" onClick={() => associarTroca(null)}>Remover troca do pedido</button>
+                </div>}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 18 }}>
                   <span style={{ fontSize: 18, fontWeight: 800, color: '#f7f7f3' }}>Total</span>
-                  <span style={{ fontSize: 30, fontWeight: 900, letterSpacing: '-1.2px', color: '#ffca56' }}>R$ {total.toFixed(2).replace('.', ',')}</span>
+                  <span style={{ fontSize: 30, fontWeight: 900, letterSpacing: '-1.2px', color: '#ffca56' }}>{moeda(totalComTroca)}</span>
                 </div>
               </div>
 

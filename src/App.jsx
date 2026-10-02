@@ -5,6 +5,8 @@ import Catalogo from './pages/catalogo';
 import LojaDashboard from './pages/LojaDashboard';
 import ProdutoDetalhe from './pages/ProdutoDetalhe';
 import Troca from './pages/Troca';
+import Comparar from './pages/Comparar';
+import CarrinhoPagina from './pages/CarrinhoPagina';
 
 function App() {
   return (
@@ -12,6 +14,8 @@ function App() {
       <CarrinhoProvider>
         <Routes>
           <Route path="/troca" element={<Troca />} />
+          <Route path="/comparar" element={<Comparar />} />
+          <Route path="/carrinho" element={<CarrinhoPagina />} />
           <Route path="/produto/:id" element={<ProdutoDetalhe />} />
           <Route path="/*" element={<Catalogo />} />
           <Route path="/loja/*" element={<LojaDashboard />} />

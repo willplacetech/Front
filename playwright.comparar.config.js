@@ -1,0 +1,11 @@
+import { defineConfig, devices } from '@playwright/test';
+
+export default defineConfig({
+  testDir: './tests', testMatch: 'comparar.spec.js', fullyParallel: true, workers: 2,
+  globalTimeout: 180000, globalSetup: './tests/troca.setup.js',
+  use: { baseURL: 'http://127.0.0.1:5175' },
+  projects: [
+    { name: 'desktop', use: { ...devices['Desktop Chrome'] } },
+    { name: 'mobile', use: { ...devices['Pixel 7'], defaultBrowserType: 'chromium' } }
+  ]
+});

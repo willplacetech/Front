@@ -2,6 +2,7 @@ import { ordenarCapacidades } from './variantes.js';
 
 export const FOTOS_TROCA = [
   { campo: 'frontal', label: 'Frente (tela)', dica: 'Mostre toda a tela, com o aparelho de frente.' },
+  { campo: 'traseira', label: 'Traseira', dica: 'Mostre toda a parte traseira, incluindo as câmeras.' },
   { campo: 'superior', label: 'Superior', dica: 'Fotografe a borda de cima do aparelho.' },
   { campo: 'inferior', label: 'Inferior', dica: 'Mostre a entrada do carregador e os alto-falantes.' },
   { campo: 'lateralEsq', label: 'Lateral esquerda', dica: 'Mostre a borda esquerda e seus botões.' },

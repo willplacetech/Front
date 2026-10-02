@@ -11,6 +11,7 @@ import api from '../services/api';
 import TrocasAdminProvider from '../context/TrocasAdminProvider';
 import TrocasAdmin from './TrocasAdmin';
 import TrocaAdminDetalhe from './TrocaAdminDetalhe';
+import ConfiguracoesTroca from './ConfiguracoesTroca';
 
 export default function LojaDashboard() {
   const { token, sair } = useAuth();
@@ -38,6 +39,7 @@ export default function LojaDashboard() {
       <Route path="/relatorios" element={<Relatorios />} />
       <Route path="/trocas" element={<TrocasAdmin />} />
       <Route path="/trocas/:id" element={<TrocaAdminDetalhe />} />
+      <Route path="/configuracoes" element={<ConfiguracoesTroca />} />
     </Routes></TrocasAdminProvider>
   );
 }

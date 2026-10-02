@@ -37,7 +37,7 @@
 .trocas-back { display: inline-block; color: var(--brand); text-decoration: none; font-size: 13px; margin-bottom: 16px; }
 .trocas-box { background: var(--bg-base); border: 1px solid #F5F5F414; border-radius: 18px; padding: 24px; margin-bottom: 24px; }
 .trocas-muted { color: var(--text-secondary); font-size: 12px; line-height: 1.7; margin: 0 0 20px; }
-.trocas-galeria { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 14px; }
+.trocas-galeria { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 14px; }
 .trocas-galeria figure { margin: 0; }
 .trocas-galeria button { width: 100%; height: 165px; padding: 0; border: 1px solid #F5F5F41a; border-radius: 12px; background: var(--bg-surface-2); cursor: zoom-in; overflow: hidden; }
 .trocas-galeria img { width: 100%; height: 100%; object-fit: cover; }
@@ -61,6 +61,13 @@
 .trocas-acoes textarea { resize: vertical; }
 .trocas-erro { color: var(--bg-surface-2); border: 1px solid #F5A5242f; background: #F5A52410; padding: 16px; border-radius: 12px; font-size: 13px; margin-top: 16px; }
 .trocas-sucesso { color: var(--text-secondary); font-size: 13px; line-height: 1.6; margin-top: 20px; }
+.config-troca-itens { display: grid; gap: 12px; }
+.config-troca-item { display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; align-items: center; gap: 12px; color: var(--text-secondary); font-size: 12px; }
+.config-troca-item input { width: 100%; min-height: 44px; padding: 12px 14px; color: var(--text-primary); background: var(--bg-surface-2); border: 1px solid #F5F5F41c; border-radius: 10px; font: inherit; }
+.config-troca-item button { min-width: 44px; padding: 10px; }
+.config-troca-item button svg, .config-troca-acoes svg { width: 16px; height: 16px; }
+.config-troca-acoes { display: flex; justify-content: space-between; gap: 12px; margin-top: 20px; }
+.config-troca-acoes button { display: inline-flex; align-items: center; gap: 8px; }
 .troca-timeline { list-style: none; padding: 0 0 0 24px; margin: 20px 0; border-left: 1px solid #F5F5F422; }
 .troca-timeline li { position: relative; padding: 0 0 28px; }
 .troca-timeline li:last-child { padding-bottom: 0; }
@@ -95,6 +102,10 @@
   .trocas-box { padding: 20px; }
   .trocas-galeria { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .trocas-galeria button, .trocas-foto-ausente { height: 140px; }
+  .config-troca-item { grid-template-columns: minmax(0,1fr) auto; }
+  .config-troca-item span { grid-column: 1 / -1; }
+  .config-troca-acoes { flex-direction: column; }
+  .config-troca-acoes button { width: 100%; }
   .troca-acomp-header { padding: 20px; }
   .troca-acomp-main { width: calc(100% - 28px); padding-top: 30px; }
   .troca-acomp-oferta a { width: 100%; margin-left: 0; }

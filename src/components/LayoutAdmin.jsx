@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/auth';
 import { useTrocasAdmin } from '../context/trocasAdmin';
 import {
-  HomeIcon, ShoppingBagIcon, DocumentTextIcon,
+  HomeIcon, ShoppingBagIcon, DocumentTextIcon, Cog6ToothIcon,
   ChartBarIcon, ArrowDownTrayIcon, ArrowTopRightOnSquareIcon,
   Bars3Icon, XMarkIcon, ArrowRightStartOnRectangleIcon, ArrowsRightLeftIcon
 } from '@heroicons/react/24/outline';
@@ -14,6 +14,7 @@ const MENU = [
   { path: 'importar', icon: ArrowDownTrayIcon,  label: 'Novo Produto',desc: 'Adicionar produto' },
   { path: 'pedidos',  icon: DocumentTextIcon,   label: 'Pedidos',     desc: 'Acompanhar vendas' },
   { path: 'trocas', icon: ArrowsRightLeftIcon, label: 'Trocas', desc: 'Avaliar aparelhos' },
+  { path: 'configuracoes', icon: Cog6ToothIcon, label: 'Configurações', desc: 'Configurar a troca' },
   { path: 'relatorios',icon: ChartBarIcon,      label: 'Relatórios',  desc: 'Dados gerenciais' },
 ];
 

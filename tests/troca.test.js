@@ -33,7 +33,7 @@ test('modelos usam o catálogo e não misturam cores entre capacidades', () => {
   assert.deepEqual(opcoesDoModelo(null), { capacidades: [], cores: [] });
 });
 
-test('envio usa multipart com as cinco chaves da API e os dados de contato', () => {
+test('envio usa multipart com as seis chaves da API e os dados de contato', () => {
   const fotos = Object.fromEntries(FOTOS_TROCA.map(({ campo }) => [campo, new File(['foto'], `${campo}.png`, { type: 'image/png' })]));
   const payload = dadosParaEnvio({ modeloAparelho: 'iPhone 15', capacidade: '128GB', cor: 'Azul', imei: '490154203237518',
     descricaoEstado: ' Bom estado ', nome: ' Cliente ', email: 'cliente@example.com', telefone: '11999999999', fotos });
@@ -44,5 +44,5 @@ test('envio usa multipart com as cinco chaves da API e os dados de contato', () 
     assert.equal(payload.get(campo).name, `${campo}.png`);
     assert.equal(payload.get(campo).type, 'image/png');
   }
-  assert.equal([...payload.keys()].length, 13);
+  assert.equal([...payload.keys()].length, 14);
 });

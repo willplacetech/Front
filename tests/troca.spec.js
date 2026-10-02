@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { Buffer } from 'node:buffer';
 
-const CAMPOS = ['frontal', 'superior', 'inferior', 'lateralEsq', 'lateralDir'];
+const CAMPOS = ['frontal', 'traseira', 'superior', 'inferior', 'lateralEsq', 'lateralDir'];
 const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=', 'base64');
 const ARQUIVO = { name: 'aparelho.png', mimeType: 'image/png', buffer: PNG };
 const PRODUTOS = [{ _id: 'iphone15', nome: 'iPhone 15', marca: 'Apple', categoria: 'iPhones Lacrados', precoAPartir: 3500, cores: ['Azul', 'Preto'], capacidades: ['128GB', '256GB'], variants: [
@@ -16,6 +16,7 @@ async function preparar(page, { user = null, falhaEnvio = 0 } = {}) {
     if (caminho === '/api/produtos') return route.fulfill({ json: PRODUTOS });
     if (caminho === '/api/filtros') return route.fulfill({ json: { modelos: ['iPhone 15', 'iPhone 14'] } });
     if (caminho === '/api/auth/me') return route.fulfill({ json: { user } });
+    if (caminho === '/api/troca/configuracoes') return route.fulfill({ json: { checklist: ['Remova a capinha antes das fotos'] } });
     if (caminho === '/api/troca') {
       enviados.push(route.request().postDataBuffer().toString());
       return falhaEnvio ? route.fulfill({ status: falhaEnvio, json: { error: falhaEnvio === 409 ? 'Já existe uma solicitação para este IMEI' : 'Não foi possível processar as fotos. Tente novamente.' } })
@@ -38,7 +39,7 @@ async function aparelho(page) {
 
 async function fotos(page) {
   for (const campo of CAMPOS) await page.locator(`#foto-${campo}`).setInputFiles(ARQUIVO);
-  await expect(page.getByText('5 de 5 fotos adicionadas')).toBeVisible();
+  await expect(page.getByText('6 de 6 fotos adicionadas')).toBeVisible();
   await page.getByRole('button', { name: 'Continuar', exact: true }).click();
   await expect(page.getByText('Passo 3 de 4')).toBeVisible();
 }
@@ -56,7 +57,7 @@ async function contato(page) {
   await page.locator('#telefone').fill('(11) 99999-9999');
 }
 
-test('visitante percorre os quatro passos, revisa, envia cinco arquivos e recebe protocolo real', async ({ page }) => {
+test('visitante percorre os quatro passos, revisa, envia seis arquivos e recebe protocolo real', async ({ page }) => {
   const enviados = await preparar(page);
   const erros = [];
   page.on('pageerror', error => erros.push(error.message));
@@ -67,7 +68,8 @@ test('visitante percorre os quatro passos, revisa, envia cinco arquivos e recebe
   await confirmar(page);
   await page.screenshot({ path: test.info().outputPath('troca-confirmacao.png'), fullPage: true });
   await expect(page.getByRole('definition').filter({ hasText: '490154203237518' })).toBeVisible();
-  await expect(page.locator('.troca-summary-photos img')).toHaveCount(5);
+  await expect(page.locator('.troca-summary-photos img')).toHaveCount(6);
+  await expect(page.getByRole('region', { name: 'Checklist da troca' })).toContainText('Remova a capinha antes das fotos');
   await page.getByRole('button', { name: 'Enviar para avaliação' }).click();
   await expect(page.getByText('Informe seu nome.', { exact: true })).toBeVisible();
   expect(enviados).toHaveLength(0);
@@ -100,12 +102,12 @@ test('bloqueia modelo fora do catálogo, campos vazios, foto ausente e IMEI inv�
   await expect(page.getByText('Selecione um modelo da lista do catálogo.')).toBeVisible();
   await aparelho(page);
   for (const campo of CAMPOS.slice(0, 4)) await page.locator(`#foto-${campo}`).setInputFiles(ARQUIVO);
-  await expect(page.getByText('4 de 5 fotos adicionadas')).toBeVisible();
+  await expect(page.getByText('4 de 6 fotos adicionadas')).toBeVisible();
   await page.getByRole('button', { name: 'Continuar', exact: true }).click();
   await expect(page.getByText('Passo 2 de 4')).toBeVisible();
   await expect(page.getByText('Adicione uma foto deste ângulo.', { exact: true })).toBeVisible();
   await page.locator('#foto-lateralDir').setInputFiles(ARQUIVO);
-  await expect(page.getByText('5 de 5 fotos adicionadas')).toBeVisible();
+  await expect(page.getByText('5 de 6 fotos adicionadas')).toBeVisible();
   await page.getByRole('button', { name: 'Continuar', exact: true }).click();
   await expect(page.getByText('Passo 3 de 4')).toBeVisible();
   await expect(page.locator('.troca-imei-tip')).toContainText('Como obter o IMEI: abra o app Telefone, digite *#06# no teclado e ligue. O número aparecerá na tela.');
@@ -132,12 +134,12 @@ test('valida tipo, tamanho e assinatura; permite arrastar, substituir e remover 
     return dados;
   }, [...PNG]);
   await page.locator('label[for="foto-frontal"]').dispatchEvent('drop', { dataTransfer: transferencia });
-  await expect(page.getByText('1 de 5 fotos adicionadas')).toBeVisible();
+  await expect(page.getByText('1 de 6 fotos adicionadas')).toBeVisible();
   await expect(page.locator('.troca-photo-slot').first().locator('img')).toHaveAttribute('src', /^blob:/);
   await page.locator('#foto-frontal').setInputFiles(ARQUIVO);
   await expect(page.locator('.troca-file-detail').first()).toContainText('aparelho.png');
   await page.getByRole('button', { name: 'Remover foto: Frente (tela)' }).click();
-  await expect(page.getByText('0 de 5 fotos adicionadas')).toBeVisible();
+  await expect(page.getByText('0 de 6 fotos adicionadas')).toBeVisible();
 });
 
 test('voltar preserva dados e mudar modelo limpa capacidade e cor dependentes', async ({ page }) => {
@@ -146,7 +148,7 @@ test('voltar preserva dados e mudar modelo limpa capacidade e cor dependentes', 
   await fotos(page);
   await confirmar(page);
   await page.getByRole('button', { name: 'Editar fotos', exact: true }).click();
-  await expect(page.getByText('5 de 5 fotos adicionadas')).toBeVisible();
+  await expect(page.getByText('6 de 6 fotos adicionadas')).toBeVisible();
   await page.getByRole('button', { name: 'Continuar', exact: true }).click();
   await expect(page.locator('#imei')).toHaveValue('490154203237518');
   await expect(page.locator('#descricaoEstado')).toHaveValue('Tela sem riscos. Bateria com 87%. Acompanha caixa.');
@@ -181,7 +183,7 @@ test('falha no envio preserva revisão e não exibe sucesso', async ({ page }) =
   await page.getByRole('button', { name: 'Enviar para avaliação' }).click();
   await expect(page.getByText('Não foi possível processar as fotos. Tente novamente.')).toBeVisible();
   await expect(page.getByText('Passo 4 de 4')).toBeVisible();
-  await expect(page.locator('.troca-summary-photos img')).toHaveCount(5);
+  await expect(page.locator('.troca-summary-photos img')).toHaveCount(6);
   await expect(page.getByRole('heading', { name: 'Agora é com a Placetech.' })).toBeHidden();
 });
 

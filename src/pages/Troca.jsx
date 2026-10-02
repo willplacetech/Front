@@ -14,7 +14,7 @@ import { lembrarTroca, retornoDaComparacao } from '../utils/comparar';
 
 const PASSOS = [
   { titulo: 'Aparelho', chamada: 'Qual aparelho você quer trocar?', texto: 'Encontre seu modelo e conte um pouco sobre ele.', icon: DevicePhoneMobileIcon },
-  { titulo: 'Fotos', chamada: 'Vamos olhar de todos os ângulos.', texto: 'Adicione as cinco fotos para uma avaliação mais precisa.', icon: CameraIcon },
+  { titulo: 'Fotos', chamada: 'Vamos olhar de todos os ângulos.', texto: 'Adicione as seis fotos para uma avaliação mais precisa.', icon: CameraIcon },
   { titulo: 'Descrição e IMEI', chamada: 'Os detalhes fazem a diferença.', texto: 'Conte sobre o estado do aparelho e informe seu IMEI.', icon: ClipboardDocumentCheckIcon },
   { titulo: 'Confirmação', chamada: 'Tudo pronto para a avaliação.', texto: 'Confira seu aparelho, as fotos e os dados para contato.', icon: CheckCircleIcon }
 ];
@@ -31,6 +31,7 @@ export default function Troca() {
   const { user, token, carregandoUsuario, erroUsuario, recarregarUsuario, sair } = useAuth();
   const [passo, setPasso] = useState(0);
   const [catalogo, setCatalogo] = useState({ modelos: [], carregando: true, erro: '' });
+  const [checklist, setChecklist] = useState({ itens: [], erro: '' });
   const [tentativa, setTentativa] = useState(0);
   const [enviando, setEnviando] = useState(false);
   const [progresso, setProgresso] = useState(0);
@@ -60,6 +61,17 @@ export default function Troca() {
     });
     return () => controle.abort();
   }, [tentativa]);
+
+  useEffect(() => {
+    const controle = new AbortController();
+    api.get('/troca/configuracoes', { signal: controle.signal }).then(({ data }) => {
+      setChecklist({ itens: Array.isArray(data.checklist) ? data.checklist : [], erro: '' });
+    }).catch(error => {
+      if (!controle.signal.aborted) setChecklist({ itens: [],
+        erro: error.response?.data?.error || 'Não foi possível carregar as orientações da troca.' });
+    });
+    return () => controle.abort();
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -199,7 +211,7 @@ export default function Troca() {
               <section className="troca-panel" hidden={passo !== 1} aria-label="Fotos do aparelho">
                 <div className="troca-photo-instructions"><p>Use boa iluminação e enquadre todo o aparelho. Os desenhos mostram o ângulo de cada foto.</p>
                   <span>JPEG, PNG ou WebP · até 5 MB por foto</span></div>
-                <div className="troca-photo-counter" aria-live="polite"><CameraIcon /><strong>{totalFotos} de 5 fotos adicionadas</strong><span>Todas obrigatórias</span></div>
+                <div className="troca-photo-counter" aria-live="polite"><CameraIcon /><strong>{totalFotos} de 6 fotos adicionadas</strong><span>Todas obrigatórias</span></div>
                 <div className="troca-photo-grid">{FOTOS_TROCA.map(foto => <Controller key={foto.campo} control={control} name={`fotos.${foto.campo}`}
                   rules={{ validate: validarFoto }} render={({ field, fieldState }) => <FotoSlot foto={foto} arquivo={field.value} nome={field.name}
                     inputRef={field.ref} onBlur={field.onBlur} onChange={valor => { field.onChange(valor); if (valor) trigger(field.name); }} erro={fieldState.error?.message} />} />)}</div>
@@ -225,6 +237,11 @@ export default function Troca() {
                 <div className="troca-summary-header"><h3>Fotos para avaliação</h3><button type="button" onClick={() => mudarPasso(1)}>Editar fotos</button></div>
                 <div className="troca-summary-photos">{FOTOS_TROCA.map(({ campo, label }) => <figure key={campo}>
                   {fotos[campo] && <FotoPreview arquivo={fotos[campo]} label={label} />}<figcaption>{label}</figcaption></figure>)}</div>
+                {(checklist.itens.length > 0 || checklist.erro) && <section className="troca-checklist" aria-label="Checklist da troca">
+                  <h3>Checklist da troca</h3>
+                  {checklist.erro ? <p className="troca-help" role="status">{checklist.erro}</p> :
+                    <ul>{checklist.itens.map((item, indice) => <li key={`${indice}-${item}`}>{item}</li>)}</ul>}
+                </section>}
                 <div className="troca-contact"><h3>Dados para contato</h3><p>{user ? 'Preenchemos seus dados de perfil. Confira antes de enviar.' : 'Informe seus dados para receber nossa avaliação.'}</p>
                   {carregandoUsuario && <p className="troca-notice" role="status">Carregando seus dados de perfil…</p>}
                   {erroUsuario && <div className="troca-notice troca-notice-error" role="alert"><p>{erroUsuario}</p>

@@ -25,6 +25,7 @@ async function preparar(page, { oferta = 1500, falhaTroca = false, logado = fals
     if (caminho.startsWith('/api/produtos/')) return route.fulfill({ json: produtos.find(p => caminho.endsWith(p._id)) });
     if (caminho === '/api/filtros') return route.fulfill({ json: {} });
     if (caminho === '/api/auth/me') return route.fulfill({ json: { user: { nome: 'Cliente', email: 'cliente@example.com', telefone: '11999999999' } } });
+    if (caminho === '/api/troca/configuracoes') return route.fulfill({ json: { checklist: [] } });
     if (caminho === '/api/troca/mid') return route.fulfill({ json: [{ _id: ID, modeloAparelho: 'iPhone 14', cor: 'Azul', capacidade: '128GB', status: 'aprovado', valorOferta: 1500 }] });
     if (caminho === '/api/troca') return route.fulfill({ status: 201, json: { sucesso: true, id: ID, protocolo: ID, status: 'pendente', acessoToken: 'segredo' } });
     if (caminho === `/api/troca/${ID}`) return route.fulfill({ status: falhaTroca ? 404 : 200, json: falhaTroca ? { error: 'Solicitação não encontrada' } : {
@@ -104,7 +105,7 @@ test('seleção na hora permite comparar e retorna ao cadastro sem perder varian
   await expect(page.locator('#cor')).toHaveValue('Azul');
   await page.getByRole('button', { name: 'Continuar', exact: true }).click();
   const arquivo = { name: 'foto.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=', 'base64') };
-  for (const campo of ['frontal', 'superior', 'inferior', 'lateralEsq', 'lateralDir']) await page.locator(`#foto-${campo}`).setInputFiles(arquivo);
+  for (const campo of ['frontal', 'traseira', 'superior', 'inferior', 'lateralEsq', 'lateralDir']) await page.locator(`#foto-${campo}`).setInputFiles(arquivo);
   await page.getByRole('button', { name: 'Continuar', exact: true }).click();
   await expect(page.locator('#descricaoEstado')).toHaveValue('Sem riscos');
   await page.locator('#imei').fill('490154203237518');

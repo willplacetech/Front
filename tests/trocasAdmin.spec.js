@@ -4,16 +4,22 @@ const ID = '012345678901234567890123';
 const FOTO = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=', 'base64');
 
 async function preparar(page, { admin = true, autenticado = true } = {}) {
+  let checklist = ['Remova a capinha antes de fotografar'];
   let troca = { _id: ID, nome: 'Cliente teste', email: 'cliente@example.com', telefone: '11999999999',
     modeloAparelho: 'iPhone 15', cor: 'Azul', capacidade: '128GB', imei: '490154203237518', descricaoEstado: 'Tela sem riscos',
     createdAt: '2026-10-02T10:00:00Z', status: 'pendente', valorOferta: null, motivoRejeicao: '',
-    fotos: Object.fromEntries(['frontal', 'superior', 'inferior', 'lateralEsq', 'lateralDir'].map(c => [c, `https://fotos.test/${c}.png`])),
+    fotos: Object.fromEntries(['frontal', 'traseira', 'superior', 'inferior', 'lateralEsq', 'lateralDir'].map(c => [c, `https://fotos.test/${c}.png`])),
     historico: [{ status: 'pendente', data: '2026-10-02T10:00:00Z' }] };
   const alteracoes = [];
   if (autenticado) await page.addInitScript(() => localStorage.setItem('catalogo_admin_token', 'token-teste'));
   await page.route('https://fotos.test/**', r => r.fulfill({ contentType: 'image/png', body: FOTO }));
   await page.route('**/api/**', async route => {
     const caminho = new URL(route.request().url()).pathname;
+    if (caminho === '/api/troca/configuracoes' && route.request().method() === 'GET') return route.fulfill({ json: { checklist } });
+    if (caminho === '/api/troca/configuracoes' && route.request().method() === 'PUT') {
+      checklist = route.request().postDataJSON().checklist;
+      return route.fulfill({ json: { sucesso: true, checklist } });
+    }
     if (caminho === '/api/auth/me') return route.fulfill({ json: { user: admin ? null : { nome: 'Cliente teste', email: 'cliente@example.com', telefone: '11999999999' } } });
     if (caminho === '/api/auth/admin') return route.fulfill({ status: admin ? 200 : 403, json: admin ? { admin: true } : { error: 'Acesso exclusivo de administrador' } });
     if (caminho === `/api/troca/${ID}/status`) {
@@ -30,6 +36,17 @@ async function preparar(page, { admin = true, autenticado = true } = {}) {
   return alteracoes;
 }
 
+test('admin gerencia checklist exibido ao cliente durante a troca', async ({ page }) => {
+  await preparar(page);
+  await page.goto('/loja/configuracoes');
+  await expect(page.getByRole('heading', { name: 'Checklist do cliente' })).toBeVisible();
+  await expect(page.getByLabel('Item 1')).toHaveValue('Remova a capinha antes de fotografar');
+  await page.getByRole('button', { name: 'Adicionar item' }).click();
+  await page.getByLabel('Item 2').fill('Envie fotos com boa iluminação');
+  await page.getByRole('button', { name: 'Salvar checklist' }).click();
+  await expect(page.getByRole('status')).toContainText('já está disponível no cadastro do cliente');
+});
+
 test('admin vê contador, galeria com zoom, muda status e exporta filtro', async ({ page }) => {
   const alteracoes = await preparar(page);
   await page.goto('/loja/trocas');
@@ -38,7 +55,7 @@ test('admin vê contador, galeria com zoom, muda status e exporta filtro', async
   await expect(page.getByRole('link', { name: /Trocas \(1\)/ }).filter({ visible: true })).toBeVisible();
   if (test.info().project.name === 'mobile') await page.getByRole('link', { name: /Trocas \(1\)/ }).filter({ visible: true }).click();
   await page.getByRole('link', { name: `Abrir troca ${ID}` }).click();
-  await expect(page.locator('.trocas-galeria img')).toHaveCount(5);
+  await expect(page.locator('.trocas-galeria img')).toHaveCount(6);
   await page.getByRole('button', { name: 'Ampliar Frente (tela)' }).click();
   await expect(page.getByRole('dialog', { name: 'Foto ampliada' })).toBeVisible();
   await page.keyboard.press('Escape');

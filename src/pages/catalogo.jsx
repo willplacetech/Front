@@ -185,7 +185,8 @@ export default function Catalogo() {
                     <span className="badge">{badge}</span>
                     <Link to={detalhe} className="variant-card-link" aria-label={`Ver variantes de ${prod.nome}`}>
                     <div className="img-wrap">
-                      {renderImagemProduto(prod.imagem, prod.nome, prod.categoria, { height: '180px', width: '100%' })}
+                      {renderImagemProduto(prod.variants?.flatMap(variante => variante.imagens || [])[0] || prod.imagem || prod.galeria?.[0],
+                        prod.nome, prod.categoria, { height: '180px', width: '100%' })}
                     </div>
                     <h3>{prod.nome}</h3>
                     </Link>

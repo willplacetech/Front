@@ -40,7 +40,7 @@ export default function ProdutoDetalhe() {
 
   const produto = resultado.id === id ? resultado.produto : null;
   const variante = produto?.variants.find(v => v.cor === cor && v.capacidade === capacidade);
-  const imagens = variante?.imagens?.length ? variante.imagens : [produto?.imagem].filter(Boolean);
+  const imagens = variante?.imagens?.length ? variante.imagens : [...(produto?.galeria || []), produto?.imagem].filter(Boolean);
   const imagem = imagens.includes(imagemAtiva) ? imagemAtiva : imagens[0];
   const quantidadeNoCarrinho = itens.find(item => item._id === `${produto?._id}:${variante?._id}`)?.quantidade || 0;
   const podeAdicionar = variante && varianteDisponivel(variante) &&

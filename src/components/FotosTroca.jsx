@@ -24,6 +24,13 @@ function ExemploAngulo({ campo, label }) {
         <rect x="71" y="14" width="38" height="76" rx="5" fill="currentColor" fillOpacity=".05" />
         <path d="M82 18h16M83 85h14" strokeLinecap="round" />
         <path d="m83 49 5 5 10-10" strokeLinecap="round" />
+      </> : campo === 'traseira' ? <>
+        <rect x="66" y="9" width="48" height="86" rx="9" />
+        <circle cx="80" cy="25" r="5" />
+        <circle cx="96" cy="25" r="5" />
+        <circle cx="80" cy="41" r="5" />
+        <circle cx="101" cy="48" r="2" />
+        <path d="M82 83h16" strokeLinecap="round" />
       </> : horizontal ? <>
         <rect x="30" y="39" width="120" height="25" rx="10" />
         {campo === 'inferior' ? <><rect x="79" y="47" width="22" height="9" rx="3" />

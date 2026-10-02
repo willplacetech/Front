@@ -191,7 +191,8 @@ export default function Troca() {
                   <span>JPEG, PNG ou WebP · até 5 MB por foto</span></div>
                 <div className="troca-photo-counter" aria-live="polite"><CameraIcon /><strong>{totalFotos} de 5 fotos adicionadas</strong><span>Todas obrigatórias</span></div>
                 <div className="troca-photo-grid">{FOTOS_TROCA.map(foto => <Controller key={foto.campo} control={control} name={`fotos.${foto.campo}`}
-                  rules={{ validate: validarFoto }} render={({ field, fieldState }) => <FotoSlot foto={foto} field={field} erro={fieldState.error?.message} />} />)}</div>
+                  rules={{ validate: validarFoto }} render={({ field, fieldState }) => <FotoSlot foto={foto} arquivo={field.value} nome={field.name}
+                    inputRef={field.ref} onBlur={field.onBlur} onChange={field.onChange} erro={fieldState.error?.message} />} />)}</div>
               </section>
               <section className="troca-panel" hidden={passo !== 2} aria-label="Descrição e IMEI">
                 <label className="troca-field" htmlFor="descricaoEstado">Descreva o estado do aparelho (arranhões, bateria, acessórios...)

@@ -40,7 +40,7 @@ function ExemploAngulo({ campo, label }) {
   </svg>;
 }
 
-export default function FotoSlot({ foto, field, erro }) {
+export default function FotoSlot({ foto, arquivo: fotoAtual, nome, inputRef, onBlur, onChange, erro }) {
   const [arrastando, setArrastando] = useState(false);
   const [verificando, setVerificando] = useState(false);
   const [erroArquivo, setErroArquivo] = useState('');
@@ -51,7 +51,7 @@ export default function FotoSlot({ foto, field, erro }) {
 
   const receber = async arquivos => {
     const atual = ++versao.current;
-    field.onChange(null);
+    onChange(null);
     setErroArquivo('');
     if (arquivos.length !== 1) {
       setVerificando(false);
@@ -64,31 +64,31 @@ export default function FotoSlot({ foto, field, erro }) {
     if (atual !== versao.current) return;
     setVerificando(false);
     if (resultado !== true) setErroArquivo(resultado);
-    else field.onChange(arquivo);
+    else onChange(arquivo);
   };
 
   const remover = () => {
     versao.current++;
-    field.onChange(null);
+    onChange(null);
     setVerificando(false);
     setErroArquivo('');
   };
 
   return <div className={`troca-photo-slot ${mensagem ? 'has-error' : ''}`}>
     <div className="troca-photo-title"><span>{foto.label} <span aria-hidden="true">*</span></span>
-      {field.value && <CheckCircleIcon aria-label="Foto adicionada" />}
+      {fotoAtual && <CheckCircleIcon aria-label="Foto adicionada" />}
     </div>
-    <label htmlFor={id} className={`troca-dropzone ${arrastando ? 'is-dragging' : ''} ${field.value ? 'has-photo' : ''}`}
+    <label htmlFor={id} className={`troca-dropzone ${arrastando ? 'is-dragging' : ''} ${fotoAtual ? 'has-photo' : ''}`}
       onDragEnter={event => { event.preventDefault(); profundidade.current++; setArrastando(true); }}
       onDragOver={event => { event.preventDefault(); event.dataTransfer.dropEffect = 'copy'; }}
       onDragLeave={event => { event.preventDefault(); profundidade.current--; if (profundidade.current <= 0) setArrastando(false); }}
       onDrop={event => { event.preventDefault(); profundidade.current = 0; setArrastando(false); receber(event.dataTransfer.files); }}>
       <input id={id} className="troca-file-input" type="file" accept="image/jpeg,image/png,image/webp"
-        name={field.name} ref={field.ref} onBlur={field.onBlur} aria-required="true" aria-invalid={Boolean(mensagem)}
+        name={nome} ref={inputRef} onBlur={onBlur} aria-required="true" aria-invalid={Boolean(mensagem)}
         aria-describedby={`${id}-hint${mensagem ? ` ${id}-error` : ''}`}
         onChange={event => { if (event.target.files.length) receber(event.target.files); event.target.value = ''; }} />
-      {field.value ? <>
-        <FotoPreview arquivo={field.value} label={foto.label} />
+      {fotoAtual ? <>
+        <FotoPreview arquivo={fotoAtual} label={foto.label} />
         <span className="troca-replace"><ArrowUpTrayIcon /> Trocar foto</span>
       </> : <>
         <ExemploAngulo campo={foto.campo} label={foto.label} />
@@ -97,7 +97,7 @@ export default function FotoSlot({ foto, field, erro }) {
       </>}
     </label>
     <p id={`${id}-hint`} className="troca-photo-hint">{foto.dica}</p>
-    {field.value && <div className="troca-file-detail"><span title={field.value.name}>{field.value.name}</span>
+    {fotoAtual && <div className="troca-file-detail"><span title={fotoAtual.name}>{fotoAtual.name}</span>
       <button type="button" onClick={remover} aria-label={`Remover foto: ${foto.label}`}><XMarkIcon /></button>
     </div>}
     {mensagem && <p className="troca-error" id={`${id}-error`} role="alert">{mensagem}</p>}

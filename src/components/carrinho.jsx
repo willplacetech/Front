@@ -101,14 +101,14 @@ export default function Carrinho({ aberto, fechar }) {
         }}
       />
 
-      <div role="dialog" aria-modal="true" aria-label="Seu carrinho" style={{
+      <div className="pt-cart" role="dialog" aria-modal="true" aria-label="Seu carrinho" style={{
         position: 'fixed',
         top: 0,
         right: 0,
-        height: '100vh',
-        width: '440px',
+        height: '100dvh',
+        width: 'min(440px, 100vw)',
         maxWidth: '100vw',
-        background: 'linear-gradient(180deg, #121212 0%, #0b0b0b 100%)',
+        background: 'var(--bg-surface)',
         zIndex: 9999,
         boxShadow: '-18px 0 60px rgba(0,0,0,0.5)',
         display: 'flex',
@@ -117,11 +117,11 @@ export default function Carrinho({ aberto, fechar }) {
       }}>
         <div style={{
           padding: '18px 22px',
-          background: 'linear-gradient(180deg, #f5a400 0%, #e89d00 100%)',
+          background: 'var(--bg-surface)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          boxShadow: '0 12px 28px rgba(245,164,0,0.18)'
+          borderBottom: '1px solid var(--border)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{
@@ -133,15 +133,16 @@ export default function Carrinho({ aberto, fechar }) {
               alignItems: 'center',
               justifyContent: 'center'
             }}>
-              <ShoppingCartIcon style={{ width: 20, height: 20, color: '#111' }} />
+              <ShoppingCartIcon style={{ width: 20, height: 20, color: 'var(--text-primary)' }} />
             </div>
             <div>
-              <div style={{ fontSize: 11, fontWeight: 800, color: '#111', letterSpacing: '1.2px', textTransform: 'uppercase', opacity: 0.8 }}>Carrinho</div>
-              <h4 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: '#111', letterSpacing: '-0.8px' }}>Meu pedido</h4>
+              <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '1.2px', textTransform: 'uppercase', opacity: 0.8 }}>Carrinho</div>
+              <h4 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', letterSpacing: '-0.8px' }}>Meu pedido</h4>
             </div>
           </div>
 
           <button
+            aria-label="Fechar carrinho"
             onClick={fechar}
             style={{
               border: 'none',
@@ -155,7 +156,7 @@ export default function Carrinho({ aberto, fechar }) {
               justifyContent: 'center'
             }}
           >
-            <XMarkIcon style={{ width: 20, height: 20, color: '#111' }} />
+            <XMarkIcon style={{ width: 20, height: 20, color: 'var(--text-primary)' }} />
           </button>
         </div>
 
@@ -164,14 +165,14 @@ export default function Carrinho({ aberto, fechar }) {
             <div style={{
               textAlign: 'center',
               padding: '60px 20px 30px',
-              color: '#cfcfc8',
+              color: 'var(--text-secondary)',
               border: '1px dashed rgba(255,255,255,0.12)',
               borderRadius: 22,
               background: 'rgba(255,255,255,0.02)'
             }}>
-              <ShoppingCartIcon style={{ width: 52, height: 52, margin: '0 auto 18px', color: '#8d8a83' }} />
-              <div style={{ fontSize: 18, fontWeight: 700, color: '#f7f7f3' }}>Seu carrinho está vazio</div>
-              <div style={{ marginTop: 8, color: '#a3a29d' }}>Adicione alguns itens para continuar.</div>
+              <ShoppingCartIcon style={{ width: 52, height: 52, margin: '0 auto 18px', color: 'var(--text-secondary)' }} />
+              <div style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>Seu carrinho está vazio</div>
+              <div style={{ marginTop: 8, color: 'var(--text-secondary)' }}>Adicione alguns itens para continuar.</div>
             </div>
           ) : (
             <>
@@ -203,14 +204,14 @@ export default function Carrinho({ aberto, fechar }) {
                           onError={(e) => { e.currentTarget.style.display = 'none'; }}
                         />
                       ) : (
-                        <ShoppingCartIcon style={{ width: 26, height: 26, color: '#f5a400' }} />
+                        <ShoppingCartIcon style={{ width: 26, height: 26, color: 'var(--brand)' }} />
                       )}
                     </div>
 
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 15, fontWeight: 700, color: '#f7f7f3', lineHeight: 1.3 }}>{item.nome}</div>
-                      {item.sku && <div style={{ marginTop: 4, fontSize: 11, color: '#a3a29d' }}>SKU: {item.sku}</div>}
-                      <div style={{ marginTop: 6, fontSize: 14, color: '#ffca56', fontWeight: 800 }}>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.3 }}>{item.nome}</div>
+                      {item.sku && <div style={{ marginTop: 4, fontSize: 11, color: 'var(--text-secondary)' }}>SKU: {item.sku}</div>}
+                      <div style={{ marginTop: 6, fontSize: 14, color: 'var(--brand)', fontWeight: 800 }}>
                         R$ {Number(item.precoPersonalizado || item.preco).toFixed(2).replace('.', ',')}
                       </div>
                     </div>
@@ -227,7 +228,7 @@ export default function Carrinho({ aberto, fechar }) {
                         style={{
                           border: 'none',
                           background: 'transparent',
-                          color: '#f7f7f3',
+                          color: 'var(--text-primary)',
                           width: 32,
                           height: 32,
                           cursor: 'pointer',
@@ -235,14 +236,14 @@ export default function Carrinho({ aberto, fechar }) {
                           fontWeight: 700
                         }}
                       >−</button>
-                      <span style={{ minWidth: 26, textAlign: 'center', fontWeight: 700, color: '#f7f7f3' }}>{item.quantidade}</span>
+                      <span style={{ minWidth: 26, textAlign: 'center', fontWeight: 700, color: 'var(--text-primary)' }}>{item.quantidade}</span>
                       <button
                         onClick={() => alterarQuantidade(item._id, item.quantidade + 1)}
                         disabled={item.estoque !== null && item.estoque !== undefined && item.quantidade >= item.estoque}
                         style={{
                           border: 'none',
                           background: 'transparent',
-                          color: '#f7f7f3',
+                          color: 'var(--text-primary)',
                           width: 32,
                           height: 32,
                           cursor: 'pointer',
@@ -262,41 +263,41 @@ export default function Carrinho({ aberto, fechar }) {
                 borderBottom: '1px solid rgba(255,255,255,0.08)'
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: 15, color: '#c8c5c1' }}>Subtotal</span>
-                  <span style={{ fontSize: 16, fontWeight: 700, color: '#f7f7f3' }}>R$ {total.toFixed(2).replace('.', ',')}</span>
+                  <span style={{ fontSize: 15, color: 'var(--text-secondary)' }}>Subtotal</span>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>R$ {total.toFixed(2).replace('.', ',')}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
-                  <span style={{ fontSize: 15, color: '#c8c5c1' }}>Entrega</span>
-                  <span style={{ fontSize: 16, fontWeight: 700, color: '#7de29c' }}>A combinar</span>
+                  <span style={{ fontSize: 15, color: 'var(--text-secondary)' }}>Entrega</span>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-secondary)' }}>A combinar</span>
                 </div>
-                {troca && <div style={{ marginTop: 16, color: '#ffca56' }}>
+                {troca && <div style={{ marginTop: 16, color: 'var(--brand)' }}>
                   <p>Troca associada: {troca.modeloAparelho} · {troca.capacidade} · {troca.cor}</p>
                   <p>Crédito de troca: {credito === null ? 'Em avaliação' : moeda(Math.min(total, credito))}</p>
                   <button type="button" className="variant-clear" onClick={() => associarTroca(null)}>Remover troca do pedido</button>
                 </div>}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 18 }}>
-                  <span style={{ fontSize: 18, fontWeight: 800, color: '#f7f7f3' }}>Total</span>
-                  <span style={{ fontSize: 30, fontWeight: 900, letterSpacing: '-1.2px', color: '#ffca56' }}>{moeda(totalComTroca)}</span>
+                  <span style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-primary)' }}>Total</span>
+                  <span style={{ fontSize: 30, fontWeight: 900, letterSpacing: '-1.2px', color: 'var(--brand)' }}>{moeda(totalComTroca)}</span>
                 </div>
               </div>
 
               <div style={{ marginTop: 22 }}>
                 <h5 style={{
                   margin: '0 0 16px',
-                  color: '#f7f7f3',
+                  color: 'var(--text-primary)',
                   fontSize: 18,
                   fontWeight: 800,
                   display: 'flex',
                   alignItems: 'center',
                   gap: 10
                 }}>
-                  <DocumentTextIcon style={{ width: 20, height: 20, color: '#ffca56' }} />
+                  <DocumentTextIcon style={{ width: 20, height: 20, color: 'var(--brand)' }} />
                   Dados do cliente
                 </h5>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <div style={{ position: 'relative' }}>
-                    <UserIcon style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', width: 18, height: 18, color: '#999' }} />
+                    <UserIcon style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', width: 18, height: 18, color: 'var(--text-secondary)' }} />
                     <input
                       type="text"
                       placeholder="Seu nome completo"
@@ -308,7 +309,7 @@ export default function Carrinho({ aberto, fechar }) {
                         borderRadius: 12,
                         border: '1px solid rgba(255,255,255,0.08)',
                         background: 'rgba(255,255,255,0.02)',
-                        color: '#f7f7f3',
+                        color: 'var(--text-primary)',
                         fontSize: 14,
                         outline: 'none'
                       }}
@@ -316,7 +317,7 @@ export default function Carrinho({ aberto, fechar }) {
                   </div>
 
                   <div style={{ position: 'relative' }}>
-                    <PhoneIcon style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', width: 18, height: 18, color: '#999' }} />
+                    <PhoneIcon style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', width: 18, height: 18, color: 'var(--text-secondary)' }} />
                     <input
                       type="text"
                       placeholder="Telefone com DDD"
@@ -329,7 +330,7 @@ export default function Carrinho({ aberto, fechar }) {
                         borderRadius: 12,
                         border: '1px solid rgba(255,255,255,0.08)',
                         background: 'rgba(255,255,255,0.02)',
-                        color: '#f7f7f3',
+                        color: 'var(--text-primary)',
                         fontSize: 14,
                         outline: 'none'
                       }}
@@ -337,7 +338,7 @@ export default function Carrinho({ aberto, fechar }) {
                   </div>
 
                   <div style={{ position: 'relative' }}>
-                    <MapPinIcon style={{ position: 'absolute', left: 14, top: 14, width: 18, height: 18, color: '#999' }} />
+                    <MapPinIcon style={{ position: 'absolute', left: 14, top: 14, width: 18, height: 18, color: 'var(--text-secondary)' }} />
                     <textarea
                       placeholder="Endereço completo"
                       value={endereco}
@@ -349,7 +350,7 @@ export default function Carrinho({ aberto, fechar }) {
                         borderRadius: 12,
                         border: '1px solid rgba(255,255,255,0.08)',
                         background: 'rgba(255,255,255,0.02)',
-                        color: '#f7f7f3',
+                        color: 'var(--text-primary)',
                         fontSize: 14,
                         resize: 'vertical',
                         outline: 'none'
@@ -366,20 +367,20 @@ export default function Carrinho({ aberto, fechar }) {
                   width: '100%',
                   marginTop: 22,
                   padding: '16px 18px',
-                  background: salvando ? '#555' : 'linear-gradient(180deg, #f5a400 0%, #e89d00 100%)',
-                  color: '#111',
+                  background: salvando ? 'var(--bg-surface-2)' : 'var(--brand)',
+                  color: 'var(--bg-base)',
                   border: 'none',
                   borderRadius: 16,
                   fontSize: 16,
                   fontWeight: 900,
                   cursor: salvando ? 'not-allowed' : 'pointer',
-                  boxShadow: '0 18px 40px rgba(245,164,0,0.22)'
+                  boxShadow: '0 18px 40px rgba(245,165,36,0.22)'
                 }}
               >
                 {salvando ? '⏳ Salvando pedido...' : '📲 Enviar via WhatsApp'}
               </button>
 
-              <p style={{ textAlign: 'center', fontSize: 12, color: '#96938d', margin: '12px 0 0' }}>
+              <p style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-secondary)', margin: '12px 0 0' }}>
                 Você será redirecionado para o WhatsApp com o pedido completo.
               </p>
             </>

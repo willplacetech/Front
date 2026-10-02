@@ -1,3 +1,4 @@
+import SiteHeader from '../components/SiteHeader';
 import { useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import api from '../services/api';
@@ -52,10 +53,10 @@ export default function ProdutoDetalhe() {
     setAviso(`${cor} · ${capacidade} adicionado ao carrinho.`);
   };
 
-  return <div className="variant-page"><div className="variant-page-inner">
+  return <div className="variant-page"><SiteHeader onCarrinho={() => setCarrinhoAberto(true)} /><div className="variant-page-inner">
     <nav className="variant-nav" aria-label="Navegação do produto">
       <Link to={voltar}>← Voltar ao catálogo</Link>
-      <button onClick={() => setCarrinhoAberto(true)}>Carrinho ({itens.reduce((total, item) => total + item.quantidade, 0)})</button>
+
     </nav>
     {!produto ? <p className="variant-status" role="status">{resultado.id === id && resultado.erro ? resultado.erro : 'Carregando modelo...'}</p> :
       <main className="variant-detail">

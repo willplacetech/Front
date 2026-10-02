@@ -1,3 +1,4 @@
+import SiteHeader from '../components/SiteHeader';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeftIcon, ArrowRightIcon, ArrowsRightLeftIcon, CheckIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/outline';
@@ -198,10 +199,7 @@ export default function Comparar() {
   };
 
   return <div className="comparar-page">
-    <header className="comparar-header"><div className="comparar-wrap">
-      <Link to="/" className="comparar-brand"><span className="comparar-mark" aria-hidden="true" /><span><em>place</em>tech</span></Link>
-      <nav aria-label="Navegação principal"><Link to="/#catalogo">Catálogo</Link><Link to="/troca">Trocar meu aparelho</Link></nav>
-    </div></header>
+    <SiteHeader />
     <main className="comparar-wrap comparar-main">
       <Link to="/#catalogo" className="comparar-back"><ArrowLeftIcon /> Voltar ao catálogo</Link>
       <div className="comparar-intro"><span className="comparar-eyebrow"><ArrowsRightLeftIcon /> COMPARE. ESCOLHA. EVOLUA.</span>

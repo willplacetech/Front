@@ -22,11 +22,11 @@ export default function Login() {
   };
 
   return (
-    <main style={{
+    <main className="pt-login" style={{
       minHeight: '100vh',
       display: 'grid',
       placeItems: 'center',
-      background: 'radial-gradient(circle at top, rgba(245,164,0,0.18), transparent 32%), linear-gradient(180deg, #090909 0%, #151515 100%)',
+      background: 'radial-gradient(circle at top, rgba(245,165,36,0.18), transparent 32%), var(--bg-surface)',
       padding: 24
     }}>
       <form onSubmit={enviar} style={{
@@ -41,24 +41,24 @@ export default function Login() {
         <div style={{ textAlign: 'center', marginBottom: 24 }}>
           <div style={{
             width: 52, height: 52, borderRadius: 16,
-            background: 'linear-gradient(135deg, #f5a400 0%, #e89d00 100%)',
-            color: '#111111', fontWeight: 900, fontSize: 24,
+            background: 'var(--brand)',
+            color: 'var(--bg-base)', fontWeight: 900, fontSize: 24,
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 16px 30px rgba(245,164,0,0.25)', marginBottom: 12
+            boxShadow: '0 16px 30px rgba(245,165,36,0.25)', marginBottom: 12
           }}>P</div>
-          <h1 style={{ fontSize: 28, marginBottom: 8, color: '#f7f7f3', fontWeight: 800 }}>Área administrativa</h1>
-          <p style={{ color: '#b8b3ae', marginBottom: 0 }}>Entre para gerenciar sua loja.</p>
+          <h1 style={{ fontSize: 28, marginBottom: 8, color: 'var(--text-primary)', fontWeight: 800 }}>Área administrativa</h1>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: 0 }}>Entre para gerenciar sua loja.</p>
         </div>
-        {erro && <p role="alert" style={{ color: '#fca5a5', background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.18)', padding: '10px 12px', borderRadius: '10px', marginBottom: 16 }}>{erro}</p>}
-        <label style={{ display: 'block', marginBottom: 16, color: '#ddd8d3', fontWeight: 600 }}>
+        {erro && <p role="alert" style={{ color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.18)', padding: '10px 12px', borderRadius: '10px', marginBottom: 16 }}>{erro}</p>}
+        <label style={{ display: 'block', marginBottom: 16, color: 'var(--text-secondary)', fontWeight: 600 }}>
           Usuário
-          <input required value={usuario} onChange={(event) => setUsuario(event.target.value)} style={{ display: 'block', width: '100%', marginTop: 8, padding: '12px 14px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)', color: '#f7f7f3', outline: 'none' }} />
+          <input required value={usuario} onChange={(event) => setUsuario(event.target.value)} style={{ display: 'block', width: '100%', marginTop: 8, padding: '12px 14px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)', color: 'var(--text-primary)', outline: 'none' }} />
         </label>
-        <label style={{ display: 'block', marginBottom: 24, color: '#ddd8d3', fontWeight: 600 }}>
+        <label style={{ display: 'block', marginBottom: 24, color: 'var(--text-secondary)', fontWeight: 600 }}>
           Senha
-          <input required type="password" value={senha} onChange={(event) => setSenha(event.target.value)} style={{ display: 'block', width: '100%', marginTop: 8, padding: '12px 14px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)', color: '#f7f7f3', outline: 'none' }} />
+          <input required type="password" value={senha} onChange={(event) => setSenha(event.target.value)} style={{ display: 'block', width: '100%', marginTop: 8, padding: '12px 14px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)', color: 'var(--text-primary)', outline: 'none' }} />
         </label>
-        <button type="submit" disabled={carregando} style={{ width: '100%', padding: '14px 16px', background: 'linear-gradient(135deg, #f5a400 0%, #e89d00 100%)', color: '#111111', border: 0, borderRadius: 12, fontWeight: 800, cursor: 'pointer', boxShadow: '0 18px 36px rgba(245,164,0,0.18)' }}>
+        <button type="submit" disabled={carregando} style={{ width: '100%', padding: '14px 16px', background: 'var(--brand)', color: 'var(--bg-base)', border: 0, borderRadius: 12, fontWeight: 800, cursor: 'pointer', boxShadow: '0 18px 36px rgba(245,165,36,0.18)' }}>
           {carregando ? 'Entrando...' : 'Entrar'}
         </button>
       </form>

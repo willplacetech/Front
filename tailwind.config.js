@@ -9,19 +9,17 @@ export default {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
       colors: {
-        placetech: {
-          50:  '#eff6ff',
-          100: '#dbeafe',
-          500: '#2563eb',
-          600: '#1d4ed8',
-          700: '#1e40af',
-          900: '#1e3a8a',
-        },
-        placciano: {
-          400: '#22d3ee',
-          500: '#06b6d4',
-          600: '#0891b2',
-        }
+        base: 'var(--bg-base)',
+        surface: 'var(--bg-surface)',
+        'surface-2': 'var(--bg-surface-2)',
+        brand: 'var(--brand)',
+        'brand-hover': 'var(--brand-hover)',
+        primary: 'var(--text-primary)',
+        secondary: 'var(--text-secondary)',
+        muted: 'var(--text-muted)',
+        line: 'var(--border)',
+        placetech: { 50: '#141416', 100: '#1C1C20', 500: '#F5A524', 600: '#FFB93E', 700: '#D98C0E', 900: '#0A0A0B' },
+        placciano: { 400: '#FFB93E', 500: '#F5A524', 600: '#D98C0E' }
       }
     },
   },
@@ -29,15 +27,14 @@ export default {
   daisyui: {
     themes: [{
       placetech: {
-        "primary": "#2563eb",
-        "primary-content": "#ffffff",
-        "secondary": "#06b6d4",
-        "accent": "#7c3aed",
-        "neutral": "#0f172a",
-        "base-100": "#f8fafc",
-        "success": "#10b981",
-        "warning": "#f59e0b",
-        "error": "#ef4444",
+        'primary': '#F5A524', 'primary-content': '#0A0A0B',
+        'secondary': '#1C1C20', 'secondary-content': '#F5F5F4',
+        'accent': '#F5A524', 'accent-content': '#0A0A0B',
+        'neutral': '#1C1C20', 'neutral-content': '#F5F5F4',
+        'base-100': '#0A0A0B', 'base-200': '#141416', 'base-300': '#1C1C20', 'base-content': '#F5F5F4',
+        'success': '#22C55E', 'warning': '#F5A524', 'error': '#A1A1AA', 'info': '#A1A1AA',
+        '--rounded-btn': '999px', '--rounded-box': '1rem'
+
       }
     }],
   },

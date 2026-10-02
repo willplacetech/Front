@@ -1,3 +1,4 @@
+import SiteHeader from '../components/SiteHeader';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Controller, useForm, useWatch } from 'react-hook-form';
@@ -129,10 +130,7 @@ export default function Troca() {
   };
 
   return <div className="troca-page">
-    <header className="troca-header"><div className="troca-wrap troca-header-inner">
-      <Link to="/" className="troca-brand" aria-label="Placetech, início"><span className="troca-mark" aria-hidden="true" /><span><em>place</em>tech</span></Link>
-      <nav aria-label="Navegação principal"><Link to="/#catalogo">Catálogo</Link><Link to="/troca" aria-current="page">Trocar meu aparelho</Link></nav>
-    </div></header>
+    <SiteHeader />
     <main className="troca-wrap troca-main">
       <Link to="/#catalogo" className="troca-back"><ArrowLeftIcon /> Voltar ao catálogo</Link>
       <div className="troca-intro"><span className="troca-eyebrow"><ArrowPathRoundedSquareIcon /> UM NOVO CICLO PARA SEU APARELHO</span>

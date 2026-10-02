@@ -25,11 +25,11 @@ export function CarrinhoProvider({ children }) {
   };
 
   return (
-    <CarrinhoContext.Provider value={{ 
-      itens, 
-      adicionar, 
-      alterarQuantidade, 
-      remover, 
+    <CarrinhoContext.Provider value={{
+      itens,
+      adicionar,
+      alterarQuantidade,
+      remover,
       limpar,
       troca: itens.length ? troca : null,
       associarTroca: troca => dispatch({ tipo: 'troca', troca })

@@ -1,0 +1,79 @@
+.catalog-page { background: var(--bg-base); color: var(--text-primary); }
+.catalog-page .wrap, .catalog-page .catalog-wrap, .catalog-page .foot { width: min(1240px, calc(100% - 48px)); margin-inline: auto; }
+.catalog-page section { padding-block: 64px; }
+.catalog-page .hero { display: flex; align-items: center; position: relative; min-height: 640px; border-bottom: 1px solid var(--border); background: linear-gradient(90deg, rgba(10,10,11,.98), rgba(10,10,11,.92) 40%, rgba(10,10,11,.25)), url('/hero-smartphones.jpg') center/cover no-repeat; }
+.catalog-page .hero-inner { max-width: 640px; }
+.catalog-page .hero-badge { display: inline-flex; align-items: center; gap: 12px; color: var(--text-secondary); font-size: 11px; font-weight: 600; letter-spacing: .15em; text-transform: uppercase; }
+.catalog-page .hero-badge::before { content: ''; width: 24px; height: 2px; background: var(--brand); }
+.catalog-page .hero h1 { font-size: clamp(48px,5vw,64px); line-height: 1.05; font-weight: 800; margin: 24px 0; letter-spacing: -.045em; }
+.catalog-page .hero p { max-width: 560px; font-size: 16px; line-height: 1.6; color: var(--text-secondary); }
+.catalog-page .actions { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 32px; }
+.catalog-page :is(.primary,.secondary,.ask,.filter) { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 12px 24px; border-radius: 999px; font-size: 14px; font-weight: 600; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary); transition: background .2s, transform .2s; }
+.catalog-page :is(.primary,.ask,.filter.active) { background: var(--brand); color: var(--bg-base); border-color: transparent; }
+.catalog-page :is(.primary,.ask) { box-shadow: 0 0 24px var(--brand-glow); }
+.catalog-page :is(.primary,.ask,.filter.active):hover { background: var(--brand-hover); }
+.catalog-page :is(.primary,.ask,.filter.active):active { background: var(--brand-pressed); }
+.catalog-page :is(.secondary,.filter):hover { background: var(--bg-surface-2); }
+.catalog-page .trust { display: flex; flex-wrap: wrap; gap: 24px; margin-top: 32px; font-size: 12px; color: var(--text-secondary); }
+.catalog-page .trust span { display: inline-flex; align-items: center; gap: 8px; }
+.catalog-page .trust i { width: 4px; height: 4px; border-radius: 50%; background: var(--text-muted); }
+.catalog-page .hero-stats { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 32px; }
+.catalog-page .hero-stat { padding: 16px; min-width: 144px; border: 1px solid var(--border); border-radius: 16px; background: var(--bg-surface); }
+.catalog-page .hero-stat strong { display: block; font-size: 24px; font-weight: 700; line-height: 1.2; }
+.catalog-page .hero-stat span { display: block; margin-top: 8px; font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .12em; }
+.catalog-page .section-head { display: flex; align-items: end; justify-content: space-between; gap: 32px; margin-bottom: 32px; }
+.catalog-page .section-head h2 { margin: 16px 0 0; max-width: 520px; font-size: 28px; line-height: 1.2; letter-spacing: -.03em; }
+.catalog-page .section-head p { max-width: 440px; color: var(--text-secondary); font-size: 15px; }
+.catalog-page .controls { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 32px; }
+.catalog-page .search { width: 100%; min-width: 0; padding: 16px 24px; border-radius: 12px; }
+.catalog-page .grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 24px; }
+.catalog-page .card { position: relative; min-width: 0; display: flex; flex-direction: column; padding: 20px; border-radius: 20px; background: var(--bg-surface); border: 1px solid var(--border); box-shadow: var(--e1); transition: transform .2s,border-color .2s; }
+.catalog-page .card:hover { transform: translateY(-4px); border-color: rgba(245,165,36,.4); }
+.catalog-page .badge { display: inline-flex; align-self: flex-start; height: auto; padding: 4px 12px; border-radius: 999px; border: 1px solid rgba(245,165,36,.3); background: rgba(245,165,36,.1); color: var(--brand); font-size: 10px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; }
+.catalog-page .img-wrap { display: grid; place-items: center; margin-top: 16px; height: 208px; border-radius: 16px; background: var(--bg-surface-2); overflow: hidden; }
+.catalog-page .img-wrap img { padding: 16px; max-width: 100%; object-fit: contain; }
+.catalog-page .card h3 { font-size: 18px; font-weight: 600; line-height: 1.3; margin: 24px 0 8px; }
+.catalog-page .family { color: var(--text-secondary); font-size: 13px; line-height: 1.6; }
+.catalog-page .specs { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 24px; }
+.catalog-page .specs span { padding: 4px 8px; border-radius: 8px; background: var(--bg-surface-2); color: var(--text-secondary); font-size: 11px; }
+.catalog-page .price-box { display: flex; align-items: end; justify-content: space-between; gap: 8px; margin-bottom: 24px; }
+.catalog-page .price-box strong { font-size: 12px; font-weight: 400; color: var(--text-secondary); }
+.catalog-page .valor { font-size: 28px; font-weight: 700; letter-spacing: -.03em; color: var(--brand); }
+.catalog-page .parcelas { font-size: 12px; color: var(--text-secondary); }
+.catalog-page .card-foot { display: flex; align-items: center; justify-content: space-between; gap: 16px; border-top: 1px solid var(--border); padding-top: 16px; margin-top: auto; }
+.catalog-page .availability { display: block; font-size: 11px; color: var(--text-secondary); line-height: 1.6; }
+.catalog-page .availability b { display: block; font-size: 12px; font-weight: 600; color: var(--text-primary); }
+.catalog-page .ask { padding: 12px 16px; white-space: nowrap; }
+.catalog-page .empty { padding: 64px 24px; text-align: center; border: 1px dashed var(--border); border-radius: 20px; color: var(--text-secondary); }
+.catalog-page .why { background: var(--bg-surface); border-block: 1px solid var(--border); }
+.catalog-page .benefits { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 24px; }
+.catalog-page .benefit { padding: 24px; border: 1px solid var(--border); border-radius: 16px; background: var(--bg-surface-2); }
+.catalog-page .benefit b { display: block; font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+.catalog-page .benefit span { color: var(--text-secondary); font-size: 14px; line-height: 1.6; }
+.catalog-page .cta-panel { display: flex; align-items: center; justify-content: space-between; gap: 32px; padding: 48px; border: 1px solid var(--border); border-radius: 20px; background: var(--bg-surface); box-shadow: var(--e1); }
+.catalog-page .cta-panel h2 { font-size: 28px; margin: 0 0 16px; }
+.catalog-page .cta-panel p { max-width: 620px; color: var(--text-secondary); }
+.catalog-page .cta-panel .secondary { flex-shrink: 0; background: var(--brand); color: var(--bg-base); border-color: transparent; box-shadow: 0 0 24px var(--brand-glow); }
+.catalog-page footer { border-top: 1px solid var(--border); padding: 48px 0; background: var(--bg-base); }
+.catalog-page .foot { display: flex; justify-content: space-between; align-items: center; gap: 24px; }
+.catalog-page .brand { font-size: 24px; font-weight: 800; letter-spacing: -.04em; }
+.catalog-page .brand em { font-style: normal; }
+.catalog-page .foot small { display: block; font-size: 12px; margin-top: 8px; color: var(--text-secondary); }
+.catalog-page .contact { font-size: 13px; color: var(--text-secondary); line-height: 1.6; text-align: right; }
+@media (max-width: 1023px) {
+  .catalog-page .grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .catalog-page .benefits { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .catalog-page .section-head { align-items: start; flex-direction: column; gap: 16px; }
+  .catalog-page .cta-panel { align-items: start; flex-direction: column; }
+}
+@media (max-width: 639px) {
+  .catalog-page .hero { min-height: 0; background: linear-gradient(90deg,rgba(10,10,11,.97),rgba(10,10,11,.8)),url('/hero-smartphones.jpg') center/cover no-repeat; }
+  .catalog-page .hero h1 { font-size: 40px; }
+  .catalog-page .actions { flex-direction: column; align-items: stretch; }
+  .catalog-page .grid, .catalog-page .benefits { grid-template-columns: 1fr; }
+  .catalog-page .hero-stat { min-width: 0; flex: 1 1 96px; }
+  .catalog-page .hero-stat strong { font-size: 22px; }
+  .catalog-page .cta-panel { padding: 24px; }
+  .catalog-page .foot { align-items: start; flex-direction: column; }
+  .catalog-page .contact { text-align: left; }
+}

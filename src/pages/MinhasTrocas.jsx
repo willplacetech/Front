@@ -1,3 +1,4 @@
+import SiteHeader from '../components/SiteHeader';
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/auth';
@@ -47,7 +48,7 @@ export default function MinhasTrocas() {
     if (!/^[a-f\d]{24}$/i.test(entrada.trim())) return;
     setParams({ protocolo: entrada.trim() }); setTentativa(t => t + 1);
   };
-  return <div className="troca-acomp-page"><header className="troca-acomp-header"><Link to="/">Placetech</Link><nav><Link to="/#catalogo">Catálogo</Link><Link to="/troca">Nova troca</Link></nav></header>
+  return <div className="troca-acomp-page"><SiteHeader />
     <main className="troca-acomp-main"><span className="trocas-eyebrow">ACOMPANHE SEU PRÓXIMO PASSO</span><h1>Minhas trocas</h1><p className="trocas-muted">As decisões da equipe aparecem aqui, com o histórico da sua solicitação.</p>
       {!user && !carregandoUsuario && <form className="trocas-consulta trocas-box" onSubmit={consultar}>
         <label>Protocolo da troca<input required pattern="[a-fA-F0-9]{24}" maxLength={24} value={entrada} onChange={e => setEntrada(e.target.value)} placeholder="Código recebido ao enviar sua troca" /></label>

@@ -17,7 +17,7 @@ const MENU = [
   { path: 'relatorios',icon: ChartBarIcon,      label: 'Relatórios',  desc: 'Dados gerenciais' },
 ];
 
-export default function LayoutAdmin({ children, loading = false, titulo = '', subtitulo = '', contentMaxWidth = '1400px' }) {
+export default function LayoutAdmin({ children, loading = false, titulo = '', subtitulo = '', contentMaxWidth = '1240px' }) {
   const location = useLocation();
   const [menuAberto, setMenuAberto] = useState(false);
   const { sair } = useAuth();
@@ -28,17 +28,17 @@ export default function LayoutAdmin({ children, loading = false, titulo = '', su
   const isAtivo = (p) => caminhoAtual === p || p && caminhoAtual.startsWith(`${p}/`);
 
   return (
-    <div style={{ minHeight: '100vh', background: 'radial-gradient(circle at top, rgba(245,164,0,0.12), transparent 35%), linear-gradient(180deg, #0c0c0c 0%, #121212 100%)', fontFamily: "'Inter', sans-serif" }}>
+    <div className="admin-shell" style={{ minHeight: '100vh', background: 'radial-gradient(circle at top, rgba(245,165,36,0.12), transparent 35%), var(--bg-surface)', fontFamily: 'var(--sans)' }}>
       <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
       <style>{`
-        * { font-family: 'Inter', -apple-system, sans-serif; box-sizing: border-box; }
+        * { box-sizing: border-box; }
         svg { max-width: none !important; max-height: none !important; }
 
         /* SIDEBAR */
         .sidebar {
           width: 260px;
           min-height: 100vh;
-          background: linear-gradient(180deg, #111111 0%, #181818 100%);
+          background: linear-gradient(180deg, var(--bg-base) 0%, var(--bg-surface-2) 100%);
           position: fixed;
           top: 0;
           left: 0;
@@ -77,10 +77,10 @@ export default function LayoutAdmin({ children, loading = false, titulo = '', su
           border-color: rgba(255,255,255,0.05);
         }
         .nav-item.ativo {
-          background: linear-gradient(135deg, #f5a400 0%, #e89d00 100%);
-          color: #111111;
+          background: var(--brand);
+          color: var(--bg-base);
           font-weight: 700;
-          box-shadow: 0 12px 24px rgba(245,164,0,0.18);
+          box-shadow: 0 12px 24px rgba(245,165,36,0.18);
         }
         .nav-item.ativo .nav-desc { color: rgba(17,17,17,0.6); }
         .nav-icon-wrap { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
@@ -105,12 +105,12 @@ export default function LayoutAdmin({ children, loading = false, titulo = '', su
           backdrop-filter: blur(10px);
           box-shadow: 0 12px 30px rgba(0,0,0,0.18);
         }
-        .topbar-title { font-size: 18px; font-weight: 800; color: #f7f7f3; letter-spacing: -0.03em; }
+        .topbar-title { font-size: 18px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.03em; }
         .topbar-sub { font-size: 13px; color: rgba(255,255,255,0.65); margin-top: 1px; }
 
         /* CARDS */
         .card-admin {
-          background: rgba(255,255,255,0.98);
+          background: var(--bg-surface);
           border-radius: 18px;
           border: 1px solid rgba(255,255,255,0.08);
           box-shadow: 0 18px 40px rgba(0,0,0,0.14);
@@ -118,7 +118,7 @@ export default function LayoutAdmin({ children, loading = false, titulo = '', su
         }
         .card-admin:hover {
           transform: translateY(-1px);
-          box-shadow: 0 18px 40px rgba(245,164,0,0.06), 0 2px 8px rgba(0,0,0,0.12);
+          box-shadow: 0 18px 40px rgba(245,165,36,0.06), 0 2px 8px rgba(0,0,0,0.12);
         }
 
         /* MOBILE */
@@ -144,7 +144,7 @@ export default function LayoutAdmin({ children, loading = false, titulo = '', su
         .mobile-sidebar-panel {
           position: relative;
           width: 280px;
-          background: linear-gradient(180deg, #111111 0%, #181818 100%);
+          background: linear-gradient(180deg, var(--bg-base) 0%, var(--bg-surface-2) 100%);
           display: flex;
           flex-direction: column;
           z-index: 1;
@@ -169,14 +169,14 @@ export default function LayoutAdmin({ children, loading = false, titulo = '', su
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <div style={{
                 width: '36px', height: '36px',
-                background: 'linear-gradient(135deg, #f5a400, #e89d00)',
+                background: 'var(--bg-surface-2)',
                 borderRadius: '12px',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontWeight: 900, fontSize: '16px', color: '#111111',
-                boxShadow: '0 12px 24px rgba(245,164,0,0.22)'
+                fontWeight: 900, fontSize: '16px', color: 'var(--text-primary)',
+                boxShadow: '0 12px 24px rgba(245,165,36,0.22)'
               }}>P</div>
               <div>
-                <div style={{ fontSize: '15px', fontWeight: 800, color: '#f7f7f3', lineHeight: 1.2 }}>Placetech</div>
+                <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1.2 }}>Placetech</div>
                 <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', lineHeight: 1 }}>Painel Admin</div>
               </div>
             </div>
@@ -208,7 +208,7 @@ export default function LayoutAdmin({ children, loading = false, titulo = '', su
             </div>
             <div className="nav-label">Ver Catálogo</div>
           </a>
-          <button onClick={sair} className="nav-item" style={{ color: '#F87171' }}>
+          <button onClick={sair} className="nav-item" style={{ color: 'var(--text-secondary)' }}>
             <div className="nav-icon-wrap">
               <ArrowRightStartOnRectangleIcon style={{ width: '18px', height: '18px' }} />
             </div>
@@ -224,7 +224,7 @@ export default function LayoutAdmin({ children, loading = false, titulo = '', su
           <div className="mobile-sidebar-panel">
             <div className="sidebar-logo" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '16px', fontWeight: 700, color: 'white' }}>Placetech Admin</span>
-              <button onClick={() => setMenuAberto(false)} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}>
+              <button aria-label="Fechar menu" onClick={() => setMenuAberto(false)} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}>
                 <XMarkIcon style={{ width: '22px', height: '22px' }} />
               </button>
             </div>
@@ -241,7 +241,7 @@ export default function LayoutAdmin({ children, loading = false, titulo = '', su
               })}
             </nav>
             <div className="sidebar-footer">
-              <button onClick={sair} className="nav-item" style={{ color: '#F87171' }}>
+              <button onClick={sair} className="nav-item" style={{ color: 'var(--text-secondary)' }}>
                 <div className="nav-icon-wrap"><ArrowRightStartOnRectangleIcon style={{ width: '18px', height: '18px' }} /></div>
                 <div className="nav-label">Sair</div>
               </button>
@@ -261,16 +261,16 @@ export default function LayoutAdmin({ children, loading = false, titulo = '', su
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <a href="/" target="_blank" style={{
               display: 'flex', alignItems: 'center', gap: '6px',
-              padding: '9px 16px', background: 'linear-gradient(135deg, #f5a400 0%, #e89d00 100%)', color: '#111111',
+              padding: '9px 16px', background: 'var(--brand)', color: 'var(--bg-base)',
               borderRadius: '10px', fontWeight: 800, fontSize: '13px', textDecoration: 'none',
-              transition: 'all 0.15s', boxShadow: '0 12px 22px rgba(245,164,0,0.17)'
+              transition: 'all 0.15s', boxShadow: '0 12px 22px rgba(245,165,36,0.17)'
             }}>
               <ArrowTopRightOnSquareIcon style={{ width: '15px', height: '15px' }} />
               Ver Loja
             </a>
             {/* Botão mobile */}
-            <button aria-label="Abrir menu" onClick={() => setMenuAberto(true)} style={{
-              display: 'none', background: '#F0F2F5', border: 'none', borderRadius: '8px',
+            <button aria-label="Abrir menu" aria-expanded={menuAberto} onClick={() => setMenuAberto(true)} style={{
+              display: 'none', background: 'var(--bg-surface)', border: 'none', borderRadius: '8px',
               padding: '8px', cursor: 'pointer'
             }} className="mobile-menu-btn">
               <Bars3Icon style={{ width: '20px', height: '20px' }} />
@@ -279,21 +279,21 @@ export default function LayoutAdmin({ children, loading = false, titulo = '', su
         </header>
 
         {/* CONTEÚDO */}
-        <main style={{ padding: '28px 32px', maxWidth: contentMaxWidth, width: '100%', margin: '0 auto' }}>
+        <main style={{ padding: '32px 24px', maxWidth: `min(${contentMaxWidth}, 1240px)`, width: '100%', margin: '0 auto' }}>
           {loading ? (
             <div style={{
-              background: 'white', borderRadius: '16px', padding: '80px',
+              background: 'var(--bg-surface)', borderRadius: '16px', padding: '80px',
               display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px',
               boxShadow: '0 1px 4px rgba(0,0,0,0.06)'
             }}>
               <div style={{
                 width: '44px', height: '44px',
-                border: '3px solid #F0F2F5',
-                borderTopColor: '#F9D828',
+                border: '3px solid var(--text-primary)',
+                borderTopColor: 'var(--brand)',
                 borderRadius: '50%',
                 animation: 'spin 0.8s linear infinite'
               }} />
-              <p style={{ color: '#6B7280', margin: 0, fontWeight: 500 }}>Carregando dados...</p>
+              <p style={{ color: 'var(--text-secondary)', margin: 0, fontWeight: 500 }}>Carregando dados...</p>
               <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
             </div>
           ) : children}

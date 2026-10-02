@@ -1,47 +1,47 @@
 .variant-filters { display: flex; align-items: end; gap: 12px; flex-wrap: wrap; width: 100%; }
-.variant-filter-label { display: grid; gap: 8px; flex: 1 1 140px; font-size: 12px; font-weight: 700; color: #bdb9b0; }
-.variant-filter-label select, .variant-editor input { width: 100%; min-height: 44px; border: 1px solid rgba(255,255,255,.12); border-radius: 12px; padding: 10px 12px; background: #151515; color: #f7f7f3; }
-.variant-filter-label option { background: #151515; color: #f7f7f3; }
-.variant-clear { min-height: 44px; border: 1px solid rgba(255,255,255,.12); border-radius: 12px; padding: 10px 16px; background: transparent; color: #ffca56; cursor: pointer; }
-.variant-filters select:focus-visible, .variant-page a:focus-visible, .variant-page button:focus-visible, .variant-editor input:focus-visible { outline: 2px solid #f5a400; outline-offset: 3px; }
+.variant-filter-label { display: grid; gap: 8px; flex: 1 1 140px; font-size: 12px; font-weight: 700; color: var(--text-secondary); }
+.variant-filter-label select, .variant-editor input { width: 100%; min-height: 44px; border: 1px solid rgba(255,255,255,.12); border-radius: 12px; padding: 10px 12px; background: var(--bg-surface); color: var(--text-primary); }
+.variant-filter-label option { background: var(--bg-surface); color: var(--text-primary); }
+.variant-clear { min-height: 44px; border: 1px solid rgba(255,255,255,.12); border-radius: 12px; padding: 10px 16px; background: transparent; color: var(--brand); cursor: pointer; }
+.variant-filters select:focus-visible, .variant-page a:focus-visible, .variant-page button:focus-visible, .variant-editor input:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
 .variant-card-link { color: inherit; text-decoration: none; }
-.variant-card-link:hover h3 { color: #ffca56; }
-.variant-status { padding: 32px 0; color: #bdb9b0; }
-.variant-page { min-height: 100vh; background: radial-gradient(circle at top right,rgba(245,164,0,.09),transparent 50%), #080808; color: #f7f7f3; font-family: Inter, system-ui, sans-serif; }
+.variant-card-link:hover h3 { color: var(--brand); }
+.variant-status { padding: 32px 0; color: var(--text-secondary); }
+.variant-page { min-height: 100vh; background: radial-gradient(circle at top right,rgba(245,165,36,.09),transparent 50%), var(--bg-base); color: var(--text-primary); font-family: Inter, system-ui, sans-serif; }
 .variant-page-inner { width: min(1200px, calc(100% - 40px)); margin: 0 auto; padding: 28px 0 60px; }
 .variant-nav { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 40px; }
-.variant-nav a { color: #ffca56; text-decoration: none; }
-.variant-nav button, .variant-buy { border: 0; border-radius: 14px; padding: 14px 22px; background: linear-gradient(135deg,#f5a400,#e89d00); color: #111; font-weight: 800; cursor: pointer; }
+.variant-nav a { color: var(--brand); text-decoration: none; }
+.variant-nav button, .variant-buy { border: 0; border-radius: 14px; padding: 14px 22px; background: var(--brand); color: var(--bg-base); font-weight: 800; cursor: pointer; }
 .variant-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
-.variant-gallery { padding: 30px; border: 1px solid rgba(255,255,255,.08); border-radius: 24px; background: #111; }
+.variant-gallery { padding: 30px; border: 1px solid rgba(255,255,255,.08); border-radius: 24px; background: var(--bg-base); }
 .variant-main-image { width: 100%; height: 420px; object-fit: contain; border-radius: 18px; }
 .variant-thumbs { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
-.variant-thumbs button { padding: 4px; border: 1px solid rgba(255,255,255,.15); border-radius: 12px; background: #181818; cursor: pointer; }
-.variant-thumbs button[aria-pressed=true] { border-color: #f5a400; }
+.variant-thumbs button { padding: 4px; border: 1px solid rgba(255,255,255,.15); border-radius: 12px; background: var(--bg-surface-2); cursor: pointer; }
+.variant-thumbs button[aria-pressed=true] { border-color: var(--brand); }
 .variant-thumbs img { width: 64px; height: 64px; object-fit: contain; border-radius: 8px; }
-.variant-eyebrow { color: #ffca56; font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
-.variant-page h1 { margin: 12px 0 16px; font-size: clamp(28px,4vw,44px); line-height: 1.1; font-weight: 800; color: #f7f7f3; letter-spacing: -1px; }
-.variant-description { color: #a4a39d; font-size: 15px; line-height: 1.7; }
+.variant-eyebrow { color: var(--brand); font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
+.variant-page h1 { margin: 12px 0 16px; font-size: clamp(28px,4vw,44px); line-height: 1.1; font-weight: 800; color: var(--text-primary); letter-spacing: -1px; }
+.variant-description { color: var(--text-secondary); font-size: 15px; line-height: 1.7; }
 .variant-choices { border: 0; padding: 0; margin: 26px 0; }
 .variant-choices legend { margin-bottom: 12px; font-size: 14px; font-weight: 700; }
 .variant-options { display: flex; flex-wrap: wrap; gap: 10px; }
-.variant-option { display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(255,255,255,.15); border-radius: 999px; padding: 10px 14px; background: #151515; color: #f7f7f3; font-size: 13px; cursor: pointer; }
-.variant-option[aria-pressed=true] { border-color: #f5a400; background: rgba(245,164,0,.12); color: #ffca56; }
+.variant-option { display: inline-flex; align-items: center; gap: 8px; border: 1px solid rgba(255,255,255,.15); border-radius: 999px; padding: 10px 14px; background: var(--bg-surface); color: var(--text-primary); font-size: 13px; cursor: pointer; }
+.variant-option[aria-pressed=true] { border-color: var(--brand); background: rgba(245,165,36,.12); color: var(--brand); }
 .variant-option:disabled, .variant-buy:disabled { opacity: .4; cursor: not-allowed; }
 .variant-swatch { width: 20px; height: 20px; border-radius: 50%; border: 1px solid rgba(255,255,255,.35); box-shadow: inset 0 0 0 2px rgba(0,0,0,.12); }
-.variant-price { font-size: 36px; font-weight: 900; color: #ffca56; letter-spacing: -1px; margin-top: 20px; }
-.variant-meta { display: grid; gap: 6px; margin: 12px 0 24px; color: #bdb9b0; font-size: 13px; }
+.variant-price { font-size: 36px; font-weight: 900; color: var(--brand); letter-spacing: -1px; margin-top: 20px; }
+.variant-meta { display: grid; gap: 6px; margin: 12px 0 24px; color: var(--text-secondary); font-size: 13px; }
 .variant-buy { width: 100%; }
-.variant-feedback { min-height: 24px; margin-top: 12px; color: #ffca56; font-size: 14px; }
+.variant-feedback { min-height: 24px; margin-top: 12px; color: var(--brand); font-size: 14px; }
 .variant-specs { margin-top: 36px; border-top: 1px solid rgba(255,255,255,.08); padding-top: 20px; }
-.variant-specs h2 { color: #f7f7f3; font-size: 20px; font-weight: 700; }
+.variant-specs h2 { color: var(--text-primary); font-size: 20px; font-weight: 700; }
 .variant-specs dl { margin: 18px 0; }
 .variant-specs dl > div { display: flex; justify-content: space-between; gap: 24px; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,.08); font-size: 14px; }
-.variant-specs dt { color: #a4a39d; }
+.variant-specs dt { color: var(--text-secondary); }
 .variant-specs dd { margin: 0; text-align: right; }
-.variant-editor { padding: 24px; margin-bottom: 24px; border: 1px solid rgba(255,255,255,.12); border-radius: 18px; background: #111; color: #f7f7f3; }
-.variant-editor h3 { color: #f7f7f3; }
+.variant-editor { padding: 24px; margin-bottom: 24px; border: 1px solid rgba(255,255,255,.12); border-radius: 18px; background: var(--bg-base); color: var(--text-primary); }
+.variant-editor h3 { color: var(--text-primary); }
 .variant-editor-row { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; margin: 20px 0; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,.1); }
 .variant-editor-row label { display: grid; gap: 8px; font-size: 12px; flex: 1 1 130px; }
-.variant-editor .variant-error { color: #fca5a5; }
+.variant-editor .variant-error { color: var(--text-secondary); }
 @media (max-width: 760px) { .variant-detail { grid-template-columns: 1fr; gap: 28px; } .variant-main-image { height: 290px; } .variant-gallery { padding: 20px; } .variant-nav { margin-bottom: 24px; } .variant-page-inner { width: calc(100% - 28px); } }

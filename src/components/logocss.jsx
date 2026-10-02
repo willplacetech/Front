@@ -1,7 +1,7 @@
 import { BoltIcon } from '@heroicons/react/24/solid'; // ícone de raio
 
-const AMARELO = '#F9D828';
-const PRETO = '#000000';
+const AMARELO = 'var(--brand)';
+const PRETO = 'var(--text-primary)';
 
 export default function LogoPlacetech({ altura = '42px' }) {
   return (

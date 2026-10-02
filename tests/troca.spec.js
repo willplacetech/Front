@@ -199,6 +199,13 @@ test('IMEI duplicado volta ao passo correto com erro da API', async ({ page }) =
 test('nav e hero levam ao wizard', async ({ page }) => {
   await preparar(page);
   await page.goto('/');
+  if (test.info().project.name === 'mobile') {
+    const menu = page.getByRole('button', { name: 'Abrir menu', exact: true });
+    await expect(menu).toHaveAttribute('aria-expanded', 'false');
+    await expect(page.locator('.nav-troca')).toBeHidden();
+    await menu.click();
+    await expect(page.getByRole('button', { name: 'Fechar menu', exact: true })).toHaveAttribute('aria-expanded', 'true');
+  }
   await expect(page.getByRole('link', { name: 'Trocar meu aparelho', exact: true })).toHaveCount(2);
   const nav = page.locator('.nav-troca');
   await expect(nav).toBeVisible();

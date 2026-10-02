@@ -3,10 +3,8 @@ import api from '../services/api';
 import LayoutAdmin from '../components/LayoutAdmin';
 
 // 🎯 CORES OFICIAIS — IDÊNTICAS À PÁGINA DE PRODUTOS
-const AZUL = '#3483FA';
-const VERDE = '#00A650';
-const VERMELHO = '#EF4444';
-const CINZA = '#F5F5F5';
+const VERDE = 'var(--brand)';
+const VERMELHO = 'var(--text-secondary)';
 
 const STATUS = ['pendente', 'confirmado', 'entregue', 'cancelado'];
 
@@ -33,11 +31,11 @@ export default function Pedidos() {
   // Retorna cor do status — IGUAL AO ESTILO DA PÁGINA DE PRODUTOS
   const getCorStatus = (status) => {
     switch(status) {
-      case 'pendente': return { fundo: '#FBBF2415', texto: '#D97706' };
-      case 'confirmado': return { fundo: '#3B82F615', texto: '#2563EB' };
-      case 'entregue': return { fundo: `${VERDE}15`, texto: VERDE };
-      case 'cancelado': return { fundo: `${VERMELHO}15`, texto: VERMELHO };
-      default: return { fundo: '#FBBF2415', texto: '#D97706' };
+      case 'pendente': return { fundo: '#F5A52415', texto: 'var(--brand)' };
+      case 'confirmado': return { fundo: '#F5A52415', texto: 'var(--brand)' };
+      case 'entregue': return { fundo: 'var(--bg-surface-2)', texto: VERDE };
+      case 'cancelado': return { fundo: 'var(--bg-surface-2)', texto: VERMELHO };
+      default: return { fundo: '#F5A52415', texto: 'var(--brand)' };
     }
   };
 
@@ -46,13 +44,13 @@ export default function Pedidos() {
 
       {/* 📋 TABELA — ESTRUTURA EXATA DA PÁGINA DE PRODUTOS */}
       {loading ? (
-        <div style={{padding: '60px', textAlign: 'center', background: 'linear-gradient(180deg, #141414 0%, #101010 100%)', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.06)', color: '#f7f7f3'}}>
-          <div style={{width: '40px', height: '40px', border: '3px solid rgba(255,255,255,0.12)', borderTopColor: '#f5a400', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto'}} />
-          <p style={{marginTop: '12px', color: '#c8c5c1'}}>Carregando pedidos...</p>
+        <div style={{padding: '60px', textAlign: 'center', background: 'var(--bg-surface)', borderRadius: '18px', border: '1px solid rgba(255,255,255,0.06)', color: 'var(--text-primary)'}}>
+          <div style={{width: '40px', height: '40px', border: '3px solid rgba(255,255,255,0.12)', borderTopColor: 'var(--brand)', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto'}} />
+          <p style={{marginTop: '12px', color: 'var(--text-secondary)'}}>Carregando pedidos...</p>
         </div>
       ) : (
         <div style={{
-          background: 'linear-gradient(180deg, #141414 0%, #101010 100%)', borderRadius: '18px',
+          background: 'var(--bg-surface)', borderRadius: '18px',
           boxShadow: '0 18px 40px rgba(0,0,0,0.22)', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.06)'
         }}>
           <div style={{overflowX: 'auto'}}>
@@ -63,7 +61,7 @@ export default function Pedidos() {
                   {['Cliente', 'Itens', 'Total', 'Data', 'Status', 'Ações'].map((h,i) => (
                     <th key={i} style={{
                       padding: '14px 16px', textAlign: i===5 ? 'right' : 'left',
-                      fontSize: '13px', fontWeight: 700, color: '#d7d5d0', textTransform: 'uppercase', letterSpacing: '0.06em'
+                      fontSize: '13px', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em'
                     }}>{h}</th>
                   ))}
                 </tr>
@@ -71,7 +69,7 @@ export default function Pedidos() {
               <tbody>
                 {pedidos.length === 0 ? (
                   <tr>
-                    <td colSpan="6" style={{padding: '60px 20px', textAlign: 'center', color: '#a7a39f'}}>
+                    <td colSpan="6" style={{padding: '60px 20px', textAlign: 'center', color: 'var(--text-secondary)'}}>
                       Nenhum pedido recebido ainda.
                     </td>
                   </tr>
@@ -90,26 +88,26 @@ export default function Pedidos() {
                     >
                       {/* 🧑 CLIENTE — IGUAL AO ESTILO "Produto" da outra página */}
                       <td style={{padding: '12px 16px'}}>
-                        <div style={{fontWeight: 700, color: '#f7f7f3'}}>{nome}</div>
-                        {telefone && <div style={{fontSize: '12px', color: '#a7a39f', marginTop: '2px'}}>{telefone}</div>}
+                        <div style={{fontWeight: 700, color: 'var(--text-primary)'}}>{nome}</div>
+                        {telefone && <div style={{fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px'}}>{telefone}</div>}
                       </td>
 
                       {/* 📦 ITENS */}
-                      <td style={{padding: '12px 16px', fontSize: '13px', color: '#d1cfca', maxWidth: '280px'}}>
-                        {p.itens?.length > 0 
+                      <td style={{padding: '12px 16px', fontSize: '13px', color: 'var(--text-secondary)', maxWidth: '280px'}}>
+                        {p.itens?.length > 0
                           ? p.itens.map(i => `${i.quantidade}x ${i.nome}`).join(', ')
                           : '-'}
                       </td>
 
                       {/* 💰 TOTAL — IGUAL AO PREÇO DA PÁGINA DE PRODUTOS */}
                       <td style={{padding: '12px 16px'}}>
-                        <div style={{fontWeight: 800, fontSize: '15px', color: '#f5a400'}}>
+                        <div style={{fontWeight: 800, fontSize: '15px', color: 'var(--brand)'}}>
                           R$ {Number(p.total).toFixed(2).replace('.', ',')}
                         </div>
                       </td>
 
                       {/* 📅 DATA */}
-                      <td style={{padding: '12px 16px', fontSize: '13px', color: '#c8c5c1'}}>
+                      <td style={{padding: '12px 16px', fontSize: '13px', color: 'var(--text-secondary)'}}>
                         {data ? new Date(data).toLocaleDateString('pt-BR') : '-'}
                       </td>
 
@@ -127,8 +125,8 @@ export default function Pedidos() {
                       {/* ⚙️ AÇÕES — IGUAL AOS BOTÕES DE EDITAR/EXCLUIR */}
                      <td style={{padding: '12px 16px', textAlign: 'right'}}>
   <div style={{
-    display: 'grid', 
-    gridTemplateColumns: '1fr 1fr', 
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
     gap: '4px',
     justifyContent: 'flex-end',
     maxWidth: '160px',

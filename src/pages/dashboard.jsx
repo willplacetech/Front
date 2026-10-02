@@ -4,14 +4,14 @@ import api from '../services/api';
 import LayoutAdmin from '../components/LayoutAdmin';
 import {
   ShoppingBagIcon, DocumentTextIcon, ArrowDownTrayIcon,
-  XCircleIcon, CheckCircleIcon, ClockIcon, ChartBarIcon,
-  ArrowTrendingUpIcon, EyeIcon
+  XCircleIcon, CheckCircleIcon, ChartBarIcon,
+ EyeIcon
 } from '@heroicons/react/24/outline';
 
-const AZUL  = '#3483FA';
-const VERDE = '#10B981';
-const VERM  = '#EF4444';
-const LARJ  = '#F59E0B';
+const AZUL  = 'var(--brand)';
+const VERDE = 'var(--brand)';
+const VERM  = 'var(--text-secondary)';
+const LARJ  = 'var(--brand)';
 
 // ✅ Formata data com segurança — aceita criadoEm ou createdAt
 function formatarData(pedido) {
@@ -23,10 +23,10 @@ function formatarData(pedido) {
 }
 
 const STATUS_CONFIG = {
-  pendente:   { bg: '#FEF3C7', color: '#92400E', label: 'Pendente',   dot: '#F59E0B' },
-  confirmado: { bg: '#DBEAFE', color: '#1E40AF', label: 'Confirmado', dot: '#3B82F6' },
-  entregue:   { bg: '#D1FAE5', color: '#065F46', label: 'Entregue',   dot: '#10B981' },
-  cancelado:  { bg: '#FEE2E2', color: '#991B1B', label: 'Cancelado',  dot: '#EF4444' },
+  pendente:   { bg: 'var(--bg-surface-2)', color: 'var(--brand)', label: 'Pendente',   dot: 'var(--brand)' },
+  confirmado: { bg: 'var(--bg-surface-2)', color: 'var(--brand)', label: 'Confirmado', dot: 'var(--brand)' },
+  entregue:   { bg: 'var(--bg-surface-2)', color: 'var(--text-secondary)', label: 'Entregue',   dot: 'var(--brand)' },
+  cancelado:  { bg: 'var(--bg-surface-2)', color: 'var(--text-secondary)', label: 'Cancelado',  dot: 'var(--text-secondary)' },
 };
 
 export default function Dashboard() {
@@ -49,10 +49,10 @@ export default function Dashboard() {
   }, []);
 
   const cards = [
-    { label: 'Produtos Cadastrados', valor: dados.totalProdutos ?? 0, icon: ShoppingBagIcon, cor: AZUL,  bg: '#EFF6FF', desc: 'no catálogo' },
-    { label: 'Disponíveis',          valor: dados.disponiveis     ?? 0, icon: CheckCircleIcon,cor: VERDE, bg: '#ECFDF5', desc: 'produtos ativos' },
-    { label: 'Total de Pedidos',     valor: totalPedidos,               icon: DocumentTextIcon,cor: LARJ, bg: '#FFFBEB', desc: 'recebidos' },
-    { label: 'Indisponíveis',        valor: dados.indisponiveis   ?? 0, icon: XCircleIcon,    cor: VERM,  bg: '#FEF2F2', desc: 'fora do catálogo' },
+    { label: 'Produtos Cadastrados', valor: dados.totalProdutos ?? 0, icon: ShoppingBagIcon, cor: AZUL,  bg: 'var(--bg-surface-2)', desc: 'no catálogo' },
+    { label: 'Disponíveis',          valor: dados.disponiveis     ?? 0, icon: CheckCircleIcon,cor: VERDE, bg: 'var(--bg-surface-2)', desc: 'produtos ativos' },
+    { label: 'Total de Pedidos',     valor: totalPedidos,               icon: DocumentTextIcon,cor: LARJ, bg: 'var(--bg-surface-2)', desc: 'recebidos' },
+    { label: 'Indisponíveis',        valor: dados.indisponiveis   ?? 0, icon: XCircleIcon,    cor: VERM,  bg: 'var(--bg-surface-2)', desc: 'fora do catálogo' },
   ];
 
   const atalhos = [
@@ -70,17 +70,17 @@ export default function Dashboard() {
         {cards.map((card, i) => {
           const Icone = card.icon;
           return (
-            <div key={i} className="card-admin" style={{ padding: '24px', background: 'linear-gradient(180deg, #141414 0%, #101010 100%)', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <div key={i} className="card-admin" style={{ padding: '24px', background: 'var(--bg-surface)', border: '1px solid rgba(255,255,255,0.06)' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(245,164,0,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(245,164,0,0.2)' }}>
-                  <Icone style={{ width: '22px', height: '22px', color: '#f5a400' }} />
+                <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(245,165,36,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(245,165,36,0.2)' }}>
+                  <Icone style={{ width: '22px', height: '22px', color: 'var(--brand)' }} />
                 </div>
-                <span style={{ fontSize: '12px', color: '#d7d5d0', background: 'rgba(255,255,255,0.04)', padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.04)' }}>
+                <span style={{ fontSize: '12px', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.04)', padding: '4px 8px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.04)' }}>
                   {card.desc}
                 </span>
               </div>
-              <div style={{ fontSize: '32px', fontWeight: 800, color: '#f7f7f3', lineHeight: 1 }}>{card.valor}</div>
-              <div style={{ fontSize: '13px', color: '#b7b4b0', marginTop: '6px', fontWeight: 500 }}>{card.label}</div>
+              <div style={{ fontSize: '32px', fontWeight: 800, color: 'var(--text-primary)', lineHeight: 1 }}>{card.valor}</div>
+              <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '6px', fontWeight: 500 }}>{card.label}</div>
             </div>
           );
         })}
@@ -90,8 +90,8 @@ export default function Dashboard() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.6fr', gap: '20px' }}>
 
         {/* ATALHOS RÁPIDOS */}
-        <div className="card-admin" style={{ padding: '24px', background: 'linear-gradient(180deg, #141414 0%, #101010 100%)', border: '1px solid rgba(255,255,255,0.06)' }}>
-          <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#f7f7f3', margin: '0 0 16px 0' }}>⚡ Acesso Rápido</h2>
+        <div className="card-admin" style={{ padding: '24px', background: 'var(--bg-surface)', border: '1px solid rgba(255,255,255,0.06)' }}>
+          <h2 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', margin: '0 0 16px 0' }}>⚡ Acesso Rápido</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {atalhos.map(item => {
               const Icone = item.icon;
@@ -99,20 +99,20 @@ export default function Dashboard() {
                 <Link key={item.to} to={item.to} style={{
                   display: 'flex', alignItems: 'center', gap: '14px',
                   padding: '12px 14px', borderRadius: '12px', textDecoration: 'none',
-                  color: '#f7f7f3', transition: 'all 0.15s',
+                  color: 'var(--text-primary)', transition: 'all 0.15s',
                   border: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.02)'
                 }}
-                  onMouseOver={e => { e.currentTarget.style.background = 'rgba(245,164,0,0.06)'; e.currentTarget.style.borderColor = 'rgba(245,164,0,0.25)'; }}
+                  onMouseOver={e => { e.currentTarget.style.background = 'rgba(245,165,36,0.06)'; e.currentTarget.style.borderColor = 'rgba(245,165,36,0.25)'; }}
                   onMouseOut={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.05)'; }}
                 >
-                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(245,164,0,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid rgba(245,164,0,0.2)' }}>
-                    <Icone style={{ width: '18px', height: '18px', color: '#f5a400' }} />
+                  <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'rgba(245,165,36,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid rgba(245,165,36,0.2)' }}>
+                    <Icone style={{ width: '18px', height: '18px', color: 'var(--brand)' }} />
                   </div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: '14px', fontWeight: 600 }}>{item.texto}</div>
-                    <div style={{ fontSize: '12px', color: '#a7a39f' }}>{item.desc}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{item.desc}</div>
                   </div>
-                  <span style={{ color: '#f5a400', fontSize: '18px' }}>›</span>
+                  <span style={{ color: 'var(--brand)', fontSize: '18px' }}>›</span>
                 </Link>
               );
             })}
@@ -120,11 +120,11 @@ export default function Dashboard() {
         </div>
 
         {/* ÚLTIMOS PEDIDOS */}
-        <div className="card-admin" style={{ padding: '24px', background: 'linear-gradient(180deg, #141414 0%, #101010 100%)', border: '1px solid rgba(255,255,255,0.06)' }}>
+        <div className="card-admin" style={{ padding: '24px', background: 'var(--bg-surface)', border: '1px solid rgba(255,255,255,0.06)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-            <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#f7f7f3', margin: 0 }}>📋 Últimos Pedidos</h2>
+            <h2 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>📋 Últimos Pedidos</h2>
             <Link to="/loja/pedidos" style={{
-              fontSize: '13px', color: '#f5a400', fontWeight: 700, textDecoration: 'none',
+              fontSize: '13px', color: 'var(--brand)', fontWeight: 700, textDecoration: 'none',
               display: 'flex', alignItems: 'center', gap: '4px'
             }}>
               <EyeIcon style={{ width: '14px', height: '14px' }} /> Ver todos
@@ -132,7 +132,7 @@ export default function Dashboard() {
           </div>
 
           {pedidos.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px 20px', color: '#9CA3AF' }}>
+            <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text-secondary)' }}>
               <div style={{ fontSize: '40px', marginBottom: '10px' }}>📭</div>
               <p style={{ margin: 0, fontSize: '14px' }}>Nenhum pedido recebido ainda</p>
             </div>
@@ -142,7 +142,7 @@ export default function Dashboard() {
               <div style={{
                 display: 'grid', gridTemplateColumns: '1fr 80px 90px 100px',
                 padding: '8px 12px', borderRadius: '8px',
-                fontSize: '11px', fontWeight: 700, color: '#c8c5c1',
+                fontSize: '11px', fontWeight: 700, color: 'var(--text-secondary)',
                 textTransform: 'uppercase', letterSpacing: '0.05em', background: 'rgba(255,255,255,0.02)'
               }}>
                 <span>Cliente</span>
@@ -152,28 +152,28 @@ export default function Dashboard() {
               </div>
 
               {pedidos.map(p => {
-                const s = STATUS_CONFIG[p.status] || { bg: '#F3F4F6', color: '#374151', label: p.status, dot: '#9CA3AF' };
+                const s = STATUS_CONFIG[p.status] || { bg: 'var(--bg-surface-2)', color: 'var(--text-secondary)', label: p.status, dot: 'var(--text-secondary)' };
                 return (
                   <div key={p._id} style={{
                     display: 'grid', gridTemplateColumns: '1fr 80px 90px 100px',
                     padding: '12px 12px', borderRadius: '10px', alignItems: 'center',
                     transition: 'background 0.12s'
                   }}
-                    onMouseOver={e => e.currentTarget.style.background = '#F8FAFC'}
+                    onMouseOver={e => e.currentTarget.style.background = 'var(--text-secondary)'}
                     onMouseOut={e => e.currentTarget.style.background = 'transparent'}
                   >
                     <div>
-                      <div style={{ fontSize: '14px', fontWeight: 700, color: '#f7f7f3' }}>
+                      <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-primary)' }}>
                         {p.dadosCliente?.nome || 'Cliente'}
                       </div>
-                      <div style={{ fontSize: '12px', color: '#a7a39f' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
                         {p.itens?.length || 0} {p.itens?.length === 1 ? 'item' : 'itens'}
                       </div>
                     </div>
-                    <div style={{ fontSize: '13px', color: '#c8c5c1' }}>
+                    <div style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>
                       {formatarData(p)}
                     </div>
-                    <div style={{ fontSize: '14px', fontWeight: 800, color: '#f5a400', textAlign: 'right' }}>
+                    <div style={{ fontSize: '14px', fontWeight: 800, color: 'var(--brand)', textAlign: 'right' }}>
                       R$ {Number(p.total).toFixed(2).replace('.', ',')}
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'center' }}>

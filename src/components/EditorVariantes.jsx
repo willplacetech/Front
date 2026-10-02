@@ -31,14 +31,14 @@ export default function EditorVariantes({ produto, onClose, onSalvo }) {
     <div className="variant-editor-row">
       <label>Modelo<input required value={form.nome} onChange={e => setForm({ ...form, nome: e.target.value })} /></label>
       <label>Marca<input required value={form.marca || ''} onChange={e => setForm({ ...form, marca: e.target.value })} /></label>
-      <label>Categoria<select value={form.categoria} onChange={e => setForm({ ...form, categoria: e.target.value })} style={{ padding: 12, borderRadius: 12, background: '#151515', color: '#f7f7f3' }}>{['Lacrado', 'CPO', 'Watch'].map(c => <option key={c}>{c}</option>)}</select></label>
+      <label>Categoria<select value={form.categoria} onChange={e => setForm({ ...form, categoria: e.target.value })} style={{ padding: 12, borderRadius: 12, background: 'var(--bg-surface)', color: 'var(--text-primary)' }}>{['Lacrado', 'CPO', 'Watch'].map(c => <option key={c}>{c}</option>)}</select></label>
     </div>
     <div className="variant-editor-row">
       {[['tela', 'Tela'], ['chip', 'Chip'], ['camera', 'Câmera'], ['bateria', 'Bateria']].map(([campo, label]) => <label key={campo}>{label}<input value={form.specs?.[campo] || ''} onChange={e => setForm({ ...form, specs: { ...form.specs, [campo]: e.target.value } })} /></label>)}
     </div>
     <label>Conectividade 5G<select value={form.specs?.['5g'] === true ? 'sim' : form.specs?.['5g'] === false ? 'nao' : ''}
       onChange={e => setForm({ ...form, specs: { ...form.specs, '5g': e.target.value === '' ? null : e.target.value === 'sim' } })}
-      style={{ padding: 12, borderRadius: 12, background: '#151515', color: '#f7f7f3' }}>
+      style={{ padding: 12, borderRadius: 12, background: 'var(--bg-surface)', color: 'var(--text-primary)' }}>
       <option value="">Não informado</option><option value="sim">Sim</option><option value="nao">Não</option>
     </select></label>
     {form.variants.map((v, indice) => <div className="variant-editor-row" key={v._id}>
@@ -49,7 +49,7 @@ export default function EditorVariantes({ produto, onClose, onSalvo }) {
       <label>Venda (R$)<input required type="number" min="0.01" step="0.01" value={v.preco} onChange={e => alterar(indice, 'preco', e.target.value)} /></label>
       <label>Estoque / sob encomenda<input type="number" min="0" step="1" placeholder="Sob encomenda" value={v.estoque ?? ''} onChange={e => alterar(indice, 'estoque', e.target.value)} /></label>
       <label>Disponível<input type="checkbox" checked={v.disponivel !== false} onChange={e => alterar(indice, 'disponivel', e.target.checked)} style={{ width: 20 }} /></label>
-      <label style={{ flexBasis: '100%' }}>Imagens (uma URL por linha)<textarea value={(v.imagens || []).join('\n')} onChange={e => alterar(indice, 'imagens', e.target.value.split('\n'))} style={{ background: '#151515', color: '#f7f7f3', padding: 12, borderRadius: 12 }} /></label>
+      <label style={{ flexBasis: '100%' }}>Imagens (uma URL por linha)<textarea value={(v.imagens || []).join('\n')} onChange={e => alterar(indice, 'imagens', e.target.value.split('\n'))} style={{ background: 'var(--bg-surface)', color: 'var(--text-primary)', padding: 12, borderRadius: 12 }} /></label>
     </div>)}
     <label><input type="checkbox" checked={form.disponivel !== false} onChange={e => setForm({ ...form, disponivel: e.target.checked })} /> Modelo disponível no catálogo</label>
     {erro && <p className="variant-error" role="alert">{erro}</p>}

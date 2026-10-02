@@ -105,7 +105,9 @@ test('bloqueia modelo fora do catálogo, campos vazios, foto ausente e IMEI inv�
   await expect(page.getByText('Passo 2 de 4')).toBeVisible();
   await expect(page.getByText('Adicione uma foto deste ângulo.', { exact: true })).toBeVisible();
   await page.locator('#foto-lateralDir').setInputFiles(ARQUIVO);
+  await expect(page.getByText('5 de 5 fotos adicionadas')).toBeVisible();
   await page.getByRole('button', { name: 'Continuar', exact: true }).click();
+  await expect(page.getByText('Passo 3 de 4')).toBeVisible();
   await expect(page.locator('.troca-imei-tip')).toContainText('Como obter o IMEI: abra o app Telefone, digite *#06# no teclado e ligue. O número aparecerá na tela.');
   for (const valor of ['', '123', '49015420323751x', '490154203237519']) {
     await page.locator('#imei').fill(valor);

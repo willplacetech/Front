@@ -66,7 +66,7 @@ export default function Troca() {
     titulo.current?.focus({ preventScroll: true });
   }, [passo, sucesso]);
 
-  const atributos = nome => ({ 'aria-invalid': Boolean(errors[nome]),
+  const atributos = nome => ({ 'aria-invalid': Boolean(errors[nome]), 'aria-required': nome !== 'descricaoEstado',
     'aria-describedby': errors[nome] ? `${nome}-error` : undefined });
 
   const reenviarCatalogo = () => {
@@ -192,7 +192,7 @@ export default function Troca() {
                 <div className="troca-photo-counter" aria-live="polite"><CameraIcon /><strong>{totalFotos} de 5 fotos adicionadas</strong><span>Todas obrigatórias</span></div>
                 <div className="troca-photo-grid">{FOTOS_TROCA.map(foto => <Controller key={foto.campo} control={control} name={`fotos.${foto.campo}`}
                   rules={{ validate: validarFoto }} render={({ field, fieldState }) => <FotoSlot foto={foto} arquivo={field.value} nome={field.name}
-                    inputRef={field.ref} onBlur={field.onBlur} onChange={field.onChange} erro={fieldState.error?.message} />} />)}</div>
+                    inputRef={field.ref} onBlur={field.onBlur} onChange={valor => { field.onChange(valor); if (valor) trigger(field.name); }} erro={fieldState.error?.message} />} />)}</div>
               </section>
               <section className="troca-panel" hidden={passo !== 2} aria-label="Descrição e IMEI">
                 <label className="troca-field" htmlFor="descricaoEstado">Descreva o estado do aparelho (arranhões, bateria, acessórios...)
@@ -243,7 +243,7 @@ export default function Troca() {
             </div>
           </form>
           <aside className="troca-aside"><div className="troca-aside-icon"><ArrowPathRoundedSquareIcon /></div><span className="troca-eyebrow">SEU PRÓXIMO UPGRADE</span>
-            <h2>Mais possibilidades.<br /><span>Um novo começo.</span></h2><p>Transforme o aparelho que você já tem no primeiro passo para o seu próximo.</p>
+            <h2>Mais possibilidades.<br />{' '}<span>Um novo começo.</span></h2><p>Transforme o aparelho que você já tem no primeiro passo para o seu próximo.</p>
             <ul><li><ClockIcon /><div><strong>Retorno em até 24h</strong><span>Nossa equipe cuida da sua avaliação.</span></div></li>
               <li><ShieldCheckIcon /><div><strong>Avaliação com cuidado</strong><span>Fotos e detalhes para analisar seu aparelho.</span></div></li>
               <li><PhoneIcon /><div><strong>Atendimento de verdade</strong><span>Falamos com você pelos dados informados.</span></div></li></ul>

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { ArrowLeftIcon, ArrowPathRoundedSquareIcon, ArrowRightIcon, CameraIcon, CheckIcon, CheckCircleIcon,
   ClipboardDocumentCheckIcon, ClockIcon, DevicePhoneMobileIcon, PhoneIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
@@ -9,6 +9,7 @@ import FotoSlot, { FotoPreview } from '../components/FotosTroca';
 import { CAMPOS_CONTATO, CAMPOS_PASSOS, FOTOS_TROCA, dadosParaEnvio, modelosDoCatalogo,
   opcoesDoModelo, validarFoto, validarImei } from '../utils/troca';
 import './Troca.css';
+import { lembrarTroca, retornoDaComparacao } from '../utils/comparar';
 
 const PASSOS = [
   { titulo: 'Aparelho', chamada: 'Qual aparelho você quer trocar?', texto: 'Encontre seu modelo e conte um pouco sobre ele.', icon: DevicePhoneMobileIcon },
@@ -24,6 +25,8 @@ function ErroCampo({ nome, errors }) {
 }
 
 export default function Troca() {
+  const [params] = useSearchParams();
+  const comparacao = params.get('comparacao') || '';
   const { user, token, carregandoUsuario, erroUsuario, recarregarUsuario, sair } = useAuth();
   const [passo, setPasso] = useState(0);
   const [catalogo, setCatalogo] = useState({ modelos: [], carregando: true, erro: '' });
@@ -36,7 +39,9 @@ export default function Troca() {
   const titulo = useRef(null);
   const processamento = useRef(false);
   const { register, control, trigger, getValues, getFieldState, setValue, setError, clearErrors,
-    formState: { errors } } = useForm({ defaultValues: INICIAL, mode: 'onTouched', shouldUnregister: false });
+    formState: { errors } } = useForm({ defaultValues: { ...INICIAL,
+      ...(comparacao ? { modeloAparelho: params.get('modelo') || '', capacidade: params.get('capacidade') || '',
+        cor: params.get('cor') || '', descricaoEstado: params.get('estado') || '' } : {}) }, mode: 'onTouched', shouldUnregister: false });
   const dados = useWatch({ control });
   const modelo = catalogo.modelos.find(item => item.nome === dados.modeloAparelho);
   const { capacidades, cores } = opcoesDoModelo(modelo, dados.capacidade);
@@ -106,7 +111,8 @@ export default function Troca() {
       if (data.acessoToken) {
         try { sessionStorage.setItem(`troca:${data.id}`, data.acessoToken); } catch { /* O sucesso independe de armazenamento local. */ }
       }
-      setSucesso({ protocolo: data.protocolo || data.id });
+      lembrarTroca(data.id);
+      setSucesso({ id: data.id, protocolo: data.protocolo || data.id });
     } catch (error) {
       const mensagem = error.response?.data?.error || error.message || 'Não foi possível enviar sua solicitação. Tente novamente.';
       if (error.response?.status === 409) {
@@ -139,6 +145,9 @@ export default function Troca() {
         <p className="troca-pending">Sua troca está <strong>PENDENTE</strong> — entraremos em contato em até 24h.</p>
         <div className="troca-protocol"><span>Número do protocolo</span><strong>{sucesso.protocolo}</strong><p>Guarde este número para consultar nossa equipe.</p></div>
         <p>Enviaremos o retorno pelos dados de contato informados.</p>
+        <Link to={retornoDaComparacao(comparacao, sucesso.id)} className="troca-button troca-button-primary">
+          {comparacao ? 'Continuar minha comparação' : 'Comparar meu próximo aparelho'} <ArrowRightIcon />
+        </Link>
         <Link to="/#catalogo" className="troca-button troca-button-primary">Explorar o catálogo <ArrowRightIcon /></Link>
       </div> : <>
         <div className="troca-progress" aria-label="Progresso da solicitação">
@@ -173,16 +182,18 @@ export default function Troca() {
                 <p className="troca-help">Busque e selecione um dos modelos do nosso catálogo.</p>
                 <div className="troca-fields-row">
                   <div><label className="troca-field" htmlFor="capacidade">Capacidade <span>*</span>
-                    <select id="capacidade" disabled={!modelo} {...atributos('capacidade')}
-                      {...register('capacidade', { required: 'Selecione a capacidade.', validate: valor => capacidades.includes(valor) || 'Selecione uma capacidade deste modelo.',
-                        onChange: () => { setValue('cor', ''); clearErrors('cor'); } })}>
+                    <Controller control={control} name="capacidade" rules={{ required: 'Selecione a capacidade.',
+                      validate: valor => capacidades.includes(valor) || 'Selecione uma capacidade deste modelo.' }}
+                      render={({ field }) => <select id="capacidade" disabled={!modelo} {...atributos('capacidade')} {...field}
+                        onChange={event => { field.onChange(event); setValue('cor', ''); clearErrors('cor'); }}>
                       <option value="">Selecione a capacidade</option>{capacidades.map(valor => <option key={valor} value={valor}>{valor}</option>)}
-                    </select></label><ErroCampo nome="capacidade" errors={errors} /></div>
+                    </select>} /></label><ErroCampo nome="capacidade" errors={errors} /></div>
                   <div><label className="troca-field" htmlFor="cor">Cor <span>*</span>
-                    <select id="cor" disabled={!modelo || !dados.capacidade} {...atributos('cor')}
-                      {...register('cor', { required: 'Selecione a cor.', validate: valor => cores.includes(valor) || 'Selecione uma cor para esta capacidade.' })}>
+                    <Controller control={control} name="cor" rules={{ required: 'Selecione a cor.',
+                      validate: valor => cores.includes(valor) || 'Selecione uma cor para esta capacidade.' }}
+                      render={({ field }) => <select id="cor" disabled={!modelo || !dados.capacidade} {...atributos('cor')} {...field}>
                       <option value="">Selecione a cor</option>{cores.map(valor => <option key={valor} value={valor}>{valor}</option>)}
-                    </select></label><ErroCampo nome="cor" errors={errors} /></div>
+                    </select>} /></label><ErroCampo nome="cor" errors={errors} /></div>
                 </div>
                 <div className="troca-inline-tip"><DevicePhoneMobileIcon /><p>Você encontra o modelo e a capacidade em <strong>Ajustes → Geral → Sobre</strong> no iPhone ou em <strong>Configurações → Sobre o telefone</strong> no Android.</p></div>
               </section>

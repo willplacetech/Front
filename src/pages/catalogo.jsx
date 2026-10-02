@@ -750,6 +750,7 @@ export default function Catalogo() {
           <div className="navlinks">
             <a href="#catalogo">Catálogo</a>
             <Link className="nav-troca" to="/troca">Trocar meu aparelho</Link>
+            <Link className="nav-comparar" to="/comparar">Comparar aparelhos</Link>
             <a href="#vantagens">Por que a Placetech</a>
             <button className="navcta" onClick={() => setCarrinhoAberto(true)}>
               {totalItens > 0 ? `Meu carrinho (${totalItens})` : 'Meu carrinho'}
@@ -769,6 +770,7 @@ export default function Catalogo() {
               <div className="actions">
                 <a className="primary" href="#catalogo">Explorar aparelhos</a>
                 <Link className="secondary" to="/troca">Trocar meu aparelho</Link>
+                <Link className="secondary" to="/comparar">Comparar aparelhos</Link>
                 <button className="secondary" onClick={() => setCarrinhoAberto(true)}>Ver carrinho</button>
               </div>
 

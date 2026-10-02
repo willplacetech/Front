@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "test": "node --test tests/*.test.js",
     "test:troca": "playwright test --config playwright.troca.config.js",
+    "test:comparar": "playwright test --config playwright.comparar.config.js",
     "preview": "vite preview"
   },
   "dependencies": {

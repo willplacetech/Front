@@ -36,6 +36,11 @@ export default function EditorVariantes({ produto, onClose, onSalvo }) {
     <div className="variant-editor-row">
       {[['tela', 'Tela'], ['chip', 'Chip'], ['camera', 'Câmera'], ['bateria', 'Bateria']].map(([campo, label]) => <label key={campo}>{label}<input value={form.specs?.[campo] || ''} onChange={e => setForm({ ...form, specs: { ...form.specs, [campo]: e.target.value } })} /></label>)}
     </div>
+    <label>Conectividade 5G<select value={form.specs?.['5g'] === true ? 'sim' : form.specs?.['5g'] === false ? 'nao' : ''}
+      onChange={e => setForm({ ...form, specs: { ...form.specs, '5g': e.target.value === '' ? null : e.target.value === 'sim' } })}
+      style={{ padding: 12, borderRadius: 12, background: '#151515', color: '#f7f7f3' }}>
+      <option value="">Não informado</option><option value="sim">Sim</option><option value="nao">Não</option>
+    </select></label>
     {form.variants.map((v, indice) => <div className="variant-editor-row" key={v._id}>
       <label>Cor<input required value={v.cor} onChange={e => alterar(indice, 'cor', e.target.value)} /></label>
       <label>Capacidade<input required value={v.capacidade} onChange={e => alterar(indice, 'capacidade', e.target.value)} /></label>

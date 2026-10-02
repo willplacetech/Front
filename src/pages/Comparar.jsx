@@ -56,11 +56,11 @@ function CartaoComparacao({ aparelho, atual, diferencas, credito, troca, onCompr
 export default function Comparar() {
   const [params, setParams] = useSearchParams();
   const navigate = useNavigate();
-  const { user, carregandoUsuario } = useAuth();
+  const { user, token, carregandoUsuario } = useAuth();
   const { itens, adicionar, associarTroca } = useCarrinho();
   const [catalogo, setCatalogo] = useState({ produtos: [], carregando: true, erro: '' });
   const [solicitacao, setSolicitacao] = useState({ id: '', troca: null, erro: '' });
-  const [minhas, setMinhas] = useState({ userId: '', trocas: [] });
+  const [minhas, setMinhas] = useState({ token: '', trocas: [] });
   const [busca, setBusca] = useState('');
   const [buscaMeu, setBuscaMeu] = useState('');
   const [tentativa, setTentativa] = useState(0);
@@ -84,12 +84,13 @@ export default function Comparar() {
   useEffect(() => {
     if (!user) return;
     const controle = new AbortController();
-    api.get('/troca/mid', { signal: controle.signal }).then(({ data }) => setMinhas({ userId: user._id, trocas: data }))
-      .catch(() => { if (!controle.signal.aborted) setMinhas({ userId: user._id, trocas: [] }); });
+    api.get('/troca/mid', { signal: controle.signal }).then(({ data }) => setMinhas({ token, trocas: data }))
+      .catch(() => { if (!controle.signal.aborted) setMinhas({ token, trocas: [] }); });
     return () => controle.abort();
-  }, [user, tentativa]);
-  const trocasDoUsuario = user && minhas.userId === user._id ? minhas.trocas : [];
-  const sugestao = trocasDoUsuario.find(t => !['rejeitado', 'concluido'].includes(t.status))?._id || ultimaTroca();
+  }, [user, token, tentativa]);
+  const trocasDoUsuario = user && minhas.token === token ? minhas.trocas : [];
+  const sugestao = user && minhas.token !== token ? ''
+    : trocasDoUsuario.find(t => !['rejeitado', 'concluido'].includes(t.status))?._id || ultimaTroca();
 
   useEffect(() => {
     if (tradeInId || temEscolhaManual || carregandoUsuario || !sugestao) return;
@@ -169,7 +170,7 @@ export default function Comparar() {
     }, { replace });
   };
   const ir = indice => atualizar({ passo: PASSOS_COMPARAR[indice] }, false);
-  const escolherMeu = produto => atualizar({ meu: produto?._id || '', variante: produto?.variants[0]?._id || '', tradeInId: null, estado: null });
+  const escolherMeu = produto => atualizar({ meu: produto?._id || 'manual', variante: produto?.variants[0]?._id || '', tradeInId: null, estado: null });
   const escolherVariante = (produto, variante) => atualizar({ item: selecionados.map(s =>
     `${s.produto._id}:${s.produto._id === produto._id ? variante._id : s.variante._id}`) });
   const selecionar = produto => {

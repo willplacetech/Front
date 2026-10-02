@@ -3,6 +3,7 @@ import { test, expect } from '@playwright/test';
 const ID = '012345678901234567890123';
 const produtos = ['iPhone 14', 'iPhone 15', 'iPhone 16', 'iPhone 17'].map((nome, i) => ({
   _id: `p${i}`, nome, marca: 'Apple', categoria: 'Lacrado', disponivel: true, precoAPartir: 3000 + i * 1000,
+  cores: ['Azul', 'Preto', 'Rosa'], capacidades: ['128GB', '256GB', '512GB'],
   specs: { tela: '6,1 polegadas', chip: `A${15 + i}`, camera: i ? '48 MP' : '12 MP', bateria: `${20 + i * 2} horas`, '5g': true },
   variants: [
     { _id: `v${i}a`, cor: 'Azul', capacidade: '128GB', preco: 3000 + i * 1000, estoque: null, sku: `IP${i}A`, imagens: [] },

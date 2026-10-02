@@ -7,6 +7,7 @@ import ProdutoDetalhe from './pages/ProdutoDetalhe';
 import Troca from './pages/Troca';
 import Comparar from './pages/Comparar';
 import CarrinhoPagina from './pages/CarrinhoPagina';
+import MinhasTrocas from './pages/MinhasTrocas';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
       <CarrinhoProvider>
         <Routes>
           <Route path="/troca" element={<Troca />} />
+          <Route path="/troca/mid" element={<MinhasTrocas />} />
           <Route path="/comparar" element={<Comparar />} />
           <Route path="/carrinho" element={<CarrinhoPagina />} />
           <Route path="/produto/:id" element={<ProdutoDetalhe />} />

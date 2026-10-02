@@ -1,29 +1,27 @@
-import { useState } from 'react';
+import { useReducer } from 'react';
 import { CarrinhoContext } from './carrinho';
-import { adicionarAoCarrinho, alterarQuantidadeCarrinho } from '../utils/variantes';
+import { carrinhoReducer } from '../utils/carrinho';
 
 export function CarrinhoProvider({ children }) {
-  const [itens, setItens] = useState([]);
-  const [troca, setTroca] = useState(null);
+  const [{ itens, troca }, dispatch] = useReducer(carrinhoReducer, { itens: [], troca: null });
 
   // ✅ ADICIONAR ITEM
   const adicionar = (produto) => {
-    setItens(prev => adicionarAoCarrinho(prev, produto));
+    dispatch({ tipo: 'adicionar', produto });
   };
 
   // ✅ ALTERAR QUANTIDADE
   const alterarQuantidade = (id, novaQuantidade) => {
-    setItens(prev => alterarQuantidadeCarrinho(prev, id, novaQuantidade));
+    dispatch({ tipo: 'quantidade', id, quantidade: novaQuantidade });
   };
 
   // ✅ REMOVER ITEM
   const remover = (id) => {
-    setItens(prev => prev.filter(i => i._id !== id));
+    dispatch({ tipo: 'remover', id });
   };
 
   const limpar = () => {
-    setItens([]);
-    setTroca(null);
+    dispatch({ tipo: 'limpar' });
   };
 
   return (
@@ -34,7 +32,7 @@ export function CarrinhoProvider({ children }) {
       remover, 
       limpar,
       troca: itens.length ? troca : null,
-      associarTroca: setTroca
+      associarTroca: troca => dispatch({ tipo: 'troca', troca })
     }}>
       {children}
     </CarrinhoContext.Provider>

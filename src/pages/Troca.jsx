@@ -145,6 +145,7 @@ export default function Troca() {
         <p className="troca-pending">Sua troca está <strong>PENDENTE</strong> — entraremos em contato em até 24h.</p>
         <div className="troca-protocol"><span>Número do protocolo</span><strong>{sucesso.protocolo}</strong><p>Guarde este número para consultar nossa equipe.</p></div>
         <p>Enviaremos o retorno pelos dados de contato informados.</p>
+        <Link to={`/troca/mid?protocolo=${sucesso.id}`} className="troca-button troca-button-secondary">Acompanhar minha troca</Link>
         <Link to={retornoDaComparacao(comparacao, sucesso.id)} className="troca-button troca-button-primary">
           {comparacao ? 'Continuar minha comparação' : 'Comparar meu próximo aparelho'} <ArrowRightIcon />
         </Link>

@@ -64,6 +64,7 @@ test('admin vê contador, galeria com zoom, muda status e exporta filtro', async
   await page.getByRole('button', { name: 'Consultar troca' }).click();
   await expect(page.locator('.troca-timeline')).toContainText('Aprovado');
   await expect(page.locator('.troca-timeline li')).toHaveCount(3);
+  await page.screenshot({ path: test.info().outputPath('acompanhamento.png'), fullPage: true });
   await page.reload();
   await expect(page.locator('.troca-timeline')).toContainText('Aprovado');
 });
@@ -76,8 +77,8 @@ test('motivo obrigatório e cliente recebe rejeição na sua linha do tempo', as
   await page.getByLabel('Motivo da rejeição').fill('Tela danificada');
   await page.getByRole('button', { name: 'Rejeitar troca' }).click();
   await expect(page.getByRole('status')).toContainText('Rejeitado');
-  await page.unroute('**/api/auth/me');
-  await page.goto(`/troca/mid?protocolo=${ID}`);
+  await page.route('**/api/auth/me', r => r.fulfill({ json: { user: { nome: 'Cliente teste', email: 'cliente@example.com', telefone: '11999999999' } } }));
+  await page.goto('/troca/mid');
   await expect(page.getByText('Tela danificada', { exact: true })).toBeVisible();
 });
 
@@ -90,4 +91,16 @@ test('rota admin exige sessão verificada e não permite perfil de cliente', asy
   await page.reload();
   await expect(page.getByRole('alert')).toContainText('Acesso exclusivo de administrador');
   await expect(page.getByRole('heading', { name: 'Solicitações de troca' })).toHaveCount(0);
+});
+
+test('cliente logado ainda acompanha protocolo de visitante autorizado nesta sessão', async ({ page }) => {
+  await preparar(page, { admin: false });
+  await page.addInitScript(id => sessionStorage.setItem(`troca:${id}`, 'segredo'), ID);
+  await page.route('**/api/troca/mid', route => route.fulfill({ json: [{
+    _id: '112345678901234567890123', modeloAparelho: 'Outra solicitação', status: 'pendente', historico: [],
+    createdAt: '2026-10-02T10:00:00Z'
+  }] }));
+  await page.goto(`/troca/mid?protocolo=${ID}`);
+  await expect(page.getByText(`PROTOCOLO ${ID}`, { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Outra solicitação' })).toHaveCount(0);
 });

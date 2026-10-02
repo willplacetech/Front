@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/auth';
+import { useTrocasAdmin } from '../context/trocasAdmin';
 import {
   HomeIcon, ShoppingBagIcon, DocumentTextIcon,
   ChartBarIcon, ArrowDownTrayIcon, ArrowTopRightOnSquareIcon,
-  Bars3Icon, XMarkIcon, ArrowRightStartOnRectangleIcon
+  Bars3Icon, XMarkIcon, ArrowRightStartOnRectangleIcon, ArrowsRightLeftIcon
 } from '@heroicons/react/24/outline';
 
 const MENU = [
@@ -12,6 +13,7 @@ const MENU = [
   { path: 'produtos', icon: ShoppingBagIcon,    label: 'Produtos',    desc: 'Gerenciar itens' },
   { path: 'importar', icon: ArrowDownTrayIcon,  label: 'Novo Produto',desc: 'Adicionar produto' },
   { path: 'pedidos',  icon: DocumentTextIcon,   label: 'Pedidos',     desc: 'Acompanhar vendas' },
+  { path: 'trocas', icon: ArrowsRightLeftIcon, label: 'Trocas', desc: 'Avaliar aparelhos' },
   { path: 'relatorios',icon: ChartBarIcon,      label: 'Relatórios',  desc: 'Dados gerenciais' },
 ];
 
@@ -19,9 +21,11 @@ export default function LayoutAdmin({ children, loading = false, titulo = '', su
   const location = useLocation();
   const [menuAberto, setMenuAberto] = useState(false);
   const { sair } = useAuth();
+  const trocasAdmin = useTrocasAdmin();
+  const labelMenu = item => item.path === 'trocas' ? `Trocas (${trocasAdmin?.pendentes ?? 0})` : item.label;
 
   const caminhoAtual = location.pathname.replace('/loja', '').replace(/^\//, '') || '';
-  const isAtivo = (p) => caminhoAtual === p;
+  const isAtivo = (p) => caminhoAtual === p || p && caminhoAtual.startsWith(`${p}/`);
 
   return (
     <div style={{ minHeight: '100vh', background: 'radial-gradient(circle at top, rgba(245,164,0,0.12), transparent 35%), linear-gradient(180deg, #0c0c0c 0%, #121212 100%)', fontFamily: "'Inter', sans-serif" }}>
@@ -122,6 +126,8 @@ export default function LayoutAdmin({ children, loading = false, titulo = '', su
           .sidebar { display: none; }
           .main-content { margin-left: 0; }
           .topbar { padding: 0 16px; }
+          .mobile-menu-btn { display: inline-flex !important; }
+          .main-content > main { padding: 20px 14px !important; }
         }
         .mobile-sidebar {
           position: fixed;
@@ -187,7 +193,7 @@ export default function LayoutAdmin({ children, loading = false, titulo = '', su
                   <Icone style={{ width: '18px', height: '18px' }} />
                 </div>
                 <div>
-                  <div className="nav-label">{item.label}</div>
+                  <div className="nav-label">{labelMenu(item)}</div>
                   <div className="nav-desc">{item.desc}</div>
                 </div>
               </Link>
@@ -229,7 +235,7 @@ export default function LayoutAdmin({ children, loading = false, titulo = '', su
                   <Link key={item.path} to={`/loja/${item.path}`} onClick={() => setMenuAberto(false)}
                     className={`nav-item ${isAtivo(item.path) ? 'ativo' : ''}`}>
                     <div className="nav-icon-wrap"><Icone style={{ width: '18px', height: '18px' }} /></div>
-                    <div className="nav-label">{item.label}</div>
+                    <div className="nav-label">{labelMenu(item)}</div>
                   </Link>
                 );
               })}
@@ -263,7 +269,7 @@ export default function LayoutAdmin({ children, loading = false, titulo = '', su
               Ver Loja
             </a>
             {/* Botão mobile */}
-            <button onClick={() => setMenuAberto(true)} style={{
+            <button aria-label="Abrir menu" onClick={() => setMenuAberto(true)} style={{
               display: 'none', background: '#F0F2F5', border: 'none', borderRadius: '8px',
               padding: '8px', cursor: 'pointer'
             }} className="mobile-menu-btn">

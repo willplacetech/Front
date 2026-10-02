@@ -713,7 +713,7 @@ export default function Catalogo() {
         }
 
         @media (max-width: 900px) {
-          .navlinks a:not(.navcta) { display: none; }
+          .navlinks a:not(.navcta):not(.nav-troca) { display: none; }
           .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
           .benefits { grid-template-columns: repeat(2, minmax(0, 1fr)); }
           .section-head, .cta-panel, .foot { flex-direction: column; align-items: flex-start; }
@@ -726,6 +726,8 @@ export default function Catalogo() {
           .brand { font-size: 18px; }
           .mark { width: 28px; height: 28px; border-width: 7px; }
           .navcta { padding: 10px 16px; font-size: 12px; }
+          .header-inner { height: auto; min-height: 72px; flex-wrap: wrap; padding: 14px 0; gap: 12px; }
+          .navlinks { flex-wrap: wrap; gap: 12px; font-size: 12px; }
           .hero { min-height: 620px; background: linear-gradient(180deg, rgba(5,5,5,.38), rgba(5,5,5,.96) 56%), url('https://catalogo-placetech.diego-placetech.chatgpt.site/assets/hero-smartphones.png') 70% top/auto 58% no-repeat; }
           .hero-inner { padding-top: 250px; }
           .actions { flex-direction: column; align-items: stretch; }
@@ -747,6 +749,7 @@ export default function Catalogo() {
 
           <div className="navlinks">
             <a href="#catalogo">Catálogo</a>
+            <Link className="nav-troca" to="/troca">Trocar meu aparelho</Link>
             <a href="#vantagens">Por que a Placetech</a>
             <button className="navcta" onClick={() => setCarrinhoAberto(true)}>
               {totalItens > 0 ? `Meu carrinho (${totalItens})` : 'Meu carrinho'}
@@ -765,6 +768,7 @@ export default function Catalogo() {
 
               <div className="actions">
                 <a className="primary" href="#catalogo">Explorar aparelhos</a>
+                <Link className="secondary" to="/troca">Trocar meu aparelho</Link>
                 <button className="secondary" onClick={() => setCarrinhoAberto(true)}>Ver carrinho</button>
               </div>
 
